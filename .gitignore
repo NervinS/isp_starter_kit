@@ -20,3 +20,5 @@ tmp/
 .idea/
 .vscode/
 *.swp
+
+# backups localesackend/src/modules/agenda/agenda.service.ts.bak.*

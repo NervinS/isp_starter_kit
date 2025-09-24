@@ -1,70 +1,131 @@
 #!/usr/bin/env bash
-set -Eeuo pipefail
+set -euo pipefail
 
-# 🔒 Fijamos compose y ruta absolutas: no depende del directorio desde el que lo ejecutes
-ROOT="/home/yarumo/isp_starter_kit/backend"
-COMPOSE="docker compose -f $ROOT/docker-compose.yml -p backend"
-API="http://127.0.0.1:3000/v1"
-psqlq="$COMPOSE exec -T db psql -qAtX -U ispuser -d ispdb -c"
+echo "=== 🚦 Smoke Agenda ==="
+CWD="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$CWD"
+echo "📁 CWD: $PWD"
 
-echo "=== 🚦 Smoke Agenda (final) ==="
-echo "📁 Using compose at: $ROOT/docker-compose.yml"
+# Helpers
+API_BASE="http://127.0.0.1:3000/v1"
+psqlq='docker compose exec -T db psql -qAtX -U ispuser -d ispdb -c'
 
+# Función: abortar con mensaje
 die(){ echo "❌ $*" >&2; exit 1; }
-req(){ local m="$1" u="$2" d="${3-}" o
-  if [[ -n "$d" ]]; then o="$(curl -sS -X "$m" "$u" -H 'Content-Type: application/json' -d "$d")"
-  else o="$(curl -sS -X "$m" "$u")"; fi
-  if echo "$o" | jq -e '.statusCode? // empty' >/dev/null; then echo "$o" | jq .; die "API error"; fi
-  echo "$o"
+
+# Función: imprimir título
+step(){ echo -e "\n== $* =="; }
+
+# Función: curl + jq (falla si statusCode >= 400)
+req_json(){
+  local METHOD="$1"; shift
+  local URL="$1"; shift
+  local DATA="${1-}"; shift || true
+  if [[ -n "$DATA" ]]; then
+    RESP="$(curl -s -X "$METHOD" "$URL" -H 'Content-Type: application/json' -d "$DATA")"
+  else
+    RESP="$(curl -s -X "$METHOD" "$URL")"
+  fi
+  # Si API regresó error estándar Nest
+  if echo "$RESP" | jq -e '.statusCode? // empty' >/dev/null; then
+    echo "$RESP" | jq .
+    die "Respuesta con error de la API: $(echo "$RESP" | jq -r '.message // "Unknown error"')"
+  fi
+  echo "$RESP"
 }
 
-# Sube servicios correctos de ESTE compose
-$COMPOSE up -d db minio api >/dev/null
+# 0) Catálogo de motivos para reagenda
+step "0) GET /catalogos/motivos-reagenda"
+CATALOGO="$(req_json GET "$API_BASE/catalogos/motivos-reagenda")"
+echo "$CATALOGO" | jq '{ok, count:(.items|length)}'
+COUNT="$(echo "$CATALOGO" | jq -r '.items | length')"
+[[ "$COUNT" -ge 1 ]] || die "Catálogo de motivos vacío"
 
-echo "⏳ Esperando API..."
-for i in {1..60}; do curl -fsS "$API/health" >/dev/null && break || sleep 1; done || die "API no respondió a tiempo"
+# Elegimos el primer código si existe 'cliente-ausente', preferir ese
+MOTIVO="cliente-ausente"
+if ! echo "$CATALOGO" | jq -r '.items[].codigo' | grep -qx "$MOTIVO"; then
+  MOTIVO="$(echo "$CATALOGO" | jq -r '.items[0].codigo')"
+fi
+echo "🎯 motivo elegido: $MOTIVO"
 
-echo "== 0) Motivos =="
-catm="$(req GET "$API/catalogos/motivos-reagenda")"
-echo "$catm" | jq '{ok, count:(.items|length)}'
-MOTIVO="$(echo "$catm" | jq -r '.items[]?.codigo' | (grep -x 'cliente-ausente' || head -n1))"
-[[ -n "$MOTIVO" ]] || die "Catálogo vacío"
-echo "🎯 motivo: $MOTIVO"
-
+# Rehidratar técnico/usuario
 TECNICO_ID="$($psqlq "SELECT id FROM tecnicos LIMIT 1;")"
 USUARIO_ID="$($psqlq "SELECT id FROM usuarios LIMIT 1;")"
-[[ -n "$TECNICO_ID" && -n "$USUARIO_ID" ]] || die "Faltan técnico/usuario"
+[[ -n "$TECNICO_ID" && -n "$USUARIO_ID" ]] || die "No hay TECNICO_ID/USUARIO_ID en DB"
 
-echo "== 1) Crear orden =="
-OID="$($COMPOSE exec -T db sh -lc "psql -qAtX -U ispuser -d ispdb -c \"
-INSERT INTO ordenes (id,codigo,estado,tecnico_id,tipo,subtotal,total,usuario_id)
-VALUES (uuid_generate_v4(), DEFAULT, 'agendada', '${TECNICO_ID}', 'INS', 0, 0, '${USUARIO_ID}')
-RETURNING id;\"")"
-COD="$($psqlq "SELECT codigo FROM ordenes WHERE id='${OID}';")"
-[[ -n "$COD" ]] || die "No se obtuvo código"
-echo "🆕 orden: $COD"
+# 1) Crear orden en estado 'agendada' con DEFAULT codigo
+step "1) Crear orden"
+ORD_ID="$(docker compose exec -T db sh -lc "psql -qAtX -U ispuser -d ispdb -c \"
+  INSERT INTO ordenes (id,codigo,estado,tecnico_id,tipo,subtotal,total,usuario_id)
+  VALUES (uuid_generate_v4(), DEFAULT, 'agendada', '${TECNICO_ID}', 'INS', 0, 0, '${USUARIO_ID}')
+  RETURNING id;\"")"
+ORD_COD="$($psqlq "SELECT codigo FROM ordenes WHERE id='${ORD_ID}';")"
+[[ -n "$ORD_COD" ]] || die "No se obtuvo código de orden"
+echo "🆕 orden: $ORD_COD"
 
-TOM="$(date -u -d '+1 day' +%F 2>/dev/null || date -u -v+1d +%F)"
+# Fechas
+TOMORROW="$(date -u -d '+1 day' +%F 2>/dev/null || date -u -v+1d +%F)"
 DAY2="$(date -u -d '+2 day' +%F 2>/dev/null || date -u -v+2d +%F)"
 
-echo "== 2) ASIGNAR =="
-req POST "$API/agenda/ordenes/${COD}/asignar" "{\"fecha\":\"$TOM\",\"turno\":\"am\",\"tecnicoId\":\"$TECNICO_ID\"}" | jq .
+# 2) Asignar (fecha/turno/técnico)
+step "2) POST /agenda/ordenes/:codigo/asignar"
+ASIGNAR_PAYLOAD="$(jq -nc --arg f "$TOMORROW" --arg t "am" --arg tech "$TECNICO_ID" '{fecha:$f, turno:$t, tecnicoId:$tech}')"
+RESP_ASIGNAR="$(req_json POST "$API_BASE/agenda/ordenes/${ORD_COD}/asignar" "$ASIGNAR_PAYLOAD")"
+echo "$RESP_ASIGNAR" | jq .
+# Validaciones mínimas payload
+test "$(echo "$RESP_ASIGNAR" | jq -r '.ok')" = "true" || die "Asignar no respondió ok=true"
+test "$(echo "$RESP_ASIGNAR" | jq -r '.orden[0].agendadoPara')" = "$TOMORROW" || die "Asignar no fijó agendadoPara esperado"
+test "$(echo "$RESP_ASIGNAR" | jq -r '.orden[0].turno')" = "am" || die "Asignar no fijó turno=am"
 
-echo "== 3) REAGENDAR (con motivo) =="
-req POST "$API/agenda/ordenes/${COD}/reagendar" "{\"fecha\":\"$DAY2\",\"turno\":\"pm\",\"motivo\":\"Cliente reprograma\",\"motivoCodigo\":\"$MOTIVO\"}" | jq .
+# 3) Reagendar con motivo (texto + código) y persistencia real
+step "3) POST /agenda/ordenes/:codigo/reagendar (con motivo)"
+REAGENDAR_PAYLOAD="$(jq -nc --arg f "$DAY2" --arg t "pm" --arg mc "$MOTIVO" --arg m "Cliente reprograma" '{fecha:$f, turno:$t, motivoCodigo:$mc, motivo:$m}')"
+RESP_REAGENDAR="$(req_json POST "$API_BASE/agenda/ordenes/${ORD_COD}/reagendar" "$REAGENDAR_PAYLOAD")"
+echo "$RESP_REAGENDAR" | jq .
+test "$(echo "$RESP_REAGENDAR" | jq -r '.ok')" = "true" || die "Reagendar no respondió ok=true"
+test "$(echo "$RESP_REAGENDAR" | jq -r '.orden[0].agendadoPara')" = "$DAY2" || die "Reagendar no fijó nueva fecha"
+test "$(echo "$RESP_REAGENDAR" | jq -r '.orden[0].turno')" = "pm" || die "Reagendar no fijó turno=pm"
+test "$(echo "$RESP_REAGENDAR" | jq -r '.orden[0].motivo')" != "null" || die "Payload de reagendar no trajo 'motivo'"
+test "$(echo "$RESP_REAGENDAR" | jq -r '.orden[0].motivoCodigo')" != "null" || die "Payload de reagendar no trajo 'motivoCodigo'"
 
-echo "== 3b) DB post-reagendar =="
-$psqlq "SELECT to_char(agendado_para,'YYYY-MM-DD'), turno, motivo_reagenda, motivo_reagenda_codigo FROM ordenes WHERE codigo='${COD}';" \
-| awk -F'|' '{printf "agendado_para=%s | turno=%s | motivo_reagenda=%s | motivo_reagenda_codigo=%s\n",$1,$2,$3,$4}'
+step "3b) Validación en DB (persistencia real)"
+DB_ROW="$($psqlq "SELECT to_char(agendado_para,'YYYY-MM-DD')
+                        , turno
+                        , motivo_reagenda
+                        , motivo_reagenda_codigo
+                   FROM ordenes
+                   WHERE codigo='${ORD_COD}';")"
+echo "$DB_ROW"
+DB_DATE="$(echo "$DB_ROW" | cut -d'|' -f1)"
+DB_TURNO="$(echo "$DB_ROW" | cut -d'|' -f2)"
+DB_MOTIVO="$(echo "$DB_ROW" | cut -d'|' -f3)"
+DB_MOTIVO_COD="$(echo "$DB_ROW" | cut -d'|' -f4)"
 
-MT="$($psqlq "SELECT motivo_reagenda FROM ordenes WHERE codigo='${COD}';")"
-MC="$($psqlq "SELECT motivo_reagenda_codigo FROM ordenes WHERE codigo='${COD}';")"
-[[ "$MT" == "Cliente reprograma" && "$MC" == "$MOTIVO" ]] || die "Persistencia de motivo reagenda incorrecta"
+[[ "$DB_DATE" = "$DAY2" ]] || die "DB.agendado_para no coincide ($DB_DATE != $DAY2)"
+[[ "$DB_TURNO" = "pm" ]] || die "DB.turno no es pm ($DB_TURNO)"
+[[ -n "$DB_MOTIVO" ]] || die "DB.motivo_reagenda vacío"
+[[ -n "$DB_MOTIVO_COD" ]] || die "DB.motivo_reagenda_codigo vacío"
 
-echo "== 4) CANCELAR =="
-req POST "$API/agenda/ordenes/${COD}/cancelar" | jq .
+# 4) Cancelar: no debe tocar motivos de REAGENDA
+step "4) POST /agenda/ordenes/:codigo/cancelar"
+RESP_CANCELAR="$(req_json POST "$API_BASE/agenda/ordenes/${ORD_COD}/cancelar")"
+echo "$RESP_CANCELAR" | jq .
+test "$(echo "$RESP_CANCELAR" | jq -r '.ok')" = "true" || die "Cancelar no respondió ok=true"
+test "$(echo "$RESP_CANCELAR" | jq -r '.orden[0].agendadoPara')" = "null" || die "Cancelar no limpió agendadoPara"
+test "$(echo "$RESP_CANCELAR" | jq -r '.orden[0].turno')" = "null" || die "Cancelar no limpió turno"
 
-echo "== 5) ANULAR =="
-req POST "$API/agenda/ordenes/${COD}/anular" "{\"motivo\":\"Cliente desistió\",\"motivoCodigo\":\"$MOTIVO\"}" | jq .
+step "4b) DB tras cancelar (motivos de reagenda intactos)"
+DB_ROW2="$($psqlq "SELECT motivo_reagenda, motivo_reagenda_codigo FROM ordenes WHERE codigo='${ORD_COD}';")"
+echo "$DB_ROW2"
+[[ "$(echo "$DB_ROW2" | cut -d'|' -f1)" = "$DB_MOTIVO" ]] || die "motivo_reagenda cambió tras cancelar"
+[[ "$(echo "$DB_ROW2" | cut -d'|' -f2)" = "$DB_MOTIVO_COD" ]] || die "motivo_reagenda_codigo cambió tras cancelar"
 
-echo "✅ Smoke Agenda OK"
+# 5) Anular: flujo independiente que no debe tocar los motivos de REAGENDA
+step "5) POST /agenda/ordenes/:codigo/anular"
+ANULAR_PAYLOAD="$(jq -nc --arg m "Cliente desistió" --arg mc "$MOTIVO" '{motivo:$m, motivoCodigo:$mc}')"
+RESP_ANULAR="$(req_json POST "$API_BASE/agenda/ordenes/${ORD_COD}/anular" "$ANULAR_PAYLOAD")"
+echo "$RESP_ANULAR" | jq .
+test "$(echo "$RESP_ANULAR" | jq -r '.ok')" = "true" || die "Anular no respondió ok=true"
+test "$(echo "$RESP_ANULAR" | jq -r '.orden[0].estado')" = "cancelada" || die "Anular no dejó estado=cancelada"
+
+echo -e "\n✅ Smoke Agenda OK: asignar ✔, reagendar (con motivo persistido) ✔, cancelar ✔, anular ✔."
