@@ -1,0 +1,64 @@
+# Host
+Linux yarumo 5.15.0-153-generic #163-Ubuntu SMP Thu Aug 7 16:44:32 UTC 2025 aarch64 aarch64 aarch64 GNU/Linux
+Distributor ID:	Ubuntu
+Description:	Ubuntu 22.04.5 LTS
+Release:	22.04
+Codename:	jammy
+
+# Recursos
+Filesystem                         Size  Used Avail Use% Mounted on
+tmpfs                              793M  2,0M  791M   1% /run
+/dev/mapper/ubuntu--vg-ubuntu--lv  273G   55G  207G  21% /
+tmpfs                              3,9G     0  3,9G   0% /dev/shm
+tmpfs                              5,0M     0  5,0M   0% /run/lock
+/dev/sda2                          2,0G  239M  1,6G  14% /boot
+/dev/sda1                          1,1G  6,4M  1,1G   1% /boot/efi
+overlay                            273G   55G  207G  21% /var/lib/docker/overlay2/6fd686de41066e9732f871bd8eba946aff9e4031941be9d79d60817045d1c5a5/merged
+overlay                            273G   55G  207G  21% /var/lib/docker/overlay2/07fa07efcc97dd50b4a21ac3164cd37a9fb49371400f528850db5948667f98a3/merged
+overlay                            273G   55G  207G  21% /var/lib/docker/overlay2/6480e33c6f5fd6ba8a1ffe17f1e1bde1a6873dea081e1dd6bccd91a154170dc6/merged
+overlay                            273G   55G  207G  21% /var/lib/docker/overlay2/c9fab1f7a0d8392b3bd500f7e34458238b6cda9c9e4082cf2f2ef6a32f463be5/merged
+overlay                            273G   55G  207G  21% /var/lib/docker/overlay2/1b530d3dd7043b01b41791a84530b1b99c76e30be0219a0e92c921964c657456/merged
+tmpfs                              793M  4,0K  793M   1% /run/user/1000
+overlay                            273G   55G  207G  21% /var/lib/docker/overlay2/0d4a7e8cfc1df12e272091bffad4dbb788c05150c30689a4bbeeb676e2d29fd1/merged
+               total        used        free      shared  buff/cache   available
+Mem:            7926        1227         356          61        6342        6435
+Swap:           8191           1        8190
+
+# Red
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+enp0s11          UP             192.168.1.140/24 fe80::be24:11ff:feb2:9f51/64 
+docker0          DOWN           172.17.0.1/16 fe80::64e7:17ff:febf:302d/64 
+br-851e9883fd77  UP             172.18.0.1/16 fe80::54ed:4cff:feac:124/64 
+vethf55bfe4@if2  UP             fe80::e43b:15ff:fe9e:4a83/64 
+veth65b8a43@if2  UP             fe80::c42e:96ff:fe08:8827/64 
+vethbe6b005@if2  UP             fe80::f859:c9ff:fe6f:63c5/64 
+br-3935243e4e26  UP             172.19.0.1/16 fe80::a4fd:38ff:fe67:e5da/64 
+vethb123f04@if2  UP             fe80::b88e:27ff:fe90:6fd8/64 
+vetha50ab64@if2  UP             fe80::c899:c2ff:fe96:d0f4/64 
+veth10a4e57@if2  UP             fe80::fce4:b2ff:fe28:8235/64 
+State  Recv-Q Send-Q Local Address:Port  Peer Address:PortProcess                                   
+LISTEN 0      4096         0.0.0.0:15672      0.0.0.0:*    users:(("docker-proxy",pid=1279224,fd=7))
+LISTEN 0      4096   127.0.0.53%lo:53         0.0.0.0:*    users:(("systemd-resolve",pid=720,fd=14))
+LISTEN 0      4096         0.0.0.0:3000       0.0.0.0:*    users:(("docker-proxy",pid=3698384,fd=7))
+LISTEN 0      4096         0.0.0.0:6379       0.0.0.0:*    users:(("docker-proxy",pid=1279111,fd=7))
+LISTEN 0      4096         0.0.0.0:55432      0.0.0.0:*    users:(("docker-proxy",pid=2669376,fd=7))
+LISTEN 0      4096         0.0.0.0:5672       0.0.0.0:*    users:(("docker-proxy",pid=1279211,fd=7))
+LISTEN 0      4096         0.0.0.0:5432       0.0.0.0:*    users:(("docker-proxy",pid=1279173,fd=7))
+LISTEN 0      128        127.0.0.1:6011       0.0.0.0:*    users:(("sshd",pid=3888021,fd=9))        
+LISTEN 0      4096         0.0.0.0:9000       0.0.0.0:*    users:(("docker-proxy",pid=2669331,fd=7))
+LISTEN 0      4096         0.0.0.0:9001       0.0.0.0:*    users:(("docker-proxy",pid=2669343,fd=7))
+LISTEN 0      128          0.0.0.0:22         0.0.0.0:*    users:(("sshd",pid=812,fd=3))            
+LISTEN 0      4096            [::]:15672         [::]:*    users:(("docker-proxy",pid=1279234,fd=7))
+LISTEN 0      4096            [::]:3000          [::]:*    users:(("docker-proxy",pid=3698391,fd=7))
+LISTEN 0      4096            [::]:6379          [::]:*    users:(("docker-proxy",pid=1279117,fd=7))
+LISTEN 0      4096            [::]:55432         [::]:*    users:(("docker-proxy",pid=2669382,fd=7))
+LISTEN 0      4096            [::]:5672          [::]:*    users:(("docker-proxy",pid=1279217,fd=7))
+LISTEN 0      128            [::1]:6011          [::]:*    users:(("sshd",pid=3888021,fd=7))        
+LISTEN 0      4096            [::]:5432          [::]:*    users:(("docker-proxy",pid=1279179,fd=7))
+LISTEN 0      4096            [::]:9000          [::]:*    users:(("docker-proxy",pid=2669337,fd=7))
+LISTEN 0      4096            [::]:9001          [::]:*    users:(("docker-proxy",pid=2669350,fd=7))
+LISTEN 0      128             [::]:22            [::]:*    users:(("sshd",pid=812,fd=4))            
+
+# Git
+fatal: not a git repository (or any of the parent directories): .git
+No es repo git en /home/yarumo/isp_starter_kit/backend

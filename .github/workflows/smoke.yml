@@ -1,0 +1,26 @@
+name: Smoke
+on: [push]
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build images
+        run: docker compose -f backend/docker-compose.yml -f backend/docker-compose.override.yml build
+      - name: Up stack
+        run: docker compose -f backend/docker-compose.yml -f backend/docker-compose.override.yml up -d
+      - name: Wait API
+        run: |
+          for i in {1..60}; do
+            curl -fsS http://127.0.0.1:3000/v1/health && exit 0
+            sleep 2
+          done
+          echo "API no respondió"; docker compose -f backend/docker-compose.yml -f backend/docker-compose.override.yml logs api; exit 1
+      - name: Run smoke cerrar (id)
+        run: bash backend/script/smoke_cerrar.sh
+      - name: Run smoke cerrar (codigo)
+        run: bash backend/script/smoke_cerrar_codigo.sh
+      - name: Logs (si falla)
+        if: failure()
+        run: docker compose -f backend/docker-compose.yml -f backend/docker-compose.override.yml logs

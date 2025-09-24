@@ -1,0 +1,58 @@
+// src/modules/ordenes/controllers/agenda.controller.ts
+import { Body, Controller, Delete, Param, Patch, Post } from '@nestjs/common';
+import { DataSource } from 'typeorm';
+import { AgendarOrdenDto, AgendarOrdenPatchDto } from '../dto/agendar-orden.dto';
+
+@Controller('ordenes/:codigo/agenda')
+export class AgendaController {
+  constructor(private readonly dataSource: DataSource) {}
+
+  @Post()
+  async asignar(@Param('codigo') codigo: string, @Body() body: AgendarOrdenDto) {
+    return this.dataSource.transaction(async (m) => {
+      const ord = await m.query(`SELECT id FROM ordenes WHERE codigo=$1 FOR UPDATE`, [codigo]);
+      if (!ord?.[0]) {
+        return { ok: false, error: 'ORDEN_NO_EXISTE', codigo };
+      }
+      await m.query(
+        `UPDATE ordenes SET tecnico_id=$1, agenda_fecha=$2, agenda_turno=$3 WHERE codigo=$4`,
+        [body.tecnicoId, body.fecha, body.turno, codigo],
+      );
+      return { ok: true, accion: 'asignar', codigo, tecnicoId: body.tecnicoId, fecha: body.fecha, turno: body.turno };
+    });
+  }
+
+  @Patch()
+  async actualizar(@Param('codigo') codigo: string, @Body() body: AgendarOrdenPatchDto) {
+    return this.dataSource.transaction(async (m) => {
+      const ord = await m.query(`SELECT id FROM ordenes WHERE codigo=$1 FOR UPDATE`, [codigo]);
+      if (!ord?.[0]) {
+        return { ok: false, error: 'ORDEN_NO_EXISTE', codigo };
+      }
+      const tecnicoId = body.tecnicoId ?? null;
+      const fecha     = body.fecha ?? null;
+      const turno     = body.turno ?? null;
+      await m.query(
+        `UPDATE ordenes
+           SET tecnico_id=COALESCE($1, tecnico_id),
+               agenda_fecha=COALESCE($2, agenda_fecha),
+               agenda_turno=COALESCE($3, agenda_turno)
+         WHERE codigo=$4`,
+        [tecnicoId, fecha, turno, codigo],
+      );
+      return { ok: true, accion: 'actualizar', codigo, tecnicoId: body.tecnicoId, fecha: body.fecha, turno: body.turno };
+    });
+  }
+
+  @Delete()
+  async cancelar(@Param('codigo') codigo: string) {
+    return this.dataSource.transaction(async (m) => {
+      const ord = await m.query(`SELECT id FROM ordenes WHERE codigo=$1 FOR UPDATE`, [codigo]);
+      if (!ord?.[0]) {
+        return { ok: false, error: 'ORDEN_NO_EXISTE', codigo };
+      }
+      await m.query(`UPDATE ordenes SET agenda_fecha=NULL, agenda_turno=NULL WHERE codigo=$1`, [codigo]);
+      return { ok: true, accion: 'cancelar', codigo };
+    });
+  }
+}

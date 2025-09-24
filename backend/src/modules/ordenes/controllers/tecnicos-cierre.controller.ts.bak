@@ -1,0 +1,120 @@
+// src/modules/ordenes/controllers/tecnicos-cierre.controller.ts
+import {
+  Body,
+  Controller,
+  Headers,
+  HttpCode,
+  HttpException,
+  HttpStatus,
+  Param,
+  Post,
+} from '@nestjs/common';
+import { DataSource } from 'typeorm';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { CerrarOrdenDto } from '../dto/cerrar-orden.dto';
+import { OrdenCierreIdem } from '../entities/orden-cierre-idem.entity';
+import crypto from 'crypto';
+
+function canonicalize(obj: any): any {
+  if (obj === null || obj === undefined) return null;
+  if (Array.isArray(obj)) return obj.map(canonicalize);
+  if (typeof obj === 'object') {
+    const out: any = {};
+    for (const k of Object.keys(obj).sort()) {
+      out[k] = canonicalize(obj[k]);
+    }
+    return out;
+  }
+  if (typeof obj === 'string') return obj.trim();
+  return obj;
+}
+
+function payloadHash(payload: any): string {
+  const txt = JSON.stringify(canonicalize(payload));
+  return crypto.createHash('sha256').update(txt).digest('hex');
+}
+
+@Controller('v1/tecnicos/:tecId/ordenes')
+export class TecnicosCierreController {
+  constructor(
+    private readonly dataSource: DataSource,
+    @InjectRepository(OrdenCierreIdem)
+    private readonly idemRepo: Repository<OrdenCierreIdem>,
+  ) {}
+
+  @Post(':codigo/cerrar')
+  @HttpCode(200)
+  async cerrar(
+    @Param('tecId') tecId: string,
+    @Param('codigo') codigo: string,
+    @Body() body: CerrarOrdenDto,
+    @Headers('Idempotency-Key') idemKey?: string,
+  ) {
+    const hash = payloadHash(body);
+
+    // 1) Idempotencia: buscar existente
+    const existing = await this.idemRepo.findOne({
+      where: { orden_codigo: codigo, payload_hash: hash },
+    });
+    if (existing) {
+      if (existing.response_status && existing.response_body) {
+        // Repetición: entregar misma respuesta (200/204 típico)
+        return { _idempotent: true, ...existing.response_body };
+      }
+      throw new HttpException('Idempotent conflict', HttpStatus.CONFLICT);
+    }
+
+    // 2) Registrar intento
+    const rec = await this.idemRepo.save(
+      this.idemRepo.create({
+        orden_codigo: codigo,
+        payload_hash: hash,
+        idempotency_key: idemKey ?? null,
+      }),
+    );
+
+    // 3) Ejecutar cierre real dentro de TX
+    let result: any;
+    try {
+      result = await this.dataSource.transaction(async (m) => {
+        // === TODO: integra aquí tus pasos de cierre ===
+        // - Validar estado/ownership (orden existe y pertenece al técnico si aplica)
+        const ord = await m.query(
+          `SELECT id, estado FROM ordenes WHERE codigo=$1 FOR UPDATE`,
+          [codigo],
+        );
+        if (!ord?.[0]) {
+          throw new HttpException('Orden no existe', HttpStatus.NOT_FOUND);
+        }
+
+        // - Descuento de materiales (ejemplo mínimo; adapta a tus tablas):
+        //   Recorre body.materiales y actualiza inv_tecnico / ordenes_materiales
+        //   ... (tu lógica actual aquí)
+
+        // - Generar PDF + subir a MinIO (si tu lógica ya existe, invócala)
+        const pdfUrl = `key://ordenes/${codigo}.pdf`; // placeholder si ya tienes upload real
+
+        // - Cambiar estado de usuario (INS/REC/COR/BAJ/TRA/CMB/RCT) según reglas
+        //   ... (tu lógica)
+
+        // - Cerrar orden (timestamps y estado)
+        await m.query(
+          `UPDATE ordenes SET estado='cerrada', cerrada_at=now() WHERE codigo=$1`,
+          [codigo],
+        );
+
+        return { estado: 'cerrada', pdfUrl, cerradaAt: new Date().toISOString() };
+      });
+    } catch (e) {
+      // No guardamos respuesta exitosa si falló el cierre
+      throw e;
+    }
+
+    // 4) Persistir respuesta idempotente reproducible
+    await this.idemRepo.update({ id: rec.id }, { response_status: 200, response_body: result });
+
+    // 5) Responder
+    return { _idempotent: false, ...result };
+  }
+}

@@ -1,0 +1,27 @@
+NAME        IMAGE                COMMAND                  SERVICE   CREATED        STATUS                  PORTS
+isp-api     backend-api          "docker-entrypoint.s…"   api       5 hours ago    Up 5 hours (healthy)    0.0.0.0:3000->3000/tcp, [::]:3000->3000/tcp
+isp-db      postgres:14-alpine   "docker-entrypoint.s…"   db        21 hours ago   Up 21 hours (healthy)   0.0.0.0:55432->5432/tcp, [::]:55432->5432/tcp
+isp-minio   minio/minio:latest   "/usr/bin/docker-ent…"   minio     21 hours ago   Up 21 hours (healthy)   0.0.0.0:9000-9001->9000-9001/tcp, [::]:9000-9001->9000-9001/tcp
+
+# Imagenes locales (top 20 por tamaño)
+REPOSITORY        TAG                            SIZE
+backend-api       latest                         420MB
+<none>            <none>                         420MB
+<none>            <none>                         420MB
+<none>            <none>                         420MB
+<none>            <none>                         420MB
+<none>            <none>                         420MB
+<none>            <none>                         420MB
+<none>            <none>                         420MB
+<none>            <none>                         420MB
+<none>            <none>                         420MB
+<none>            <none>                         420MB
+<none>            <none>                         420MB
+<none>            <none>                         420MB
+<none>            <none>                         420MB
+<none>            <none>                         420MB
+<none>            <none>                         420MB
+<none>            <none>                         420MB
+<none>            <none>                         420MB
+<none>            <none>                         420MB
+<none>            <none>                         420MB

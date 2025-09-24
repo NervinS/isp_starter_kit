@@ -1,0 +1,4 @@
+
+=== Host: SO / recursos / git ===
+
+=== Docker compose: servicios / estado / logs cortos ===

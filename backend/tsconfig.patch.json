@@ -1,0 +1,23 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2019",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "outDir": "dist_patch",
+    "rootDir": "src",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "noEmitOnError": false,
+    "baseUrl": "./"
+  },
+  "include": [
+    "src/modules/tecnicos/tecnicos.service.ts",
+    "src/modules/ordenes/entities/orden.entity.ts",
+    "src/modules/ordenes/entities/orden-material.entity.ts"
+  ],
+  "exclude": []
+}

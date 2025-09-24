@@ -1,0 +1,726 @@
+nohup: ignoring input
+
+> isp-backend@0.1.0 start:dev
+> ts-node-dev --respawn --transpile-only src/main.ts
+
+[INFO] 13:46:34 ts-node-dev ver. 2.0.0 (using ts-node ver. 10.9.2, typescript ver. 5.9.2)
+[32m[Nest] 73403  - [39m13/08/2025, 13:46:35 [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 73403  - [39m13/08/2025, 13:46:35 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +19ms[39m
+[32m[Nest] 73403  - [39m13/08/2025, 13:46:35 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSmartoltModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 73403  - [39m13/08/2025, 13:46:35 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHealthModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 73403  - [39m13/08/2025, 13:46:35 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mVentasModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 73403  - [39m13/08/2025, 13:46:35 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mOrdenesModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 73403  - [39m13/08/2025, 13:46:35 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mHealthController {/v1/health}:[39m[38;5;3m +6ms[39m
+[32m[Nest] 73403  - [39m13/08/2025, 13:46:35 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/health, GET} route[39m[38;5;3m +4ms[39m
+[32m[Nest] 73403  - [39m13/08/2025, 13:46:35 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mVentasController {/v1/ventas}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 73403  - [39m13/08/2025, 13:46:35 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas, POST} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 73403  - [39m13/08/2025, 13:46:35 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mOrdenesController {/v1/ordenes}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 73403  - [39m13/08/2025, 13:46:35 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes/:id/cerrar, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 73403  - [39m13/08/2025, 13:46:35 [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +4ms[39m
+API running on http://0.0.0.0:3000/v1/health
+[INFO] 18:48:29 Restarting: /home/yarumo/isp_starter_kit/backend/src/modules/app.module.ts has been modified
+Error: Cannot find module '../db/db.module'
+Require stack:
+- /home/yarumo/isp_starter_kit/backend/src/modules/app.module.ts
+- /home/yarumo/isp_starter_kit/backend/src/main.ts
+    at Function._resolveFilename (node:internal/modules/cjs/loader:1365:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1021:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1026:22)
+    at Function._load (node:internal/modules/cjs/loader:1175:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Module.require (node:internal/modules/cjs/loader:1445:12)
+    at require (node:internal/modules/helpers:135:16)
+    at Object.<anonymous> (/home/yarumo/isp_starter_kit/backend/src/modules/app.module.ts:6:1)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1688:14)
+[ERROR] 18:48:29 Error: Cannot find module '../db/db.module'
+Require stack:
+- /home/yarumo/isp_starter_kit/backend/src/modules/app.module.ts
+- /home/yarumo/isp_starter_kit/backend/src/main.ts
+[INFO] 18:55:43 Restarting: /home/yarumo/isp_starter_kit/backend/src/modules/app.module.ts has been modified
+Error: Cannot find module '@nestjs/typeorm'
+Require stack:
+- /home/yarumo/isp_starter_kit/backend/src/modules/db/db.module.ts
+- /home/yarumo/isp_starter_kit/backend/src/modules/app.module.ts
+- /home/yarumo/isp_starter_kit/backend/src/main.ts
+    at Function._resolveFilename (node:internal/modules/cjs/loader:1365:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1021:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1026:22)
+    at Function._load (node:internal/modules/cjs/loader:1175:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Module.require (node:internal/modules/cjs/loader:1445:12)
+    at require (node:internal/modules/helpers:135:16)
+    at Object.<anonymous> (/home/yarumo/isp_starter_kit/backend/src/modules/db/db.module.ts:2:1)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1688:14)
+[ERROR] 18:55:44 Error: Cannot find module '@nestjs/typeorm'
+Require stack:
+- /home/yarumo/isp_starter_kit/backend/src/modules/db/db.module.ts
+- /home/yarumo/isp_starter_kit/backend/src/modules/app.module.ts
+- /home/yarumo/isp_starter_kit/backend/src/main.ts
+[INFO] 18:56:03 Restarting: /home/yarumo/isp_starter_kit/backend/src/modules/app.module.ts has been modified
+Error: Cannot find module '@nestjs/typeorm'
+Require stack:
+- /home/yarumo/isp_starter_kit/backend/src/modules/db/db.module.ts
+- /home/yarumo/isp_starter_kit/backend/src/modules/app.module.ts
+- /home/yarumo/isp_starter_kit/backend/src/main.ts
+    at Function._resolveFilename (node:internal/modules/cjs/loader:1365:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1021:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1026:22)
+    at Function._load (node:internal/modules/cjs/loader:1175:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Module.require (node:internal/modules/cjs/loader:1445:12)
+    at require (node:internal/modules/helpers:135:16)
+    at Object.<anonymous> (/home/yarumo/isp_starter_kit/backend/src/modules/db/db.module.ts:2:1)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1688:14)
+[ERROR] 18:56:03 Error: Cannot find module '@nestjs/typeorm'
+Require stack:
+- /home/yarumo/isp_starter_kit/backend/src/modules/db/db.module.ts
+- /home/yarumo/isp_starter_kit/backend/src/modules/app.module.ts
+- /home/yarumo/isp_starter_kit/backend/src/main.ts
+[INFO] 19:05:04 Reinitializing TS compilation
+[INFO] 19:05:04 Restarting: /home/yarumo/isp_starter_kit/backend/tsconfig.json has been modified
+Compilation error in /home/yarumo/isp_starter_kit/backend/src/modules/usuarios/usuarios.controller.ts
+[ERROR] 19:05:06 ⨯ Unable to compile TypeScript:
+src/modules/usuarios/usuarios.controller.ts(13,22): error TS1127: Invalid character.
+src/modules/usuarios/usuarios.controller.ts(21,1): error TS1160: Unterminated template literal.
+
+[INFO] 19:07:21 Restarting: /home/yarumo/isp_starter_kit/backend/src/modules/usuarios/usuarios.controller.ts has been modified
+[32m[Nest] 224130  - [39m13/08/2025, 19:07:22 [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 224130  - [39m13/08/2025, 19:07:22 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +74ms[39m
+[32m[Nest] 224130  - [39m13/08/2025, 19:07:22 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDbModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 224130  - [39m13/08/2025, 19:07:22 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 224130  - [39m13/08/2025, 19:07:22 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSmartoltModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 224130  - [39m13/08/2025, 19:07:22 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHealthModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 224130  - [39m13/08/2025, 19:07:22 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mVentasModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 224130  - [39m13/08/2025, 19:07:22 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mOrdenesModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 224130  - [39m13/08/2025, 19:07:22 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmCoreModule dependencies initialized[39m[38;5;3m +43ms[39m
+[32m[Nest] 224130  - [39m13/08/2025, 19:07:22 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 224130  - [39m13/08/2025, 19:07:22 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUsuariosModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 224130  - [39m13/08/2025, 19:07:22 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mUsuariosController {/v1/usuarios}:[39m[38;5;3m +8ms[39m
+[32m[Nest] 224130  - [39m13/08/2025, 19:07:22 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/usuarios, GET} route[39m[38;5;3m +4ms[39m
+[32m[Nest] 224130  - [39m13/08/2025, 19:07:22 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mHealthController {/v1/health}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 224130  - [39m13/08/2025, 19:07:22 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/health, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 224130  - [39m13/08/2025, 19:07:22 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mVentasController {/v1/ventas}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 224130  - [39m13/08/2025, 19:07:22 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 224130  - [39m13/08/2025, 19:07:22 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mOrdenesController {/v1/ordenes}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 224130  - [39m13/08/2025, 19:07:22 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes/:id/cerrar, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 224130  - [39m13/08/2025, 19:07:22 [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +5ms[39m
+[31m[Nest] 224130  - [39m13/08/2025, 19:07:22 [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use 0.0.0.0:3000[39m[38;5;3m +9ms[39m
+Error: listen EADDRINUSE: address already in use 0.0.0.0:3000
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at node:net:2206:7
+    at processTicksAndRejections (node:internal/process/task_queues:90:21)
+[ERROR] 19:07:22 Error: listen EADDRINUSE: address already in use 0.0.0.0:3000
+[INFO] 19:18:10 Restarting: /home/yarumo/isp_starter_kit/backend/src/main.ts has been modified
+[32m[Nest] 229540  - [39m13/08/2025, 19:18:11 [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 229540  - [39m13/08/2025, 19:18:11 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +57ms[39m
+[32m[Nest] 229540  - [39m13/08/2025, 19:18:11 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDbModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 229540  - [39m13/08/2025, 19:18:11 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 229540  - [39m13/08/2025, 19:18:11 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSmartoltModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 229540  - [39m13/08/2025, 19:18:11 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHealthModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 229540  - [39m13/08/2025, 19:18:11 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mVentasModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 229540  - [39m13/08/2025, 19:18:11 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mOrdenesModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 229540  - [39m13/08/2025, 19:18:11 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmCoreModule dependencies initialized[39m[38;5;3m +58ms[39m
+[32m[Nest] 229540  - [39m13/08/2025, 19:18:11 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 229540  - [39m13/08/2025, 19:18:11 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUsuariosModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 229540  - [39m13/08/2025, 19:18:11 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mUsuariosController {/v1/usuarios}:[39m[38;5;3m +8ms[39m
+[32m[Nest] 229540  - [39m13/08/2025, 19:18:11 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/usuarios, GET} route[39m[38;5;3m +4ms[39m
+[32m[Nest] 229540  - [39m13/08/2025, 19:18:11 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mHealthController {/v1/health}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 229540  - [39m13/08/2025, 19:18:11 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/health, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 229540  - [39m13/08/2025, 19:18:11 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mVentasController {/v1/ventas}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 229540  - [39m13/08/2025, 19:18:11 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 229540  - [39m13/08/2025, 19:18:11 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mOrdenesController {/v1/ordenes}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 229540  - [39m13/08/2025, 19:18:11 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes/:id/cerrar, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 229540  - [39m13/08/2025, 19:18:11 [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +6ms[39m
+API running on http://0.0.0.0:3000/v1/health
+[INFO] 19:47:54 Restarting: /home/yarumo/isp_starter_kit/backend/src/modules/ventas/ventas.module.ts has been modified
+[32m[Nest] 244823  - [39m13/08/2025, 19:47:55 [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 244823  - [39m13/08/2025, 19:47:55 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +66ms[39m
+[32m[Nest] 244823  - [39m13/08/2025, 19:47:55 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDbModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 244823  - [39m13/08/2025, 19:47:55 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 244823  - [39m13/08/2025, 19:47:55 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSmartoltModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 244823  - [39m13/08/2025, 19:47:55 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHealthModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 244823  - [39m13/08/2025, 19:47:55 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mVentasModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 244823  - [39m13/08/2025, 19:47:55 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mOrdenesModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 244823  - [39m13/08/2025, 19:47:55 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmCoreModule dependencies initialized[39m[38;5;3m +43ms[39m
+[32m[Nest] 244823  - [39m13/08/2025, 19:47:55 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 244823  - [39m13/08/2025, 19:47:55 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 244823  - [39m13/08/2025, 19:47:55 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUsuariosModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 244823  - [39m13/08/2025, 19:47:55 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mUsuariosController {/v1/usuarios}:[39m[38;5;3m +7ms[39m
+[32m[Nest] 244823  - [39m13/08/2025, 19:47:55 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/usuarios, GET} route[39m[38;5;3m +4ms[39m
+[32m[Nest] 244823  - [39m13/08/2025, 19:47:55 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mHealthController {/v1/health}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 244823  - [39m13/08/2025, 19:47:55 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/health, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 244823  - [39m13/08/2025, 19:47:55 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mVentasController {/v1/ventas}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 244823  - [39m13/08/2025, 19:47:55 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 244823  - [39m13/08/2025, 19:47:55 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mOrdenesController {/v1/ordenes}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 244823  - [39m13/08/2025, 19:47:55 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes/:id/cerrar, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 244823  - [39m13/08/2025, 19:47:55 [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +5ms[39m
+API running on http://0.0.0.0:3000/v1/health
+[INFO] 19:49:35 Restarting: /home/yarumo/isp_starter_kit/backend/src/modules/ventas/ventas.module.ts has been modified
+[32m[Nest] 245667  - [39m13/08/2025, 19:49:37 [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 245667  - [39m13/08/2025, 19:49:37 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +72ms[39m
+[32m[Nest] 245667  - [39m13/08/2025, 19:49:37 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDbModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 245667  - [39m13/08/2025, 19:49:37 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 245667  - [39m13/08/2025, 19:49:37 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSmartoltModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 245667  - [39m13/08/2025, 19:49:37 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHealthModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 245667  - [39m13/08/2025, 19:49:37 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mVentasModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 245667  - [39m13/08/2025, 19:49:37 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mOrdenesModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 245667  - [39m13/08/2025, 19:49:37 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmCoreModule dependencies initialized[39m[38;5;3m +41ms[39m
+[32m[Nest] 245667  - [39m13/08/2025, 19:49:37 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 245667  - [39m13/08/2025, 19:49:37 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 245667  - [39m13/08/2025, 19:49:37 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUsuariosModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 245667  - [39m13/08/2025, 19:49:37 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mUsuariosController {/v1/usuarios}:[39m[38;5;3m +7ms[39m
+[32m[Nest] 245667  - [39m13/08/2025, 19:49:37 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/usuarios, GET} route[39m[38;5;3m +4ms[39m
+[32m[Nest] 245667  - [39m13/08/2025, 19:49:37 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mHealthController {/v1/health}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 245667  - [39m13/08/2025, 19:49:37 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/health, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 245667  - [39m13/08/2025, 19:49:37 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mVentasController {/v1/ventas}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 245667  - [39m13/08/2025, 19:49:37 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 245667  - [39m13/08/2025, 19:49:37 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mOrdenesController {/v1/ordenes}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 245667  - [39m13/08/2025, 19:49:37 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes/:id/cerrar, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 245667  - [39m13/08/2025, 19:49:37 [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +5ms[39m
+[31m[Nest] 245667  - [39m13/08/2025, 19:49:37 [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use 0.0.0.0:3000[39m[38;5;3m +8ms[39m
+Error: listen EADDRINUSE: address already in use 0.0.0.0:3000
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at node:net:2206:7
+    at processTicksAndRejections (node:internal/process/task_queues:90:21)
+[ERROR] 19:49:37 Error: listen EADDRINUSE: address already in use 0.0.0.0:3000
+[INFO] 19:52:53 Restarting: /home/yarumo/isp_starter_kit/backend/src/modules/ventas/ventas.controller.ts has been modified
+[32m[Nest] 247401  - [39m13/08/2025, 19:52:55 [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 247401  - [39m13/08/2025, 19:52:55 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +72ms[39m
+[32m[Nest] 247401  - [39m13/08/2025, 19:52:55 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDbModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 247401  - [39m13/08/2025, 19:52:55 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 247401  - [39m13/08/2025, 19:52:55 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSmartoltModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 247401  - [39m13/08/2025, 19:52:55 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHealthModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 247401  - [39m13/08/2025, 19:52:55 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mOrdenesModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 247401  - [39m13/08/2025, 19:52:55 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmCoreModule dependencies initialized[39m[38;5;3m +45ms[39m
+[32m[Nest] 247401  - [39m13/08/2025, 19:52:55 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 247401  - [39m13/08/2025, 19:52:55 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 247401  - [39m13/08/2025, 19:52:55 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUsuariosModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 247401  - [39m13/08/2025, 19:52:55 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mVentasModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 247401  - [39m13/08/2025, 19:52:55 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mUsuariosController {/v1/usuarios}:[39m[38;5;3m +8ms[39m
+[32m[Nest] 247401  - [39m13/08/2025, 19:52:55 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/usuarios, GET} route[39m[38;5;3m +4ms[39m
+[32m[Nest] 247401  - [39m13/08/2025, 19:52:55 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mHealthController {/v1/health}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 247401  - [39m13/08/2025, 19:52:55 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/health, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 247401  - [39m13/08/2025, 19:52:55 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mVentasController {/v1/ventas}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 247401  - [39m13/08/2025, 19:52:55 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 247401  - [39m13/08/2025, 19:52:55 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mOrdenesController {/v1/ordenes}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 247401  - [39m13/08/2025, 19:52:55 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes/:id/cerrar, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 247401  - [39m13/08/2025, 19:52:55 [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +5ms[39m
+[31m[Nest] 247401  - [39m13/08/2025, 19:52:55 [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use 0.0.0.0:3000[39m[38;5;3m +9ms[39m
+Error: listen EADDRINUSE: address already in use 0.0.0.0:3000
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at node:net:2206:7
+    at processTicksAndRejections (node:internal/process/task_queues:90:21)
+[ERROR] 19:52:55 Error: listen EADDRINUSE: address already in use 0.0.0.0:3000
+[INFO] 19:53:13 Restarting: /home/yarumo/isp_starter_kit/backend/src/modules/ventas/ventas.entity.ts has been modified
+[32m[Nest] 247582  - [39m13/08/2025, 19:53:14 [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 247582  - [39m13/08/2025, 19:53:14 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +78ms[39m
+[32m[Nest] 247582  - [39m13/08/2025, 19:53:14 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDbModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 247582  - [39m13/08/2025, 19:53:14 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 247582  - [39m13/08/2025, 19:53:14 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSmartoltModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 247582  - [39m13/08/2025, 19:53:14 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHealthModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 247582  - [39m13/08/2025, 19:53:14 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mOrdenesModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 247582  - [39m13/08/2025, 19:53:14 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmCoreModule dependencies initialized[39m[38;5;3m +45ms[39m
+[32m[Nest] 247582  - [39m13/08/2025, 19:53:14 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 247582  - [39m13/08/2025, 19:53:14 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 247582  - [39m13/08/2025, 19:53:14 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUsuariosModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 247582  - [39m13/08/2025, 19:53:14 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mVentasModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 247582  - [39m13/08/2025, 19:53:14 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mUsuariosController {/v1/usuarios}:[39m[38;5;3m +8ms[39m
+[32m[Nest] 247582  - [39m13/08/2025, 19:53:14 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/usuarios, GET} route[39m[38;5;3m +4ms[39m
+[32m[Nest] 247582  - [39m13/08/2025, 19:53:14 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mHealthController {/v1/health}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 247582  - [39m13/08/2025, 19:53:14 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/health, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 247582  - [39m13/08/2025, 19:53:14 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mVentasController {/v1/ventas}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 247582  - [39m13/08/2025, 19:53:14 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 247582  - [39m13/08/2025, 19:53:14 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mOrdenesController {/v1/ordenes}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 247582  - [39m13/08/2025, 19:53:14 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes/:id/cerrar, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 247582  - [39m13/08/2025, 19:53:14 [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +5ms[39m
+[31m[Nest] 247582  - [39m13/08/2025, 19:53:14 [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use 0.0.0.0:3000[39m[38;5;3m +9ms[39m
+Error: listen EADDRINUSE: address already in use 0.0.0.0:3000
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at node:net:2206:7
+    at processTicksAndRejections (node:internal/process/task_queues:90:21)
+[ERROR] 19:53:14 Error: listen EADDRINUSE: address already in use 0.0.0.0:3000
+[INFO] 20:08:07 Restarting: /home/yarumo/isp_starter_kit/backend/src/modules/ventas/ventas.module.ts has been modified
+[32m[Nest] 255175  - [39m13/08/2025, 20:08:08 [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 255175  - [39m13/08/2025, 20:08:09 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +96ms[39m
+[32m[Nest] 255175  - [39m13/08/2025, 20:08:09 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDbModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 255175  - [39m13/08/2025, 20:08:09 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 255175  - [39m13/08/2025, 20:08:09 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSmartoltModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 255175  - [39m13/08/2025, 20:08:09 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHealthModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 255175  - [39m13/08/2025, 20:08:09 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mOrdenesModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 255175  - [39m13/08/2025, 20:08:09 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmCoreModule dependencies initialized[39m[38;5;3m +57ms[39m
+[32m[Nest] 255175  - [39m13/08/2025, 20:08:09 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 255175  - [39m13/08/2025, 20:08:09 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 255175  - [39m13/08/2025, 20:08:09 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUsuariosModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 255175  - [39m13/08/2025, 20:08:09 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mVentasModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 255175  - [39m13/08/2025, 20:08:09 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mUsuariosController {/v1/usuarios}:[39m[38;5;3m +8ms[39m
+[32m[Nest] 255175  - [39m13/08/2025, 20:08:09 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/usuarios, GET} route[39m[38;5;3m +5ms[39m
+[32m[Nest] 255175  - [39m13/08/2025, 20:08:09 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mHealthController {/v1/health}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 255175  - [39m13/08/2025, 20:08:09 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/health, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 255175  - [39m13/08/2025, 20:08:09 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mVentasController {/v1/ventas}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 255175  - [39m13/08/2025, 20:08:09 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 255175  - [39m13/08/2025, 20:08:09 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mOrdenesController {/v1/ordenes}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 255175  - [39m13/08/2025, 20:08:09 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes/:id/cerrar, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 255175  - [39m13/08/2025, 20:08:09 [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +5ms[39m
+API running on http://0.0.0.0:3000/v1/health
+[INFO] 20:14:57 Restarting: /home/yarumo/isp_starter_kit/backend/src/modules/ventas/ventas.controller.ts has been modified
+Compilation error in /home/yarumo/isp_starter_kit/backend/src/modules/ventas/ventas.controller.ts
+[ERROR] 20:14:58 ⨯ Unable to compile TypeScript:
+src/modules/ventas/ventas.controller.ts(59,1): error TS1005: '}' expected.
+
+[INFO] 20:15:32 Restarting: /home/yarumo/isp_starter_kit/backend/src/modules/ventas/ventas.controller.ts has been modified
+Compilation error in /home/yarumo/isp_starter_kit/backend/src/modules/ventas/ventas.controller.ts
+[ERROR] 20:15:33 ⨯ Unable to compile TypeScript:
+src/modules/ventas/ventas.controller.ts(86,1): error TS1005: '}' expected.
+
+[INFO] 20:18:33 Restarting: /home/yarumo/isp_starter_kit/backend/src/modules/ventas/ventas.controller.ts has been modified
+[32m[Nest] 260478  - [39m13/08/2025, 20:18:34 [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 260478  - [39m13/08/2025, 20:18:34 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +77ms[39m
+[32m[Nest] 260478  - [39m13/08/2025, 20:18:34 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDbModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 260478  - [39m13/08/2025, 20:18:34 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 260478  - [39m13/08/2025, 20:18:34 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSmartoltModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 260478  - [39m13/08/2025, 20:18:34 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHealthModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 260478  - [39m13/08/2025, 20:18:34 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mOrdenesModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 260478  - [39m13/08/2025, 20:18:34 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmCoreModule dependencies initialized[39m[38;5;3m +47ms[39m
+[32m[Nest] 260478  - [39m13/08/2025, 20:18:34 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 260478  - [39m13/08/2025, 20:18:34 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 260478  - [39m13/08/2025, 20:18:34 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUsuariosModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 260478  - [39m13/08/2025, 20:18:34 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mVentasModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 260478  - [39m13/08/2025, 20:18:34 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mUsuariosController {/v1/usuarios}:[39m[38;5;3m +8ms[39m
+[32m[Nest] 260478  - [39m13/08/2025, 20:18:34 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/usuarios, GET} route[39m[38;5;3m +5ms[39m
+[32m[Nest] 260478  - [39m13/08/2025, 20:18:34 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mHealthController {/v1/health}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 260478  - [39m13/08/2025, 20:18:34 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/health, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 260478  - [39m13/08/2025, 20:18:34 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mVentasController {/v1/ventas}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 260478  - [39m13/08/2025, 20:18:34 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 260478  - [39m13/08/2025, 20:18:34 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas/:codigo/pagar, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 260478  - [39m13/08/2025, 20:18:34 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mOrdenesController {/v1/ordenes}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 260478  - [39m13/08/2025, 20:18:34 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes/:id/cerrar, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 260478  - [39m13/08/2025, 20:18:34 [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +5ms[39m
+API running on http://0.0.0.0:3000/v1/health
+[INFO] 20:22:41 Restarting: /home/yarumo/isp_starter_kit/backend/src/modules/ordenes/ordenes.controller.ts has been modified
+[32m[Nest] 262687  - [39m13/08/2025, 20:22:42 [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 262687  - [39m13/08/2025, 20:22:42 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +68ms[39m
+[32m[Nest] 262687  - [39m13/08/2025, 20:22:42 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDbModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 262687  - [39m13/08/2025, 20:22:42 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 262687  - [39m13/08/2025, 20:22:42 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSmartoltModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 262687  - [39m13/08/2025, 20:22:42 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHealthModule dependencies initialized[39m[38;5;3m +1ms[39m
+[31m[Nest] 262687  - [39m13/08/2025, 20:22:42 [31m  ERROR[39m [38;5;3m[ExceptionHandler] [39m[31mNest can't resolve dependencies of the OrdenesController (?, VentaRepository, UsuarioRepository). Please make sure that the argument "OrdenRepository" at index [0] is available in the OrdenesModule context.
+
+Potential solutions:
+- Is OrdenesModule a valid NestJS module?
+- If "OrdenRepository" is a provider, is it part of the current OrdenesModule?
+- If "OrdenRepository" is exported from a separate @Module, is that module imported within OrdenesModule?
+  @Module({
+    imports: [ /* the Module containing "OrdenRepository" */ ]
+  })
+[39m
+Error: Nest can't resolve dependencies of the OrdenesController (?, VentaRepository, UsuarioRepository). Please make sure that the argument "OrdenRepository" at index [0] is available in the OrdenesModule context.
+
+Potential solutions:
+- Is OrdenesModule a valid NestJS module?
+- If "OrdenRepository" is a provider, is it part of the current OrdenesModule?
+- If "OrdenRepository" is exported from a separate @Module, is that module imported within OrdenesModule?
+  @Module({
+    imports: [ /* the Module containing "OrdenRepository" */ ]
+  })
+
+    at Injector.lookupComponentInParentModules (/home/yarumo/isp_starter_kit/backend/node_modules/@nestjs/core/injector/injector.js:262:19)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at Injector.resolveComponentInstance (/home/yarumo/isp_starter_kit/backend/node_modules/@nestjs/core/injector/injector.js:215:33)
+    at resolveParam (/home/yarumo/isp_starter_kit/backend/node_modules/@nestjs/core/injector/injector.js:129:38)
+    at async Promise.all (index 0)
+    at Injector.resolveConstructorParams (/home/yarumo/isp_starter_kit/backend/node_modules/@nestjs/core/injector/injector.js:144:27)
+    at Injector.loadInstance (/home/yarumo/isp_starter_kit/backend/node_modules/@nestjs/core/injector/injector.js:70:13)
+    at Injector.loadController (/home/yarumo/isp_starter_kit/backend/node_modules/@nestjs/core/injector/injector.js:89:9)
+    at /home/yarumo/isp_starter_kit/backend/node_modules/@nestjs/core/injector/instance-loader.js:68:13
+    at async Promise.all (index 0)
+[INFO] 20:22:59 Restarting: /home/yarumo/isp_starter_kit/backend/src/modules/ordenes/ordenes.module.ts has been modified
+[32m[Nest] 262854  - [39m13/08/2025, 20:23:00 [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 262854  - [39m13/08/2025, 20:23:01 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +78ms[39m
+[32m[Nest] 262854  - [39m13/08/2025, 20:23:01 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDbModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 262854  - [39m13/08/2025, 20:23:01 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 262854  - [39m13/08/2025, 20:23:01 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSmartoltModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 262854  - [39m13/08/2025, 20:23:01 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHealthModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 262854  - [39m13/08/2025, 20:23:01 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmCoreModule dependencies initialized[39m[38;5;3m +57ms[39m
+[32m[Nest] 262854  - [39m13/08/2025, 20:23:01 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 262854  - [39m13/08/2025, 20:23:01 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 262854  - [39m13/08/2025, 20:23:01 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 262854  - [39m13/08/2025, 20:23:01 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUsuariosModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 262854  - [39m13/08/2025, 20:23:01 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mVentasModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 262854  - [39m13/08/2025, 20:23:01 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mOrdenesModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 262854  - [39m13/08/2025, 20:23:01 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mUsuariosController {/v1/usuarios}:[39m[38;5;3m +8ms[39m
+[32m[Nest] 262854  - [39m13/08/2025, 20:23:01 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/usuarios, GET} route[39m[38;5;3m +4ms[39m
+[32m[Nest] 262854  - [39m13/08/2025, 20:23:01 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mHealthController {/v1/health}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 262854  - [39m13/08/2025, 20:23:01 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/health, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 262854  - [39m13/08/2025, 20:23:01 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mVentasController {/v1/ventas}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 262854  - [39m13/08/2025, 20:23:01 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 262854  - [39m13/08/2025, 20:23:01 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas/:codigo/pagar, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 262854  - [39m13/08/2025, 20:23:01 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mOrdenesController {/v1/ordenes}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 262854  - [39m13/08/2025, 20:23:01 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes, GET} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 262854  - [39m13/08/2025, 20:23:01 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes/:codigo/cerrar, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 262854  - [39m13/08/2025, 20:23:01 [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +6ms[39m
+API running on http://0.0.0.0:3000/v1/health
+[INFO] 20:33:27 Restarting: /home/yarumo/isp_starter_kit/backend/src/modules/ordenes/orden.entity.ts has been modified
+[32m[Nest] 268849  - [39m13/08/2025, 20:33:28 [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 268849  - [39m13/08/2025, 20:33:28 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +117ms[39m
+[32m[Nest] 268849  - [39m13/08/2025, 20:33:28 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDbModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 268849  - [39m13/08/2025, 20:33:28 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 268849  - [39m13/08/2025, 20:33:28 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSmartoltModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 268849  - [39m13/08/2025, 20:33:28 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHealthModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 268849  - [39m13/08/2025, 20:33:28 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmCoreModule dependencies initialized[39m[38;5;3m +54ms[39m
+[32m[Nest] 268849  - [39m13/08/2025, 20:33:28 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 268849  - [39m13/08/2025, 20:33:28 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 268849  - [39m13/08/2025, 20:33:28 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 268849  - [39m13/08/2025, 20:33:28 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUsuariosModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 268849  - [39m13/08/2025, 20:33:28 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mVentasModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 268849  - [39m13/08/2025, 20:33:28 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mOrdenesModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 268849  - [39m13/08/2025, 20:33:28 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mUsuariosController {/v1/usuarios}:[39m[38;5;3m +7ms[39m
+[32m[Nest] 268849  - [39m13/08/2025, 20:33:28 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/usuarios, GET} route[39m[38;5;3m +4ms[39m
+[32m[Nest] 268849  - [39m13/08/2025, 20:33:28 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mHealthController {/v1/health}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 268849  - [39m13/08/2025, 20:33:28 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/health, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 268849  - [39m13/08/2025, 20:33:28 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mVentasController {/v1/ventas}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 268849  - [39m13/08/2025, 20:33:28 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 268849  - [39m13/08/2025, 20:33:28 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas/:codigo/pagar, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 268849  - [39m13/08/2025, 20:33:28 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mOrdenesController {/v1/ordenes}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 268849  - [39m13/08/2025, 20:33:28 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 268849  - [39m13/08/2025, 20:33:28 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes/:codigo/cerrar, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 268849  - [39m13/08/2025, 20:33:28 [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +6ms[39m
+API running on http://0.0.0.0:3000/v1/health
+[INFO] 20:33:42 Restarting: /home/yarumo/isp_starter_kit/backend/src/modules/ordenes/ordenes.module.ts has been modified
+[32m[Nest] 268987  - [39m13/08/2025, 20:33:44 [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 268987  - [39m13/08/2025, 20:33:44 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +68ms[39m
+[32m[Nest] 268987  - [39m13/08/2025, 20:33:44 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDbModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 268987  - [39m13/08/2025, 20:33:44 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 268987  - [39m13/08/2025, 20:33:44 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSmartoltModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 268987  - [39m13/08/2025, 20:33:44 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHealthModule dependencies initialized[39m[38;5;3m +0ms[39m
+MinIO ensureBucket error: The Access Key Id you provided does not exist in our records.
+[32m[Nest] 268987  - [39m13/08/2025, 20:33:44 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmCoreModule dependencies initialized[39m[38;5;3m +57ms[39m
+[32m[Nest] 268987  - [39m13/08/2025, 20:33:44 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 268987  - [39m13/08/2025, 20:33:44 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 268987  - [39m13/08/2025, 20:33:44 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 268987  - [39m13/08/2025, 20:33:44 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUsuariosModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 268987  - [39m13/08/2025, 20:33:44 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mVentasModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 268987  - [39m13/08/2025, 20:33:44 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mOrdenesModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 268987  - [39m13/08/2025, 20:33:44 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mUsuariosController {/v1/usuarios}:[39m[38;5;3m +7ms[39m
+[32m[Nest] 268987  - [39m13/08/2025, 20:33:44 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/usuarios, GET} route[39m[38;5;3m +4ms[39m
+[32m[Nest] 268987  - [39m13/08/2025, 20:33:44 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mHealthController {/v1/health}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 268987  - [39m13/08/2025, 20:33:44 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/health, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 268987  - [39m13/08/2025, 20:33:44 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mVentasController {/v1/ventas}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 268987  - [39m13/08/2025, 20:33:44 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 268987  - [39m13/08/2025, 20:33:44 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas/:codigo/pagar, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 268987  - [39m13/08/2025, 20:33:44 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mOrdenesController {/v1/ordenes}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 268987  - [39m13/08/2025, 20:33:44 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 268987  - [39m13/08/2025, 20:33:44 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes/:codigo/cerrar, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 268987  - [39m13/08/2025, 20:33:44 [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +5ms[39m
+API running on http://0.0.0.0:3000/v1/health
+[INFO] 20:33:59 Restarting: /home/yarumo/isp_starter_kit/backend/src/modules/ordenes/ordenes.controller.ts has been modified
+[32m[Nest] 269166  - [39m13/08/2025, 20:34:01 [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 269166  - [39m13/08/2025, 20:34:01 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +73ms[39m
+[32m[Nest] 269166  - [39m13/08/2025, 20:34:01 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDbModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 269166  - [39m13/08/2025, 20:34:01 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 269166  - [39m13/08/2025, 20:34:01 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSmartoltModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 269166  - [39m13/08/2025, 20:34:01 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHealthModule dependencies initialized[39m[38;5;3m +1ms[39m
+MinIO ensureBucket error: The Access Key Id you provided does not exist in our records.
+[32m[Nest] 269166  - [39m13/08/2025, 20:34:01 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmCoreModule dependencies initialized[39m[38;5;3m +60ms[39m
+[32m[Nest] 269166  - [39m13/08/2025, 20:34:01 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 269166  - [39m13/08/2025, 20:34:01 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 269166  - [39m13/08/2025, 20:34:01 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 269166  - [39m13/08/2025, 20:34:01 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUsuariosModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 269166  - [39m13/08/2025, 20:34:01 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mVentasModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 269166  - [39m13/08/2025, 20:34:01 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mOrdenesModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 269166  - [39m13/08/2025, 20:34:01 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mUsuariosController {/v1/usuarios}:[39m[38;5;3m +8ms[39m
+[32m[Nest] 269166  - [39m13/08/2025, 20:34:01 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/usuarios, GET} route[39m[38;5;3m +4ms[39m
+[32m[Nest] 269166  - [39m13/08/2025, 20:34:01 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mHealthController {/v1/health}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 269166  - [39m13/08/2025, 20:34:01 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/health, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 269166  - [39m13/08/2025, 20:34:01 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mVentasController {/v1/ventas}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 269166  - [39m13/08/2025, 20:34:01 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 269166  - [39m13/08/2025, 20:34:01 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas/:codigo/pagar, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 269166  - [39m13/08/2025, 20:34:01 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mOrdenesController {/v1/ordenes}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 269166  - [39m13/08/2025, 20:34:01 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 269166  - [39m13/08/2025, 20:34:01 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes/:codigo/cerrar, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 269166  - [39m13/08/2025, 20:34:01 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes/:codigo/cerrar-completo, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 269166  - [39m13/08/2025, 20:34:01 [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +6ms[39m
+[31m[Nest] 269166  - [39m13/08/2025, 20:34:01 [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use 0.0.0.0:3000[39m[38;5;3m +8ms[39m
+Error: listen EADDRINUSE: address already in use 0.0.0.0:3000
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at node:net:2206:7
+    at processTicksAndRejections (node:internal/process/task_queues:90:21)
+[ERROR] 20:34:01 Error: listen EADDRINUSE: address already in use 0.0.0.0:3000
+[INFO] 21:13:01 Restarting: /home/yarumo/isp_starter_kit/backend/src/main.ts has been modified
+[32m[Nest] 288912  - [39m13/08/2025, 21:13:02 [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 288912  - [39m13/08/2025, 21:13:02 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +73ms[39m
+[32m[Nest] 288912  - [39m13/08/2025, 21:13:02 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDbModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 288912  - [39m13/08/2025, 21:13:02 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 288912  - [39m13/08/2025, 21:13:02 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSmartoltModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 288912  - [39m13/08/2025, 21:13:02 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHealthModule dependencies initialized[39m[38;5;3m +0ms[39m
+MinIO ensureBucket error: The Access Key Id you provided does not exist in our records.
+[32m[Nest] 288912  - [39m13/08/2025, 21:13:02 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmCoreModule dependencies initialized[39m[38;5;3m +61ms[39m
+[32m[Nest] 288912  - [39m13/08/2025, 21:13:02 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 288912  - [39m13/08/2025, 21:13:02 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 288912  - [39m13/08/2025, 21:13:02 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 288912  - [39m13/08/2025, 21:13:02 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUsuariosModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 288912  - [39m13/08/2025, 21:13:02 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mVentasModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 288912  - [39m13/08/2025, 21:13:02 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mOrdenesModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 288912  - [39m13/08/2025, 21:13:02 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mUsuariosController {/v1/usuarios}:[39m[38;5;3m +18ms[39m
+[32m[Nest] 288912  - [39m13/08/2025, 21:13:02 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/usuarios, GET} route[39m[38;5;3m +3ms[39m
+[32m[Nest] 288912  - [39m13/08/2025, 21:13:02 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mHealthController {/v1/health}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 288912  - [39m13/08/2025, 21:13:02 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/health, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 288912  - [39m13/08/2025, 21:13:02 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mVentasController {/v1/ventas}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 288912  - [39m13/08/2025, 21:13:02 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 288912  - [39m13/08/2025, 21:13:02 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas/:codigo/pagar, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 288912  - [39m13/08/2025, 21:13:02 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mOrdenesController {/v1/ordenes}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 288912  - [39m13/08/2025, 21:13:02 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 288912  - [39m13/08/2025, 21:13:02 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes/:codigo/cerrar, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 288912  - [39m13/08/2025, 21:13:02 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes/:codigo/cerrar-completo, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 288912  - [39m13/08/2025, 21:13:02 [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +6ms[39m
+API running on http://0.0.0.0:3000/v1/health
+[INFO] 21:14:50 Restarting: /home/yarumo/isp_starter_kit/backend/src/main.ts has been modified
+[32m[Nest] 289827  - [39m13/08/2025, 21:14:51 [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 289827  - [39m13/08/2025, 21:14:52 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +75ms[39m
+[32m[Nest] 289827  - [39m13/08/2025, 21:14:52 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDbModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 289827  - [39m13/08/2025, 21:14:52 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 289827  - [39m13/08/2025, 21:14:52 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSmartoltModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 289827  - [39m13/08/2025, 21:14:52 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHealthModule dependencies initialized[39m[38;5;3m +0ms[39m
+MinIO ensureBucket error: The Access Key Id you provided does not exist in our records.
+[32m[Nest] 289827  - [39m13/08/2025, 21:14:52 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmCoreModule dependencies initialized[39m[38;5;3m +64ms[39m
+[32m[Nest] 289827  - [39m13/08/2025, 21:14:52 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 289827  - [39m13/08/2025, 21:14:52 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 289827  - [39m13/08/2025, 21:14:52 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 289827  - [39m13/08/2025, 21:14:52 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUsuariosModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 289827  - [39m13/08/2025, 21:14:52 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mVentasModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 289827  - [39m13/08/2025, 21:14:52 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mOrdenesModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 289827  - [39m13/08/2025, 21:14:52 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mUsuariosController {/v1/usuarios}:[39m[38;5;3m +58ms[39m
+[32m[Nest] 289827  - [39m13/08/2025, 21:14:52 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/usuarios, GET} route[39m[38;5;3m +4ms[39m
+[32m[Nest] 289827  - [39m13/08/2025, 21:14:52 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mHealthController {/v1/health}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 289827  - [39m13/08/2025, 21:14:52 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/health, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 289827  - [39m13/08/2025, 21:14:52 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mVentasController {/v1/ventas}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 289827  - [39m13/08/2025, 21:14:52 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 289827  - [39m13/08/2025, 21:14:52 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas/:codigo/pagar, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 289827  - [39m13/08/2025, 21:14:52 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mOrdenesController {/v1/ordenes}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 289827  - [39m13/08/2025, 21:14:52 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 289827  - [39m13/08/2025, 21:14:52 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes/:codigo/cerrar, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 289827  - [39m13/08/2025, 21:14:52 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes/:codigo/cerrar-completo, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 289827  - [39m13/08/2025, 21:14:52 [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +6ms[39m
+API running on http://0.0.0.0:3000/v1/health
+[INFO] 21:23:53 Restarting: /home/yarumo/isp_starter_kit/backend/src/main.ts has been modified
+SyntaxError: Unexpected token '*'
+    at compileSourceTextModule (node:internal/modules/esm/utils:346:16)
+    at ModuleLoader.importSyncForRequire (node:internal/modules/esm/loader:422:18)
+    at loadESMFromCJS (node:internal/modules/cjs/loader:1519:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1670:5)
+    at Module._compile (/home/yarumo/isp_starter_kit/backend/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/tmp/ts-node-dev-hook-879079214657086.js:69:33)
+    at node:internal/modules/cjs/loader:1820:10
+    at require.extensions..jsx.require.extensions..js (/tmp/ts-node-dev-hook-879079214657086.js:114:20)
+    at require.extensions.<computed> (/tmp/ts-node-dev-hook-879079214657086.js:71:20)
+    at Object.nodeDevHook [as .ts] (/home/yarumo/isp_starter_kit/backend/node_modules/ts-node-dev/lib/hook.js:63:13)
+[ERROR] 21:23:53 SyntaxError: Unexpected token '*'
+[INFO] 21:25:52 Restarting: /home/yarumo/isp_starter_kit/backend/src/main.ts has been modified
+[32m[Nest] 295518  - [39m13/08/2025, 21:25:54 [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 295518  - [39m13/08/2025, 21:25:54 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +109ms[39m
+[32m[Nest] 295518  - [39m13/08/2025, 21:25:54 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDbModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 295518  - [39m13/08/2025, 21:25:54 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 295518  - [39m13/08/2025, 21:25:54 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSmartoltModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 295518  - [39m13/08/2025, 21:25:54 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHealthModule dependencies initialized[39m[38;5;3m +1ms[39m
+MinIO ensureBucket error: The Access Key Id you provided does not exist in our records.
+[32m[Nest] 295518  - [39m13/08/2025, 21:25:54 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmCoreModule dependencies initialized[39m[38;5;3m +77ms[39m
+[32m[Nest] 295518  - [39m13/08/2025, 21:25:54 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 295518  - [39m13/08/2025, 21:25:54 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 295518  - [39m13/08/2025, 21:25:54 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 295518  - [39m13/08/2025, 21:25:54 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUsuariosModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 295518  - [39m13/08/2025, 21:25:54 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mVentasModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 295518  - [39m13/08/2025, 21:25:54 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mOrdenesModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 295518  - [39m13/08/2025, 21:25:54 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mUsuariosController {/v1/usuarios}:[39m[38;5;3m +107ms[39m
+[32m[Nest] 295518  - [39m13/08/2025, 21:25:54 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/usuarios, GET} route[39m[38;5;3m +4ms[39m
+[32m[Nest] 295518  - [39m13/08/2025, 21:25:54 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mHealthController {/v1/health}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 295518  - [39m13/08/2025, 21:25:54 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/health, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 295518  - [39m13/08/2025, 21:25:54 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mVentasController {/v1/ventas}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 295518  - [39m13/08/2025, 21:25:54 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 295518  - [39m13/08/2025, 21:25:54 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas/:codigo/pagar, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 295518  - [39m13/08/2025, 21:25:54 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mOrdenesController {/v1/ordenes}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 295518  - [39m13/08/2025, 21:25:54 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 295518  - [39m13/08/2025, 21:25:54 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes/:codigo/cerrar, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 295518  - [39m13/08/2025, 21:25:54 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes/:codigo/cerrar-completo, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 295518  - [39m13/08/2025, 21:25:54 [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +6ms[39m
+API running on http://0.0.0.0:3000/v1/health
+[INFO] 21:37:58 Restarting: /home/yarumo/isp_starter_kit/backend/src/modules/storage/minio.service.ts has been modified
+[32m[Nest] 301750  - [39m13/08/2025, 21:37:59 [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 301750  - [39m13/08/2025, 21:37:59 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +66ms[39m
+[32m[Nest] 301750  - [39m13/08/2025, 21:37:59 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDbModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 301750  - [39m13/08/2025, 21:37:59 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 301750  - [39m13/08/2025, 21:37:59 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSmartoltModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 301750  - [39m13/08/2025, 21:37:59 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHealthModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 301750  - [39m13/08/2025, 21:37:59 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmCoreModule dependencies initialized[39m[38;5;3m +45ms[39m
+[32m[Nest] 301750  - [39m13/08/2025, 21:37:59 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 301750  - [39m13/08/2025, 21:37:59 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 301750  - [39m13/08/2025, 21:37:59 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 301750  - [39m13/08/2025, 21:37:59 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUsuariosModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 301750  - [39m13/08/2025, 21:37:59 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mVentasModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 301750  - [39m13/08/2025, 21:37:59 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mOrdenesModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 301750  - [39m13/08/2025, 21:37:59 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mUsuariosController {/v1/usuarios}:[39m[38;5;3m +51ms[39m
+[32m[Nest] 301750  - [39m13/08/2025, 21:37:59 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/usuarios, GET} route[39m[38;5;3m +5ms[39m
+[32m[Nest] 301750  - [39m13/08/2025, 21:37:59 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mHealthController {/v1/health}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 301750  - [39m13/08/2025, 21:37:59 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/health, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 301750  - [39m13/08/2025, 21:37:59 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mVentasController {/v1/ventas}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 301750  - [39m13/08/2025, 21:37:59 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 301750  - [39m13/08/2025, 21:37:59 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas/:codigo/pagar, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 301750  - [39m13/08/2025, 21:37:59 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mOrdenesController {/v1/ordenes}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 301750  - [39m13/08/2025, 21:37:59 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 301750  - [39m13/08/2025, 21:37:59 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes/:codigo/cerrar, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 301750  - [39m13/08/2025, 21:37:59 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes/:codigo/cerrar-completo, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 301750  - [39m13/08/2025, 21:37:59 [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +6ms[39m
+API running on http://0.0.0.0:3000/v1/health
+[INFO] 21:38:02 Restarting: /home/yarumo/isp_starter_kit/backend/src/modules/storage/minio.service.ts has been modified
+[32m[Nest] 301827  - [39m13/08/2025, 21:38:03 [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 301827  - [39m13/08/2025, 21:38:04 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +70ms[39m
+[32m[Nest] 301827  - [39m13/08/2025, 21:38:04 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDbModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 301827  - [39m13/08/2025, 21:38:04 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 301827  - [39m13/08/2025, 21:38:04 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSmartoltModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 301827  - [39m13/08/2025, 21:38:04 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHealthModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 301827  - [39m13/08/2025, 21:38:04 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmCoreModule dependencies initialized[39m[38;5;3m +49ms[39m
+[32m[Nest] 301827  - [39m13/08/2025, 21:38:04 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 301827  - [39m13/08/2025, 21:38:04 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 301827  - [39m13/08/2025, 21:38:04 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 301827  - [39m13/08/2025, 21:38:04 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUsuariosModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 301827  - [39m13/08/2025, 21:38:04 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mVentasModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 301827  - [39m13/08/2025, 21:38:04 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mOrdenesModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 301827  - [39m13/08/2025, 21:38:04 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mUsuariosController {/v1/usuarios}:[39m[38;5;3m +56ms[39m
+[32m[Nest] 301827  - [39m13/08/2025, 21:38:04 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/usuarios, GET} route[39m[38;5;3m +4ms[39m
+[32m[Nest] 301827  - [39m13/08/2025, 21:38:04 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mHealthController {/v1/health}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 301827  - [39m13/08/2025, 21:38:04 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/health, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 301827  - [39m13/08/2025, 21:38:04 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mVentasController {/v1/ventas}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 301827  - [39m13/08/2025, 21:38:04 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 301827  - [39m13/08/2025, 21:38:04 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas/:codigo/pagar, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 301827  - [39m13/08/2025, 21:38:04 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mOrdenesController {/v1/ordenes}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 301827  - [39m13/08/2025, 21:38:04 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 301827  - [39m13/08/2025, 21:38:04 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes/:codigo/cerrar, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 301827  - [39m13/08/2025, 21:38:04 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes/:codigo/cerrar-completo, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 301827  - [39m13/08/2025, 21:38:04 [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +6ms[39m
+[31m[Nest] 301827  - [39m13/08/2025, 21:38:04 [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use 0.0.0.0:3000[39m[38;5;3m +8ms[39m
+Error: listen EADDRINUSE: address already in use 0.0.0.0:3000
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at node:net:2206:7
+    at processTicksAndRejections (node:internal/process/task_queues:90:21)
+[ERROR] 21:38:04 Error: listen EADDRINUSE: address already in use 0.0.0.0:3000
+[INFO] 21:38:12 Restarting: /home/yarumo/isp_starter_kit/backend/src/modules/storage/minio.service.ts has been modified
+[32m[Nest] 301926  - [39m13/08/2025, 21:38:14 [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 301926  - [39m13/08/2025, 21:38:14 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +65ms[39m
+[32m[Nest] 301926  - [39m13/08/2025, 21:38:14 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDbModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 301926  - [39m13/08/2025, 21:38:14 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 301926  - [39m13/08/2025, 21:38:14 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSmartoltModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 301926  - [39m13/08/2025, 21:38:14 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHealthModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 301926  - [39m13/08/2025, 21:38:14 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmCoreModule dependencies initialized[39m[38;5;3m +44ms[39m
+[32m[Nest] 301926  - [39m13/08/2025, 21:38:14 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 301926  - [39m13/08/2025, 21:38:14 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 301926  - [39m13/08/2025, 21:38:14 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 301926  - [39m13/08/2025, 21:38:14 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUsuariosModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 301926  - [39m13/08/2025, 21:38:14 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mVentasModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 301926  - [39m13/08/2025, 21:38:14 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mOrdenesModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 301926  - [39m13/08/2025, 21:38:14 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mUsuariosController {/v1/usuarios}:[39m[38;5;3m +51ms[39m
+[32m[Nest] 301926  - [39m13/08/2025, 21:38:14 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/usuarios, GET} route[39m[38;5;3m +4ms[39m
+[32m[Nest] 301926  - [39m13/08/2025, 21:38:14 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mHealthController {/v1/health}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 301926  - [39m13/08/2025, 21:38:14 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/health, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 301926  - [39m13/08/2025, 21:38:14 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mVentasController {/v1/ventas}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 301926  - [39m13/08/2025, 21:38:14 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 301926  - [39m13/08/2025, 21:38:14 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas/:codigo/pagar, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 301926  - [39m13/08/2025, 21:38:14 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mOrdenesController {/v1/ordenes}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 301926  - [39m13/08/2025, 21:38:14 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 301926  - [39m13/08/2025, 21:38:14 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes/:codigo/cerrar, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 301926  - [39m13/08/2025, 21:38:14 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes/:codigo/cerrar-completo, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 301926  - [39m13/08/2025, 21:38:14 [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +6ms[39m
+[31m[Nest] 301926  - [39m13/08/2025, 21:38:14 [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use 0.0.0.0:3000[39m[38;5;3m +7ms[39m
+Error: listen EADDRINUSE: address already in use 0.0.0.0:3000
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at node:net:2206:7
+    at processTicksAndRejections (node:internal/process/task_queues:90:21)
+[ERROR] 21:38:14 Error: listen EADDRINUSE: address already in use 0.0.0.0:3000
+[INFO] 21:57:12 Restarting: /home/yarumo/isp_starter_kit/backend/src/modules/storage/minio.service.ts has been modified
+[32m[Nest] 311667  - [39m13/08/2025, 21:57:13 [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 311667  - [39m13/08/2025, 21:57:13 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +69ms[39m
+[32m[Nest] 311667  - [39m13/08/2025, 21:57:13 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDbModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 311667  - [39m13/08/2025, 21:57:13 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 311667  - [39m13/08/2025, 21:57:13 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSmartoltModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 311667  - [39m13/08/2025, 21:57:13 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHealthModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 311667  - [39m13/08/2025, 21:57:13 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmCoreModule dependencies initialized[39m[38;5;3m +44ms[39m
+[32m[Nest] 311667  - [39m13/08/2025, 21:57:13 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 311667  - [39m13/08/2025, 21:57:13 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 311667  - [39m13/08/2025, 21:57:13 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 311667  - [39m13/08/2025, 21:57:13 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUsuariosModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 311667  - [39m13/08/2025, 21:57:13 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mVentasModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 311667  - [39m13/08/2025, 21:57:13 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mOrdenesModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 311667  - [39m13/08/2025, 21:57:13 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mUsuariosController {/v1/usuarios}:[39m[38;5;3m +52ms[39m
+[32m[Nest] 311667  - [39m13/08/2025, 21:57:13 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/usuarios, GET} route[39m[38;5;3m +4ms[39m
+[32m[Nest] 311667  - [39m13/08/2025, 21:57:13 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mHealthController {/v1/health}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 311667  - [39m13/08/2025, 21:57:13 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/health, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 311667  - [39m13/08/2025, 21:57:13 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mVentasController {/v1/ventas}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 311667  - [39m13/08/2025, 21:57:13 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 311667  - [39m13/08/2025, 21:57:13 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas/:codigo/pagar, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 311667  - [39m13/08/2025, 21:57:13 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mOrdenesController {/v1/ordenes}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 311667  - [39m13/08/2025, 21:57:13 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 311667  - [39m13/08/2025, 21:57:13 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes/:codigo/cerrar, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 311667  - [39m13/08/2025, 21:57:13 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes/:codigo/cerrar-completo, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 311667  - [39m13/08/2025, 21:57:13 [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +5ms[39m
+API running on http://0.0.0.0:3000/v1/health
+[INFO] 22:00:54 Restarting: /home/yarumo/isp_starter_kit/backend/src/modules/ordenes/ordenes.controller.ts has been modified
+[32m[Nest] 313496  - [39m13/08/2025, 22:00:56 [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 313496  - [39m13/08/2025, 22:00:56 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +63ms[39m
+[32m[Nest] 313496  - [39m13/08/2025, 22:00:56 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDbModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 313496  - [39m13/08/2025, 22:00:56 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 313496  - [39m13/08/2025, 22:00:56 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSmartoltModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 313496  - [39m13/08/2025, 22:00:56 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHealthModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 313496  - [39m13/08/2025, 22:00:56 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmCoreModule dependencies initialized[39m[38;5;3m +44ms[39m
+[32m[Nest] 313496  - [39m13/08/2025, 22:00:56 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 313496  - [39m13/08/2025, 22:00:56 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 313496  - [39m13/08/2025, 22:00:56 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 313496  - [39m13/08/2025, 22:00:56 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUsuariosModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 313496  - [39m13/08/2025, 22:00:56 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mVentasModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 313496  - [39m13/08/2025, 22:00:56 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mOrdenesModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 313496  - [39m13/08/2025, 22:00:56 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mUsuariosController {/v1/usuarios}:[39m[38;5;3m +51ms[39m
+[32m[Nest] 313496  - [39m13/08/2025, 22:00:56 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/usuarios, GET} route[39m[38;5;3m +4ms[39m
+[32m[Nest] 313496  - [39m13/08/2025, 22:00:56 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mHealthController {/v1/health}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 313496  - [39m13/08/2025, 22:00:56 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/health, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 313496  - [39m13/08/2025, 22:00:56 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mVentasController {/v1/ventas}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 313496  - [39m13/08/2025, 22:00:56 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 313496  - [39m13/08/2025, 22:00:56 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas/:codigo/pagar, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 313496  - [39m13/08/2025, 22:00:56 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mOrdenesController {/v1/ordenes}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 313496  - [39m13/08/2025, 22:00:56 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 313496  - [39m13/08/2025, 22:00:56 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes/:codigo/cerrar, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 313496  - [39m13/08/2025, 22:00:56 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes/:codigo/cerrar-completo, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 313496  - [39m13/08/2025, 22:00:56 [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +5ms[39m
+API running on http://0.0.0.0:3000/v1/health
+[INFO] 22:08:51 Restarting: /home/yarumo/isp_starter_kit/backend/src/modules/ordenes/ordenes.controller.ts has been modified
+[32m[Nest] 317506  - [39m13/08/2025, 22:08:52 [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 317506  - [39m13/08/2025, 22:08:52 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +62ms[39m
+[32m[Nest] 317506  - [39m13/08/2025, 22:08:52 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDbModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 317506  - [39m13/08/2025, 22:08:52 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 317506  - [39m13/08/2025, 22:08:52 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSmartoltModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 317506  - [39m13/08/2025, 22:08:52 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHealthModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 317506  - [39m13/08/2025, 22:08:52 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmCoreModule dependencies initialized[39m[38;5;3m +44ms[39m
+[32m[Nest] 317506  - [39m13/08/2025, 22:08:52 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 317506  - [39m13/08/2025, 22:08:52 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 317506  - [39m13/08/2025, 22:08:52 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 317506  - [39m13/08/2025, 22:08:52 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUsuariosModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 317506  - [39m13/08/2025, 22:08:52 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mVentasModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 317506  - [39m13/08/2025, 22:08:52 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mOrdenesModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 317506  - [39m13/08/2025, 22:08:52 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mUsuariosController {/v1/usuarios}:[39m[38;5;3m +49ms[39m
+[32m[Nest] 317506  - [39m13/08/2025, 22:08:52 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/usuarios, GET} route[39m[38;5;3m +4ms[39m
+[32m[Nest] 317506  - [39m13/08/2025, 22:08:52 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mHealthController {/v1/health}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 317506  - [39m13/08/2025, 22:08:52 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/health, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 317506  - [39m13/08/2025, 22:08:52 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mVentasController {/v1/ventas}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 317506  - [39m13/08/2025, 22:08:52 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 317506  - [39m13/08/2025, 22:08:52 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas/:codigo/pagar, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 317506  - [39m13/08/2025, 22:08:52 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mOrdenesController {/v1/ordenes}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 317506  - [39m13/08/2025, 22:08:52 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 317506  - [39m13/08/2025, 22:08:52 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes/:codigo/cerrar, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 317506  - [39m13/08/2025, 22:08:52 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes/:codigo/cerrar-completo, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 317506  - [39m13/08/2025, 22:08:52 [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +6ms[39m
+API running on http://0.0.0.0:3000/v1/health

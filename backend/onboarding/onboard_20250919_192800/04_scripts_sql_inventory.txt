@@ -1,0 +1,51 @@
+# scripts/
+total 108
+drwxr-xr-x  2 root root  4096 sep 19 19:27 .
+drwxr-xr-x 10 root root  4096 sep 19 19:28 ..
+-rwxr-xr-x  1 root root  1084 sep 19 14:41 apply_sql_migrations.sh
+-rwxr-xr-x  1 root root  1774 sep 19 14:41 check_inventario.sh
+-rwxr-xr-x  1 root root  9523 sep 19 19:19 diagnostico.sh
+-rwxr-xr-x  1 root root 10469 sep 19 19:26 onboarding_bundle.sh
+-rwxr-xr-x  1 root root   387 sep 19 14:41 pg_apply_migrations.sh
+-rwxr-xr-x  1 root root  5230 sep 19 18:50 smoke_agenda.sh
+-rwxr-xr-x  1 root root  1105 sep 19 18:52 smoke_all.sh
+-rwxr-xr-x  1 root root   271 sep 19 14:41 smoke_catalogos_mini.sh
+-rwxr-xr-x  1 root root  1851 sep 19 14:54 smoke_catalogos.sh
+-rwxr-xr-x  1 root root  4478 sep 19 15:34 smoke_cierre_con_linea.sh
+-rwxr-xr-x  1 root root  2720 sep 19 18:51 smoke_cierre_idempotente.sh
+-rwxr-xr-x  1 root root   940 sep 19 14:41 smoke_quickcheck.sh
+-rwxr-xr-x  1 root root  1392 sep 19 14:41 smoke.sh
+-rwxr-xr-x  1 root root   684 sep 19 14:57 smoke_stress_cierre.sh
+-rwxr-xr-x  1 root root  7294 sep 19 14:41 smoke_tecnico_flujo.sh
+-rwxr-xr-x  1 root root  4711 sep 19 16:13 smoke_tecnico.sh
+-rwxr-xr-x  1 root root  4002 sep 19 14:41 smoke_tecnicos.sh
+
+# sql/
+total 120
+drwxr-xr-x  2 root root 4096 sep 19 18:52 .
+drwxr-xr-x 10 root root 4096 sep 19 19:28 ..
+-rw-r--r--  1 root root 2482 sep 13 18:00 000_schema_core.sql
+-rw-r--r--  1 root root  531 sep 13 13:40 001_inv_tecnico_constraints.sql
+-rw-r--r--  1 root root 4184 sep 17 11:53 002_ordenes_core.sql
+-rw-r--r--  1 root root 1042 sep 13 16:36 005_inv_tecnico_hardening.sql
+-rw-r--r--  1 root root 4924 sep 19 14:10 006_inv_tecnico.sql
+-rw-r--r--  1 root root 1034 sep 19 17:28 007_ordenes_materiales_compat.sql
+-rw-r--r--  1 root root  913 sep 13 18:10 010_add_timestamps.sql
+-rw-r--r--  1 root root  705 sep 19 18:52 010_cierres_idempotencia.sql
+-rw-r--r--  1 root root 1795 sep 13 18:20 011_sync_columns.sql
+-rw-r--r--  1 root root  125 sep 14 13:32 20250914_materiales_codigo_unique.sql
+-rw-r--r--  1 root root  634 sep 14 13:52 20250914_ordenes_codigo_unique.sql
+-rw-r--r--  1 root root  120 sep 14 13:44 20250914_tecnicos_codigo_unique.sql
+-rw-r--r--  1 root root  496 sep 14 11:54 20250914_timeouts.sql
+-rw-r--r--  1 root root 3438 sep 15 16:46 20250915_ordenes_tipos_and_forms.sql
+-rw-r--r--  1 root root 1575 sep 15 16:53 20250915_seed_ordenes_demo.sql
+-rw-r--r--  1 root root 1609 sep 18 18:16 20250918_backend_hotfix.sql
+-rw-r--r--  1 root root  491 sep 18 18:22 20250918_backend_hotfix_tecnicos.sql
+-rw-r--r--  1 root root 1914 sep 18 17:49 20250918_catalogos.sql
+-rw-r--r--  1 root root 1313 sep 18 17:51 20250918_orden_items_unique.sql
+-rw-r--r--  1 root root  270 sep 18 17:51 20250918_orden_materiales_unique.sql
+-rw-r--r--  1 root root 2043 sep 19 10:57 2025-09-19_init_catalogos_tecnicos.sql
+-rw-r--r--  1 root root 1309 sep 19 13:44 2025-09-19_init_inventario.sql
+-rw-r--r--  1 root root 4219 sep 18 22:00 2025-09-19_init_ordenes.sql
+-rw-r--r--  1 root root  938 sep 14 14:13 900_seed_minimal.sql
+-rw-r--r--  1 root root  526 sep 18 18:42 hotfix_ordenes_eventos.sql

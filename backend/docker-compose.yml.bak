@@ -1,0 +1,126 @@
+
+services:
+  db:
+    image: postgres:14-alpine
+    container_name: isp-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ispdb}
+      POSTGRES_USER: ${POSTGRES_USER:-ispuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-isppass}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "55432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\" -h localhost"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+
+  minio:
+    image: minio/minio:latest
+    container_name: isp-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9000/minio/health/live || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 10s
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: isp-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c '
+      set -e;
+      mc alias set local http://minio:9000 "$${MINIO_ROOT_USER}" "$${MINIO_ROOT_PASSWORD}";
+      mc mb -p local/isp-pdfs || true;
+      mc anonymous set download local/isp-pdfs || true;
+      echo "MinIO init OK";
+      '
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    restart: "no"
+
+  # Ejecuta el SQL de inicialización contra la DB ya saludable
+  db-init:
+    image: postgres:14-alpine
+    container_name: isp-db-init
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD:-isppass}
+      POSTGRES_DB: ${POSTGRES_DB:-ispdb}
+      POSTGRES_USER: ${POSTGRES_USER:-ispuser}
+    volumes:
+      - ./sql:/sql:ro
+    entrypoint: >
+      sh -lc "
+      echo 'Running init SQL...' &&
+      psql -h db -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\" -f /sql/2025-09-19_init_ordenes.sql &&
+      echo 'Init SQL done'
+      "
+    restart: "no"
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: backend-api
+    container_name: isp-api
+    depends_on:
+      db:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
+      minio:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-ispuser}:${POSTGRES_PASSWORD:-isppass}@db:5432/${POSTGRES_DB:-ispdb}}
+      JWT_SECRET: ${JWT_SECRET:-dev}
+      # PDF/MinIO
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-minio:9000}
+      MINIO_BUCKET: ${MINIO_BUCKET:-isp-pdfs}
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      PDF_PUBLIC_BASE: ${PDF_PUBLIC_BASE:-http://localhost:9000/isp-pdfs/}
+      PDF_FORCE_PUBLIC_FOR_KEY: ${PDF_FORCE_PUBLIC_FOR_KEY:-true}
+      # (opcional para compatibilidad con config previa)
+      MINIO_PUBLIC_BASE: ${MINIO_PUBLIC_BASE:-http://localhost:9000/isp-pdfs/}
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"const http=require('http');const r=http.get('http://localhost:3000/v1/health',res=>process.exit(res.statusCode===200?0:1));r.on('error',()=>process.exit(1))\""
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 40
+      start_period: 15s
+
+volumes:
+  db_data:
+  minio_data:

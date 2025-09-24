@@ -1,0 +1,7 @@
+{
+  "/agenda/page": "app/agenda/page.js",
+  "/tecnico/[codigo]/page": "app/tecnico/[codigo]/page.js",
+  "/tecnico/page": "app/tecnico/page.js",
+  "/page": "app/page.js",
+  "/api/ordenes/route": "app/api/ordenes/route.js"
+}

@@ -1,0 +1,198 @@
+## Host
+Linux yarumo 5.15.0-153-generic #163-Ubuntu SMP Thu Aug 7 16:44:32 UTC 2025 aarch64 aarch64 aarch64 GNU/Linux
+Distributor ID:	Ubuntu
+Description:	Ubuntu 22.04.5 LTS
+Release:	22.04
+Codename:	jammy
+
+## Recursos
+Filesystem                         Size  Used Avail Use% Mounted on
+tmpfs                              793M  2,0M  791M   1% /run
+/dev/mapper/ubuntu--vg-ubuntu--lv  273G   55G  207G  21% /
+tmpfs                              3,9G     0  3,9G   0% /dev/shm
+tmpfs                              5,0M     0  5,0M   0% /run/lock
+/dev/sda2                          2,0G  239M  1,6G  14% /boot
+/dev/sda1                          1,1G  6,4M  1,1G   1% /boot/efi
+overlay                            273G   55G  207G  21% /var/lib/docker/overlay2/6fd686de41066e9732f871bd8eba946aff9e4031941be9d79d60817045d1c5a5/merged
+overlay                            273G   55G  207G  21% /var/lib/docker/overlay2/07fa07efcc97dd50b4a21ac3164cd37a9fb49371400f528850db5948667f98a3/merged
+overlay                            273G   55G  207G  21% /var/lib/docker/overlay2/6480e33c6f5fd6ba8a1ffe17f1e1bde1a6873dea081e1dd6bccd91a154170dc6/merged
+overlay                            273G   55G  207G  21% /var/lib/docker/overlay2/c9fab1f7a0d8392b3bd500f7e34458238b6cda9c9e4082cf2f2ef6a32f463be5/merged
+overlay                            273G   55G  207G  21% /var/lib/docker/overlay2/1b530d3dd7043b01b41791a84530b1b99c76e30be0219a0e92c921964c657456/merged
+tmpfs                              793M  4,0K  793M   1% /run/user/1000
+overlay                            273G   55G  207G  21% /var/lib/docker/overlay2/0d4a7e8cfc1df12e272091bffad4dbb788c05150c30689a4bbeeb676e2d29fd1/merged
+               total        used        free      shared  buff/cache   available
+Mem:            7926        1229         352          61        6345        6433
+Swap:           8191           1        8190
+
+## Git (últimos commits + estado)
+No es repo git: /home/yarumo/isp_starter_kit/backend
+
+## Compose ps
+NAME        IMAGE                COMMAND                  SERVICE   CREATED        STATUS                  PORTS
+isp-api     backend-api          "docker-entrypoint.s…"   api       5 hours ago    Up 5 hours (healthy)    0.0.0.0:3000->3000/tcp, [::]:3000->3000/tcp
+isp-db      postgres:14-alpine   "docker-entrypoint.s…"   db        21 hours ago   Up 21 hours (healthy)   0.0.0.0:55432->5432/tcp, [::]:55432->5432/tcp
+isp-minio   minio/minio:latest   "/usr/bin/docker-ent…"   minio     21 hours ago   Up 21 hours (healthy)   0.0.0.0:9000-9001->9000-9001/tcp, [::]:9000-9001->9000-9001/tcp
+
+## Compose config (primeros 300 líneas, sin secretos)
+name: backend
+services:
+  api:
+    build:
+      context: /home/yarumo/isp_starter_kit/backend
+      dockerfile: Dockerfile
+    container_name: isp-api
+    depends_on:
+      db:
+        condition: service_healthy
+        required: true
+      db-init:
+        condition: service_completed_successfully
+        required: true
+      minio:
+        condition: service_healthy
+        required: true
+      minio-init:
+        condition: service_completed_successfully
+        required: true
+    environment:
+      DATABASE_URL: postgresql://ispuser:isp123@db:5432/ispdb
+      JWT_SECRET: ********
+      MINIO_ACCESS_KEY: ********
+      MINIO_BUCKET: isp-pdfs
+      MINIO_ENDPOINT: minio
+      MINIO_PUBLIC_BASE: http://localhost:9000/isp-pdfs/
+      MINIO_SECRET_KEY: ********
+      PDF_FORCE_PUBLIC_FOR_KEY: ********
+      PDF_PUBLIC_BASE: http://localhost:9000/isp-pdfs/
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - node -e "const http=require('http');const r=http.get('http://localhost:3000/v1/health',res=>process.exit(res.statusCode===200?0:1));r.on('error',()=>process.exit(1))"
+      timeout: 3s
+      interval: 5s
+      retries: 40
+      start_period: 15s
+    image: backend-api
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 3000
+        published: "3000"
+        protocol: tcp
+    restart: unless-stopped
+  db:
+    container_name: isp-db
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_DB: ispdb
+      POSTGRES_PASSWORD: ********
+      POSTGRES_USER: ispuser
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}" -h localhost
+      timeout: 3s
+      interval: 5s
+      retries: 20
+      start_period: 10s
+    image: postgres:14-alpine
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 5432
+        published: "55432"
+        protocol: tcp
+    restart: unless-stopped
+    volumes:
+      - type: volume
+        source: db_data
+        target: /var/lib/postgresql/data
+        volume: {}
+  db-init:
+    container_name: isp-db-init
+    depends_on:
+      db:
+        condition: service_healthy
+        required: true
+    entrypoint:
+      - sh
+      - -lc
+      - ' echo ''Running init SQL...'' && psql -h db -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}" -f /sql/2025-09-19_init_ordenes.sql && echo ''Init SQL done'' '
+    environment:
+      PGPASSWORD: ********
+      POSTGRES_DB: ispdb
+      POSTGRES_USER: ispuser
+    image: postgres:14-alpine
+    networks:
+      default: null
+    restart: "no"
+    volumes:
+      - type: bind
+        source: /home/yarumo/isp_starter_kit/backend/sql
+        target: /sql
+        read_only: true
+        bind:
+          create_host_path: true
+  minio:
+    command:
+      - server
+      - /data
+      - --console-address
+      - :9001
+    container_name: isp-minio
+    environment:
+      MINIO_ROOT_PASSWORD: ********
+      MINIO_ROOT_USER: minioadmin
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - curl -fsS http://localhost:9000/minio/health/live || exit 1
+      timeout: 3s
+      interval: 5s
+      retries: 30
+      start_period: 10s
+    image: minio/minio:latest
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 9000
+        published: "9000"
+        protocol: tcp
+      - mode: ingress
+        target: 9001
+        published: "9001"
+        protocol: tcp
+    restart: unless-stopped
+    volumes:
+      - type: volume
+        source: minio_data
+        target: /data
+        volume: {}
+  minio-init:
+    container_name: isp-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+        required: true
+    entrypoint:
+      - /bin/sh
+      - -c
+      - ' set -e; mc alias set local http://minio:9000 "$${MINIO_ROOT_USER}" "$${MINIO_ROOT_PASSWORD}"; mc mb -p local/isp-pdfs || true; mc anonymous set download local/isp-pdfs || true; echo "MinIO init OK"; '
+    environment:
+      MINIO_ROOT_PASSWORD: ********
+      MINIO_ROOT_USER: minioadmin
+    image: minio/mc:latest
+    networks:
+      default: null
+    restart: "no"
+networks:
+  default:
+    name: backend_default
+volumes:
+  db_data:
+    name: backend_db_data
+  minio_data:
+    name: backend_minio_data

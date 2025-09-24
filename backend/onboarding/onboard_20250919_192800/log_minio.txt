@@ -1,0 +1,17 @@
+isp-minio  | INFO: Formatting 1st pool, 1 set(s), 1 drives per set.
+isp-minio  | INFO: WARNING: Host local has more than 0 drives of set. A host failure will result in data becoming unavailable.
+isp-minio  | MinIO Object Storage Server
+isp-minio  | Copyright: 2015-2025 MinIO, Inc.
+isp-minio  | License: GNU AGPLv3 - https://www.gnu.org/licenses/agpl-3.0.html
+isp-minio  | Version: RELEASE.2025-07-23T15-54-02Z (go1.24.5 linux/arm64)
+isp-minio  | 
+isp-minio  | API: http://172.19.0.2:9000  http://127.0.0.1:9000 
+isp-minio  | WebUI: http://172.19.0.2:9001 http://127.0.0.1:9001  
+isp-minio  | 
+isp-minio  | Docs: https://docs.min.io
+isp-minio  | WARN: Detected default credentials 'minioadmin:minioadmin', we recommend that you change these values with 'MINIO_ROOT_USER' and 'MINIO_ROOT_PASSWORD' environment variables
+isp-minio  | INFO: 
+isp-minio  |  You are running an older version of MinIO released 1 month before the latest release 
+isp-minio  |  Update: Run `mc admin update ALIAS` 
+isp-minio  | 
+isp-minio  | 

@@ -1,0 +1,127 @@
+# Version / Extensiones
+                                            version                                             
+------------------------------------------------------------------------------------------------
+ PostgreSQL 14.19 on aarch64-unknown-linux-musl, compiled by gcc (Alpine 14.2.0) 14.2.0, 64-bit
+(1 row)
+
+  extname  | extversion 
+-----------+------------
+ pgcrypto  | 1.3
+ plpgsql   | 1.0
+ uuid-ossp | 1.1
+(3 rows)
+
+
+# Tablas
+                                           List of relations
+ Schema |        Name        | Type  |  Owner  | Persistence | Access method |    Size    | Description 
+--------+--------------------+-------+---------+-------------+---------------+------------+-------------
+ public | cierres_idem       | table | ispuser | permanent   | heap          | 8192 bytes | 
+ public | inv_tecnico        | table | ispuser | permanent   | heap          | 8192 bytes | 
+ public | materiales         | table | ispuser | permanent   | heap          | 16 kB      | 
+ public | motivos_reagenda   | table | ispuser | permanent   | heap          | 16 kB      | 
+ public | orden_cierres_idem | table | ispuser | permanent   | heap          | 8192 bytes | 
+ public | orden_materiales   | table | ispuser | permanent   | heap          | 8192 bytes | 
+ public | ordenes            | table | ispuser | permanent   | heap          | 72 kB      | 
+ public | tecnicos           | table | ispuser | permanent   | heap          | 16 kB      | 
+(8 rows)
+
+
+# Columnas de tablas núcleo
+     table_name     |    column_name    |        data_type         | is_nullable 
+--------------------+-------------------+--------------------------+-------------
+ inv_tecnico        | id                | uuid                     | NO
+ inv_tecnico        | tecnico_id        | uuid                     | NO
+ inv_tecnico        | material_id       | integer                  | NO
+ inv_tecnico        | cantidad          | integer                  | NO
+ inv_tecnico        | created_at        | timestamp with time zone | NO
+ inv_tecnico        | updated_at        | timestamp with time zone | YES
+ materiales         | id                | integer                  | NO
+ materiales         | nombre            | text                     | NO
+ materiales         | precio            | numeric                  | NO
+ materiales         | creado_at         | timestamp with time zone | NO
+ materiales         | created_at        | timestamp with time zone | NO
+ materiales         | updated_at        | timestamp with time zone | NO
+ materiales         | codigo            | text                     | NO
+ materiales         | tipo              | text                     | YES
+ materiales         | es_serial         | boolean                  | NO
+ orden_cierres_idem | id                | uuid                     | NO
+ orden_cierres_idem | orden_codigo      | text                     | NO
+ orden_cierres_idem | idem_key          | text                     | YES
+ orden_cierres_idem | payload_hash      | text                     | YES
+ orden_cierres_idem | first_seen_at     | timestamp with time zone | NO
+ orden_cierres_idem | last_seen_at      | timestamp with time zone | NO
+ orden_cierres_idem | result_status     | integer                  | YES
+ orden_cierres_idem | result_body       | jsonb                    | YES
+ ordenes            | id                | uuid                     | NO
+ ordenes            | codigo            | text                     | NO
+ ordenes            | estado            | text                     | NO
+ ordenes            | subtotal          | numeric                  | NO
+ ordenes            | total             | numeric                  | NO
+ ordenes            | cerrada_at        | timestamp with time zone | YES
+ ordenes            | tecnico_id        | uuid                     | YES
+ ordenes            | creado_at         | timestamp with time zone | NO
+ ordenes            | actualizado_at    | timestamp with time zone | NO
+ ordenes            | iniciada_at       | timestamp with time zone | YES
+ ordenes            | firma_key         | text                     | YES
+ ordenes            | pdf_url           | text                     | YES
+ ordenes            | created_at        | timestamp with time zone | NO
+ ordenes            | updated_at        | timestamp with time zone | NO
+ ordenes            | tipo              | text                     | YES
+ ordenes            | cliente_snapshot  | jsonb                    | YES
+ ordenes            | servicio_snapshot | jsonb                    | YES
+ ordenes            | form_data         | jsonb                    | YES
+ ordenes            | auto_agendada     | boolean                  | YES
+ ordenes            | auto_cerrada      | boolean                  | YES
+ ordenes            | agendada_at       | timestamp with time zone | YES
+ ordenes            | pdf_key           | text                     | YES
+ ordenes            | agendado_para     | date                     | YES
+ ordenes            | turno             | text                     | YES
+ ordenes            | observaciones     | text                     | YES
+ ordenes            | usuario_id        | uuid                     | YES
+ ordenes            | snapshot_tecnico  | jsonb                    | NO
+ ordenes            | cierre_token      | uuid                     | YES
+ ordenes_materiales | id                | uuid                     | YES
+ ordenes_materiales | orden_id          | uuid                     | YES
+ ordenes_materiales | material_id       | integer                  | YES
+ ordenes_materiales | cantidad          | numeric                  | YES
+ ordenes_materiales | precio_unitario   | numeric                  | YES
+ ordenes_materiales | total_calculado   | numeric                  | YES
+ ordenes_materiales | created_at        | timestamp with time zone | YES
+ ordenes_materiales | updated_at        | timestamp with time zone | YES
+ tecnicos           | id                | uuid                     | NO
+ tecnicos           | codigo            | text                     | NO
+ tecnicos           | activo            | boolean                  | NO
+ tecnicos           | created_at        | timestamp with time zone | NO
+(63 rows)
+
+
+# Constraints clave
+       tabla        |                       conname                        | contype 
+--------------------+------------------------------------------------------+---------
+ materiales         | materiales_codigo_key                                | u
+ materiales         | materiales_nombre_key                                | u
+ materiales         | materiales_pkey                                      | p
+ ordenes            | ck_ordenes_tipo_dom                                  | c
+ ordenes            | ordenes_codigo_key                                   | u
+ ordenes            | ordenes_pkey                                         | p
+ ordenes            | ux_ordenes_tipo_codigo                               | u
+ orden_materiales   | orden_materiales_material_id_fkey                    | f
+ orden_materiales   | orden_materiales_orden_id_fkey                       | f
+ orden_materiales   | orden_materiales_pkey                                | p
+ orden_materiales   | ux_orden_materiales_orden_mat                        | u
+ motivos_reagenda   | motivos_reagenda_nombre_key                          | u
+ motivos_reagenda   | motivos_reagenda_pkey                                | p
+ tecnicos           | tecnicos_codigo_key                                  | u
+ tecnicos           | tecnicos_pkey                                        | p
+ inv_tecnico        | chk_inv_tecnico_cantidad_nn                          | c
+ inv_tecnico        | fk_inv_tecnico_material                              | f
+ inv_tecnico        | fk_inv_tecnico_tecnico                               | f
+ inv_tecnico        | inv_tecnico_pkey                                     | p
+ cierres_idem       | cierres_idem_orden_id_fkey                           | f
+ cierres_idem       | cierres_idem_orden_id_tecnico_id_idempotency_key_key | u
+ cierres_idem       | cierres_idem_pkey                                    | p
+ cierres_idem       | cierres_idem_tecnico_id_fkey                         | f
+ orden_cierres_idem | orden_cierres_idem_pkey                              | p
+(24 rows)
+

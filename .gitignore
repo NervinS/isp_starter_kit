@@ -1,0 +1,22 @@
+# Node
+**/node_modules/
+npm-debug.log*
+*.log
+
+# TS/Nest build
+backend/dist/
+backend/.tsbuildinfo
+
+# Docker y envs
+**/.env
+**/.env.*
+!.env.example
+docker-data/
+tmp/
+*.pid
+
+# SO/Editor
+.DS_Store
+.idea/
+.vscode/
+*.swp

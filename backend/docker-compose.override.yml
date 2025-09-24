@@ -1,0 +1,19 @@
+services:
+  api:
+    environment:
+      # === MINIO / PDFs ===
+      MINIO_ENDPOINT: "minio"            # host del servicio minio dentro del compose
+      MINIO_PORT: "9000"
+      MINIO_USE_SSL: "false"
+      MINIO_ROOT_USER: "minioadmin"      # credenciales DEV por defecto
+      MINIO_ROOT_PASSWORD: "minioadmin"
+      MINIO_BUCKET: "evidencias"         # <— bucket ÚNICO que usaremos
+      # Base pública para construir las URLs de descarga
+      # IMPORTANTE: debe terminar en "/" y ya incluir el bucket en la ruta
+      MINIO_PUBLIC_BASE: "http://127.0.0.1:9000/evidencias/"
+      # Fuerza a la API a usar MINIO_PUBLIC_BASE aunque también suba la ruta interna
+      PDF_FORCE_PUBLIC_URL: "true"
+
+      # === DB / otros (si los manejas aquí) ===
+      # PORT: "3000"                     # sólo si no lo defines en Dockerfile
+      # DATABASE_URL: "postgresql://ispuser:isp123@db:5432/ispdb"

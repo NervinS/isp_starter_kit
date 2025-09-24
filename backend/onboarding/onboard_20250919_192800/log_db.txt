@@ -1,0 +1,300 @@
+isp-db  | 	       SET cantidad = cantidad + 1
+isp-db  | 	     WHERE orden_id='c9bd1235-a5d3-43d0-a11d-1350eab2c334' AND material_id=1;
+isp-db  | 	  END IF;
+isp-db  | 	
+isp-db  | 	  UPDATE ordenes o
+isp-db  | 	     SET subtotal = COALESCE(t.sum_total,0),
+isp-db  | 	         total    = COALESCE(t.sum_total,0)
+isp-db  | 	    FROM (
+isp-db  | 	      SELECT orden_id, COALESCE(SUM(total_calculado),0) AS sum_total
+isp-db  | 	        FROM ordenes_materiales
+isp-db  | 	       WHERE orden_id='c9bd1235-a5d3-43d0-a11d-1350eab2c334'
+isp-db  | 	       GROUP BY orden_id
+isp-db  | 	    ) t
+isp-db  | 	   WHERE o.id=t.orden_id;
+isp-db  | 	END
+isp-db  | 	$$;
+isp-db  | 2025-09-19 19:57:34.373 UTC [89144] ERROR:  relation "ordenes_materiales" does not exist at character 81
+isp-db  | 2025-09-19 19:57:34.373 UTC [89144] STATEMENT:  select count(*), sum(cantidad), min(precio_unitario), sum(total_calculado) from ordenes_materiales where orden_id='c9bd1235-a5d3-43d0-a11d-1350eab2c334'
+isp-db  | 2025-09-19 20:19:17.064 UTC [91625] ERROR:  syntax error at or near "$" at character 131
+isp-db  | 2025-09-19 20:19:17.064 UTC [91625] STATEMENT:  INSERT INTO inv_tecnico(id, tecnico_id, material_id, cantidad, created_at, updated_at)
+isp-db  | 	VALUES (gen_random_uuid(), '$TECID'::uuid, $MATID::int, 2, now(), now())
+isp-db  | 	ON CONFLICT (tecnico_id, material_id)
+isp-db  | 	DO UPDATE SET cantidad = GREATEST(inv_tecnico.cantidad, 2), updated_at = now();
+isp-db  | 2025-09-19 20:19:21.669 UTC [91697] ERROR:  syntax error at or near "$" at character 131
+isp-db  | 2025-09-19 20:19:21.669 UTC [91697] STATEMENT:  INSERT INTO inv_tecnico(id, tecnico_id, material_id, cantidad, created_at, updated_at)
+isp-db  | 	VALUES (gen_random_uuid(), '$TECID'::uuid, $MATID::int, 2, now(), now())
+isp-db  | 	ON CONFLICT (tecnico_id, material_id)
+isp-db  | 	DO UPDATE SET cantidad = GREATEST(inv_tecnico.cantidad, 2), updated_at = now();
+isp-db  | 2025-09-19 20:28:59.673 UTC [92541] ERROR:  syntax error at or near ":" at character 126
+isp-db  | 2025-09-19 20:28:59.673 UTC [92541] STATEMENT:  DO $$
+isp-db  | 	DECLARE
+isp-db  | 	  v_exists integer;
+isp-db  | 	BEGIN
+isp-db  | 	  EXECUTE format('SELECT count(*) FROM %I WHERE orden_id = $1 AND material_id = $2', :'TABLE_OM')
+isp-db  | 	    INTO v_exists
+isp-db  | 	    USING :'OID_DB'::uuid, :'MATID'::int;
+isp-db  | 	
+isp-db  | 	  IF v_exists = 0 THEN
+isp-db  | 	    EXECUTE format(
+isp-db  | 	      'INSERT INTO %I(orden_id, material_id, cantidad, precio_unitario) VALUES ($1,$2,$3,$4)',
+isp-db  | 	      :'TABLE_OM'
+isp-db  | 	    )
+isp-db  | 	    USING :'OID_DB'::uuid, :'MATID'::int, 1, 1200;
+isp-db  | 	  ELSE
+isp-db  | 	    EXECUTE format(
+isp-db  | 	      'UPDATE %I SET cantidad = cantidad + $3, precio_unitario = $4 WHERE orden_id=$1 AND material_id=$2',
+isp-db  | 	      :'TABLE_OM'
+isp-db  | 	    )
+isp-db  | 	    USING :'OID_DB'::uuid, :'MATID'::int, 1, 1200;
+isp-db  | 	  END IF;
+isp-db  | 	END
+isp-db  | 	$$;
+isp-db  | 2025-09-19 20:29:04.298 UTC [92613] ERROR:  syntax error at or near ":" at character 126
+isp-db  | 2025-09-19 20:29:04.298 UTC [92613] STATEMENT:  DO $$
+isp-db  | 	DECLARE
+isp-db  | 	  v_exists integer;
+isp-db  | 	BEGIN
+isp-db  | 	  EXECUTE format('SELECT count(*) FROM %I WHERE orden_id = $1 AND material_id = $2', :'TABLE_OM')
+isp-db  | 	    INTO v_exists
+isp-db  | 	    USING :'OID_DB'::uuid, :'MATID'::int;
+isp-db  | 	
+isp-db  | 	  IF v_exists = 0 THEN
+isp-db  | 	    EXECUTE format(
+isp-db  | 	      'INSERT INTO %I(orden_id, material_id, cantidad, precio_unitario) VALUES ($1,$2,$3,$4)',
+isp-db  | 	      :'TABLE_OM'
+isp-db  | 	    )
+isp-db  | 	    USING :'OID_DB'::uuid, :'MATID'::int, 1, 1200;
+isp-db  | 	  ELSE
+isp-db  | 	    EXECUTE format(
+isp-db  | 	      'UPDATE %I SET cantidad = cantidad + $3, precio_unitario = $4 WHERE orden_id=$1 AND material_id=$2',
+isp-db  | 	      :'TABLE_OM'
+isp-db  | 	    )
+isp-db  | 	    USING :'OID_DB'::uuid, :'MATID'::int, 1, 1200;
+isp-db  | 	  END IF;
+isp-db  | 	END
+isp-db  | 	$$;
+isp-db  | 2025-09-19 20:48:44.035 UTC [94920] ERROR:  column "nombre" does not exist at character 27
+isp-db  | 2025-09-19 20:48:44.035 UTC [94920] STATEMENT:  select id::text, coalesce(nombre,codigo) from tecnicos where codigo='TEC-0001' limit 1
+isp-db  | 2025-09-19 20:49:18.524 UTC [95000] ERROR:  column "nombre" does not exist at character 27
+isp-db  | 2025-09-19 20:49:18.524 UTC [95000] STATEMENT:  select id::text, coalesce(nombre,codigo) from tecnicos where codigo='TEC-0001' limit 1
+isp-db  | 2025-09-19 20:49:33.494 UTC [95056] ERROR:  column "nombre" does not exist at character 27
+isp-db  | 2025-09-19 20:49:33.494 UTC [95056] STATEMENT:  select id::text, coalesce(nombre,codigo) from tecnicos where codigo='TEC-0001' limit 1
+isp-db  | 2025-09-19 20:51:43.134 UTC [95257] ERROR:  column "nombre" does not exist at character 27
+isp-db  | 2025-09-19 20:51:43.134 UTC [95257] STATEMENT:  select id::text, coalesce(nombre,codigo) from tecnicos where codigo='TEC-0001' limit 1
+isp-db  | 2025-09-19 20:52:20.912 UTC [95393] ERROR:  column "nombre" does not exist at character 27
+isp-db  | 2025-09-19 20:52:20.912 UTC [95393] STATEMENT:  select id::text, coalesce(nombre,codigo) from tecnicos where codigo='TEC-0001' limit 1
+isp-db  | 2025-09-19 20:52:31.951 UTC [95443] ERROR:  column "nombre" does not exist at character 27
+isp-db  | 2025-09-19 20:52:31.951 UTC [95443] STATEMENT:  select id::text, coalesce(nombre,codigo) from tecnicos where codigo='TEC-0001' limit 1
+isp-db  | 2025-09-19 21:26:08.570 UTC [98891] ERROR:  syntax error at or near ":" at character 135
+isp-db  | 2025-09-19 21:26:08.570 UTC [98891] STATEMENT:  DO $$
+isp-db  | 	DECLARE
+isp-db  | 	  v_oid  uuid;
+isp-db  | 	  v_now  timestamptz := now();
+isp-db  | 	  v_fecha date := current_date;
+isp-db  | 	  v_turno text := 'am';
+isp-db  | 	  v_tecid uuid := :'TECID'::uuid;
+isp-db  | 	  v_id    uuid;
+isp-db  | 	BEGIN
+isp-db  | 	  SELECT id INTO v_id FROM ordenes WHERE codigo = :'OID';
+isp-db  | 	  IF v_id IS NULL THEN
+isp-db  | 	    RAISE EXCEPTION 'Orden % no existe', :'OID';
+isp-db  | 	  END IF;
+isp-db  | 	
+isp-db  | 	  -- Cambiar a agendada + set de campos si existen
+isp-db  | 	  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='ordenes' AND column_name='estado') THEN
+isp-db  | 	    EXECUTE 'UPDATE ordenes SET estado = $1, updated_at = $2 WHERE id = $3'
+isp-db  | 	    USING 'agendada', v_now, v_id;
+isp-db  | 	  END IF;
+isp-db  | 	
+isp-db  | 	  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='ordenes' AND column_name='tecnico_id') THEN
+isp-db  | 	    EXECUTE 'UPDATE ordenes SET tecnico_id = $1, updated_at = $2 WHERE id = $3'
+isp-db  | 	    USING v_tecid, v_now, v_id;
+isp-db  | 	  END IF;
+isp-db  | 	
+isp-db  | 	  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='ordenes' AND column_name='agendado_para') THEN
+isp-db  | 	    EXECUTE 'UPDATE ordenes SET agendado_para = $1, updated_at = $2 WHERE id = $3'
+isp-db  | 	    USING v_fecha, v_now, v_id;
+isp-db  | 	  END IF;
+isp-db  | 	
+isp-db  | 	  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='ordenes' AND column_name='turno') THEN
+isp-db  | 	    EXECUTE 'UPDATE ordenes SET turno = $1, updated_at = $2 WHERE id = $3'
+isp-db  | 	    USING v_turno, v_now, v_id;
+isp-db  | 	  END IF;
+isp-db  | 	
+isp-db  | 	  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='ordenes' AND column_name='agendada_at') THEN
+isp-db  | 	    EXECUTE 'UPDATE ordenes SET agendada_at = $1, updated_at = $1 WHERE id = $2'
+isp-db  | 	    USING v_now, v_id;
+isp-db  | 	  END IF;
+isp-db  | 	END
+isp-db  | 	$$;
+isp-db  | 2025-09-19 22:31:06.039 UTC [105003] ERROR:  syntax error at or near ":" at character 29
+isp-db  | 2025-09-19 22:31:06.039 UTC [105003] STATEMENT:  DO $$
+isp-db  | 	DECLARE v_oid text := :'OID'; v_tecid uuid := :'TECID'::uuid; v_fecha date := CURRENT_DATE;
+isp-db  | 	BEGIN
+isp-db  | 	  UPDATE ordenes
+isp-db  | 	     SET estado='agendada', tecnico_id=v_tecid, agendado_para=v_fecha, turno='am', agendada_at=now()
+isp-db  | 	   WHERE codigo=v_oid;
+isp-db  | 	
+isp-db  | 	  RAISE NOTICE 'codigo|estado|agendado_para|turno|agendada_at|tecnico_id';
+isp-db  | 	  PERFORM 1;
+isp-db  | 	END $$;
+isp-db  | 2025-09-19 22:31:12.431 UTC [105143] ERROR:  syntax error at or near ":" at character 29
+isp-db  | 2025-09-19 22:31:12.431 UTC [105143] STATEMENT:  DO $$
+isp-db  | 	DECLARE v_oid text := :'OID'; v_tecid uuid := :'TECID'::uuid; v_fecha date := CURRENT_DATE;
+isp-db  | 	BEGIN
+isp-db  | 	  UPDATE ordenes
+isp-db  | 	     SET estado='agendada', tecnico_id=v_tecid, agendado_para=v_fecha, turno='am', agendada_at=now()
+isp-db  | 	   WHERE codigo=v_oid;
+isp-db  | 	
+isp-db  | 	  RAISE NOTICE 'codigo|estado|agendado_para|turno|agendada_at|tecnico_id';
+isp-db  | 	  PERFORM 1;
+isp-db  | 	END $$;
+isp-db  | 2025-09-19 22:35:02.335 UTC [105523] ERROR:  syntax error at or near ":" at character 33
+isp-db  | 2025-09-19 22:35:02.335 UTC [105523] STATEMENT:  DO $$
+isp-db  | 	DECLARE
+isp-db  | 	  v_oid   text := :OID;
+isp-db  | 	  v_tecid uuid := :TECID::uuid;
+isp-db  | 	  v_fecha date := CURRENT_DATE;
+isp-db  | 	BEGIN
+isp-db  | 	  UPDATE ordenes
+isp-db  | 	     SET estado='agendada',
+isp-db  | 	         tecnico_id=v_tecid,
+isp-db  | 	         agendado_para=v_fecha,
+isp-db  | 	         turno='am',
+isp-db  | 	         agendada_at=now()
+isp-db  | 	   WHERE codigo=v_oid;
+isp-db  | 	
+isp-db  | 	  RAISE NOTICE 'codigo|estado|agendado_para|turno|agendada_at|tecnico_id';
+isp-db  | 	END $$;
+isp-db  | 2025-09-19 22:35:08.131 UTC [105643] ERROR:  duplicate key value violates unique constraint "ordenes_codigo_key"
+isp-db  | 2025-09-19 22:35:08.131 UTC [105643] DETAIL:  Key (codigo)=(IDEM-20250919173507) already exists.
+isp-db  | 2025-09-19 22:35:08.131 UTC [105643] STATEMENT:  insert into ordenes(id,codigo,estado,created_at) values(gen_random_uuid(),'IDEM-20250919173507','creada',now());
+isp-db  | 2025-09-19 22:39:40.866 UTC [106071] ERROR:  syntax error at or near ":" at character 33
+isp-db  | 2025-09-19 22:39:40.866 UTC [106071] STATEMENT:  DO $$
+isp-db  | 	DECLARE
+isp-db  | 	  v_oid   text := :OID;
+isp-db  | 	  v_tecid uuid := :TECID::uuid;
+isp-db  | 	  v_fecha date := CURRENT_DATE;
+isp-db  | 	BEGIN
+isp-db  | 	  UPDATE ordenes
+isp-db  | 	     SET estado='agendada',
+isp-db  | 	         tecnico_id=v_tecid,
+isp-db  | 	         agendado_para=v_fecha,
+isp-db  | 	         turno='am',
+isp-db  | 	         agendada_at=now()
+isp-db  | 	   WHERE codigo=v_oid;
+isp-db  | 	END $$;
+isp-db  | 2025-09-19 22:43:18.747 UTC [106416] ERROR:  syntax error at or near ":" at character 33
+isp-db  | 2025-09-19 22:43:18.747 UTC [106416] STATEMENT:  DO $$
+isp-db  | 	DECLARE
+isp-db  | 	  v_oid   text := :'OID';
+isp-db  | 	  v_tecid uuid := :'TECID'::uuid;
+isp-db  | 	  v_fecha date := CURRENT_DATE;
+isp-db  | 	BEGIN
+isp-db  | 	  UPDATE ordenes
+isp-db  | 	     SET estado='agendada',
+isp-db  | 	         tecnico_id=v_tecid,
+isp-db  | 	         agendado_para=v_fecha,
+isp-db  | 	         turno='am',
+isp-db  | 	         agendada_at=now()
+isp-db  | 	   WHERE codigo=v_oid;
+isp-db  | 	END $$;
+isp-db  | 2025-09-19 22:58:37.461 UTC [107967] ERROR:  syntax error at or near "(" at character 447
+isp-db  | 2025-09-19 22:58:37.461 UTC [107967] STATEMENT:  CREATE TABLE IF NOT EXISTS orden_cierres_idem (
+isp-db  | 	  id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+isp-db  | 	  orden_codigo     text NOT NULL,
+isp-db  | 	  idem_key         text,               
+isp-db  | 	  payload_hash     text,               
+isp-db  | 	  first_seen_at    timestamptz NOT NULL DEFAULT now(),
+isp-db  | 	  last_seen_at     timestamptz NOT NULL DEFAULT now(),
+isp-db  | 	  result_status    integer,            
+isp-db  | 	  result_body      jsonb,              
+isp-db  | 	  UNIQUE(orden_codigo, COALESCE(idem_key,''), COALESCE(payload_hash,''))
+isp-db  | 	);
+isp-db  | 2025-09-19 23:08:46.375 UTC [109125] ERROR:  column "nombre" does not exist at character 27
+isp-db  | 2025-09-19 23:08:46.375 UTC [109125] STATEMENT:  select id::text, coalesce(nombre,codigo) from tecnicos where codigo='TEC-0001' limit 1;
+isp-db  | 2025-09-19 23:08:59.900 UTC [109223] ERROR:  column "nombre" does not exist at character 27
+isp-db  | 2025-09-19 23:08:59.900 UTC [109223] STATEMENT:  select id::text, coalesce(nombre,codigo) from tecnicos where codigo='TEC-0001' limit 1;
+isp-db  | 2025-09-19 23:09:00.121 UTC [109230] ERROR:  column "nombre" does not exist at character 27
+isp-db  | 2025-09-19 23:09:00.121 UTC [109230] STATEMENT:  select id::text, coalesce(nombre,codigo) from tecnicos where codigo='TEC-0001' limit 1;
+isp-db  | 2025-09-19 23:09:12.764 UTC [109252] ERROR:  column "nombre" does not exist at character 27
+isp-db  | 2025-09-19 23:09:12.764 UTC [109252] STATEMENT:  select id::text, coalesce(nombre,codigo) from tecnicos where codigo='TEC-0001' limit 1;
+isp-db  | 2025-09-19 23:09:19.724 UTC [109267] ERROR:  column "nombre" does not exist at character 27
+isp-db  | 2025-09-19 23:09:19.724 UTC [109267] STATEMENT:  select id::text, coalesce(nombre,codigo) from tecnicos where codigo='TEC-0001' limit 1;
+isp-db  | 2025-09-19 23:13:41.925 UTC [109763] ERROR:  syntax error at or near ":" at character 31
+isp-db  | 2025-09-19 23:13:41.925 UTC [109763] STATEMENT:  DO $$
+isp-db  | 	DECLARE
+isp-db  | 	  v_oid text := :'oid';
+isp-db  | 	  v_tecid uuid := :'tecid'::uuid;
+isp-db  | 	BEGIN
+isp-db  | 	  UPDATE ordenes
+isp-db  | 	    SET estado='agendada', agendado_para=current_date, turno='am', agendada_at=now(), tecnico_id=v_tecid
+isp-db  | 	    WHERE codigo=v_oid;
+isp-db  | 	
+isp-db  | 	END $$;
+isp-db  | 2025-09-19 23:13:48.622 UTC [109897] ERROR:  syntax error at or near ":" at character 31
+isp-db  | 2025-09-19 23:13:48.622 UTC [109897] STATEMENT:  DO $$
+isp-db  | 	DECLARE
+isp-db  | 	  v_oid text := :'oid';
+isp-db  | 	  v_tecid uuid := :'tecid'::uuid;
+isp-db  | 	BEGIN
+isp-db  | 	  UPDATE ordenes
+isp-db  | 	    SET estado='agendada', agendado_para=current_date, turno='am', agendada_at=now(), tecnico_id=v_tecid
+isp-db  | 	    WHERE codigo=v_oid;
+isp-db  | 	
+isp-db  | 	END $$;
+isp-db  | 2025-09-19 23:23:56.923 UTC [110783] ERROR:  new row for relation "ordenes" violates check constraint "ck_ordenes_tipo_dom"
+isp-db  | 2025-09-19 23:23:56.923 UTC [110783] DETAIL:  Failing row contains (fa10ff16-3f25-4a69-95d6-3cdbe1687a3c, IDEM-20250919182356-28644, creada, 0.00, 0.00, null, null, 2025-09-19 23:23:56.92047+00, 2025-09-19 23:23:56.92047+00, null, null, null, 2025-09-19 23:23:56.92047+00, 2025-09-19 23:23:56.92047+00, mantenimiento, null, null, null, f, f, null, null, null, null, null, null, {}, null).
+isp-db  | 2025-09-19 23:23:56.923 UTC [110783] STATEMENT:  INSERT INTO ordenes(codigo, estado, tipo)
+isp-db  | 	                        VALUES ('IDEM-20250919182356-28644','creada','mantenimiento')
+isp-db  | 	                        ON CONFLICT (codigo) DO NOTHING;
+isp-db  | 2025-09-19 23:24:16.268 UTC [110834] ERROR:  new row for relation "ordenes" violates check constraint "ck_ordenes_tipo_dom"
+isp-db  | 2025-09-19 23:24:16.268 UTC [110834] DETAIL:  Failing row contains (390edc5a-fd1d-48fc-bc2f-8e4996a5b8ef, IDEM-20250919182415-19409, creada, 0.00, 0.00, null, null, 2025-09-19 23:24:16.265904+00, 2025-09-19 23:24:16.265904+00, null, null, null, 2025-09-19 23:24:16.265904+00, 2025-09-19 23:24:16.265904+00, mantenimiento, null, null, null, f, f, null, null, null, null, null, null, {}, null).
+isp-db  | 2025-09-19 23:24:16.268 UTC [110834] STATEMENT:  INSERT INTO ordenes(codigo, estado, tipo)
+isp-db  | 	                        VALUES ('IDEM-20250919182415-19409','creada','mantenimiento')
+isp-db  | 	                        ON CONFLICT (codigo) DO NOTHING;
+isp-db  | 2025-09-19 23:30:27.062 UTC [111392] ERROR:  syntax error at or near ":" at character 33
+isp-db  | 2025-09-19 23:30:27.062 UTC [111392] STATEMENT:  DO $$
+isp-db  | 	DECLARE
+isp-db  | 	  v_oid   text := :'OID';
+isp-db  | 	  v_tecid uuid := :'TECID'::uuid;
+isp-db  | 	BEGIN
+isp-db  | 	  UPDATE ordenes
+isp-db  | 	     SET estado        = 'agendada',
+isp-db  | 	         agendado_para = CURRENT_DATE,
+isp-db  | 	         turno         = 'am',
+isp-db  | 	         agendada_at   = NOW(),
+isp-db  | 	         tecnico_id    = v_tecid
+isp-db  | 	   WHERE codigo = v_oid;
+isp-db  | 	END $$;
+isp-db  | 2025-09-19 23:39:55.873 UTC [112243] ERROR:  syntax error at or near ":" at character 33
+isp-db  | 2025-09-19 23:39:55.873 UTC [112243] STATEMENT:  DO $$
+isp-db  | 	DECLARE
+isp-db  | 	  v_oid   text := :'OID';
+isp-db  | 	  v_tecid uuid := NULL;
+isp-db  | 	BEGIN
+isp-db  | 	  -- Solo si tenemos técnico disponible
+isp-db  | 	  BEGIN
+isp-db  | 	    v_tecid := :'TECID'::uuid;
+isp-db  | 	  EXCEPTION WHEN others THEN
+isp-db  | 	    v_tecid := NULL;
+isp-db  | 	  END;
+isp-db  | 	
+isp-db  | 	  UPDATE ordenes
+isp-db  | 	     SET estado        = 'agendada',
+isp-db  | 	         agendado_para = CURRENT_DATE,
+isp-db  | 	         turno         = 'am',
+isp-db  | 	         agendada_at   = NOW(),
+isp-db  | 	         tecnico_id    = COALESCE(v_tecid, tecnico_id)
+isp-db  | 	   WHERE codigo = v_oid;
+isp-db  | 	END $$;
+isp-db  | 2025-09-19 23:45:24.663 UTC [112740] ERROR:  syntax error at or near ":" at character 52
+isp-db  | 2025-09-19 23:45:24.663 UTC [112740] STATEMENT:  INSERT INTO ordenes(codigo, estado, tipo)
+isp-db  | 	 VALUES (:'oid','creada', :'tipo') ON CONFLICT (codigo) DO NOTHING;
+isp-db  | 2025-09-20 00:28:03.201 UTC [117136] ERROR:  column "nombre" does not exist at character 32
+isp-db  | 2025-09-20 00:28:03.201 UTC [117136] STATEMENT:  COPY  ( SELECT id::text,codigo,nombre,activo,created_at FROM tecnicos ORDER BY created_at DESC NULLS LAST LIMIT 50 ) TO STDOUT CSV HEADER
+isp-db  | 2025-09-20 00:28:04.238 UTC [117177] ERROR:  column "status_http" does not exist at character 38
+isp-db  | 2025-09-20 00:28:04.238 UTC [117177] STATEMENT:  COPY  ( SELECT orden_codigo,idem_key,status_http,created_at FROM orden_cierres_idem ORDER BY created_at DESC LIMIT 500 ) TO STDOUT CSV HEADER
+isp-db  | 2025-09-20 00:28:04.486 UTC [117185] ERROR:  relation "ventas" does not exist at character 70
+isp-db  | 2025-09-20 00:28:04.486 UTC [117185] STATEMENT:  COPY  ( SELECT codigo, estado, total, mensual_total, created_at FROM ventas ORDER BY created_at DESC LIMIT 200 ) TO STDOUT CSV HEADER

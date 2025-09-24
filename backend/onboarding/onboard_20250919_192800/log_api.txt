@@ -1,0 +1,300 @@
+isp-api  | [RES] GET /v1/admin/catalogos/motivos_reagenda/items -> 200 4.8ms rid=b7dfbdde-4201-4bf4-8682-47ec3d235b40
+isp-api  | [REQ] POST /v1/admin/catalogos/motivos_reagenda/items rid=7af9922e-18ef-425d-99df-b31654a811cb
+isp-api  | [RES] POST /v1/admin/catalogos/motivos_reagenda/items -> 201 5.3ms rid=7af9922e-18ef-425d-99df-b31654a811cb
+isp-api  | [REQ] GET /v1/materiales rid=a2ea4a91-3c13-4b5a-b410-186ef2f3a42e
+isp-api  | [RES] GET /v1/materiales -> 200 2.4ms rid=a2ea4a91-3c13-4b5a-b410-186ef2f3a42e
+isp-api  | [REQ] POST /v1/agenda/ordenes/MAN-20250919180153/asignar rid=9037a082-b04b-4c27-b35b-dcbf0a0387f7
+isp-api  | [32m[Nest] 1  - [39m09/19/2025, 11:01:53 PM [32m    LOG[39m [38;5;3m[AgendaService] [39m[32m[ASIGNAR] MAN-20250919180153 -> {"ok":true,"orden":[{"codigo":"MAN-20250919180153","estado":"agendada","agendadoPara":"2025-09-19","turno":"am","agendadaAt":"2025-09-19T23:01:53.448Z","tecnicoId":"a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec"}]}[39m
+isp-api  | [RES] POST /v1/agenda/ordenes/MAN-20250919180153/asignar -> 200 3.7ms rid=9037a082-b04b-4c27-b35b-dcbf0a0387f7
+isp-api  | [REQ] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes rid=1041ef6e-e2a2-4552-bcac-6c20a44a83e5
+isp-api  | [RES] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes -> 200 4.1ms rid=1041ef6e-e2a2-4552-bcac-6c20a44a83e5
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919180153/iniciar rid=a2c2bd7f-b109-45a1-8c97-1098521859fe
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919180153/iniciar -> 200 5.7ms rid=a2c2bd7f-b109-45a1-8c97-1098521859fe
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919180153/cerrar rid=1ca4efab-6f02-4f45-ae0b-9fc515e9ef6a
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919180153/cerrar -> 200 13.0ms rid=1ca4efab-6f02-4f45-ae0b-9fc515e9ef6a
+isp-api  | [REQ] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes rid=212a119b-27e8-43ee-b1e8-a1d490dae8e4
+isp-api  | [RES] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes -> 200 4.3ms rid=212a119b-27e8-43ee-b1e8-a1d490dae8e4
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919180154/iniciar rid=02c057bd-75c3-42cf-81d6-1654e65819d6
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919180154/iniciar -> 200 6.2ms rid=02c057bd-75c3-42cf-81d6-1654e65819d6
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919180154/cerrar rid=52dd4618-20f8-4204-aa23-66ff58b234b0
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919180154/cerrar -> 200 5.3ms rid=52dd4618-20f8-4204-aa23-66ff58b234b0
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/IDEM-20250919180156/cerrar rid=1a880014-8cf0-482c-9533-dfd70a866665
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/IDEM-20250919180156/cerrar -> 403 1.4ms rid=1a880014-8cf0-482c-9533-dfd70a866665
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/IDEM-20250919180156/cerrar rid=a18b0447-d856-45b8-bc2c-d097d931f312
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/IDEM-20250919180156/cerrar -> 403 0.9ms rid=a18b0447-d856-45b8-bc2c-d097d931f312
+isp-api  | [REQ] POST /v1/ordenes/IDEM-20250919180156-18631/agenda rid=29874a95-8c14-440c-b9a9-f435a4e94656
+isp-api  | [RES] POST /v1/ordenes/IDEM-20250919180156-18631/agenda -> 404 1.0ms rid=29874a95-8c14-440c-b9a9-f435a4e94656
+isp-api  | [REQ] PATCH /v1/ordenes/IDEM-20250919180156-18631/agenda rid=2170bd7d-b559-45fd-ade1-b4d58b395948
+isp-api  | [RES] PATCH /v1/ordenes/IDEM-20250919180156-18631/agenda -> 404 1.0ms rid=2170bd7d-b559-45fd-ade1-b4d58b395948
+isp-api  | [REQ] PATCH /v1/ordenes/IDEM-20250919180156-18631/agenda rid=a7d9ed9c-642f-449e-8523-4f1ae02267bd
+isp-api  | [RES] PATCH /v1/ordenes/IDEM-20250919180156-18631/agenda -> 404 0.8ms rid=a7d9ed9c-642f-449e-8523-4f1ae02267bd
+isp-api  | [REQ] GET /v1/catalogos/motivos-reagenda rid=fc0b4edd-f87e-44c4-a672-a23af2882316
+isp-api  | [RES] GET /v1/catalogos/motivos-reagenda -> 200 17.4ms rid=fc0b4edd-f87e-44c4-a672-a23af2882316
+isp-api  | [REQ] GET /v1/catalogos/motivos_reagenda/items?soloActivos=true rid=a8071436-790e-4593-b9ef-e831a3ed8b9d
+isp-api  | [RES] GET /v1/catalogos/motivos_reagenda/items?soloActivos=true -> 200 2.1ms rid=a8071436-790e-4593-b9ef-e831a3ed8b9d
+isp-api  | [REQ] GET /v1/catalogos/motivos-reagenda rid=0b11b5c7-4fd8-4862-9fda-b4324e90d164
+isp-api  | [RES] GET /v1/catalogos/motivos-reagenda -> 200 2.0ms rid=0b11b5c7-4fd8-4862-9fda-b4324e90d164
+isp-api  | [REQ] GET /v1/catalogos/motivos_reagenda/items?soloActivos=true rid=8fe5d777-1505-46da-93d8-84163a22ccee
+isp-api  | [RES] GET /v1/catalogos/motivos_reagenda/items?soloActivos=true -> 200 1.9ms rid=8fe5d777-1505-46da-93d8-84163a22ccee
+isp-api  | [REQ] GET /v1/admin/catalogos/motivos_reagenda/items rid=7ced86ae-1da1-469d-8a8f-21b00dcf214a
+isp-api  | [RES] GET /v1/admin/catalogos/motivos_reagenda/items -> 200 4.0ms rid=7ced86ae-1da1-469d-8a8f-21b00dcf214a
+isp-api  | [REQ] POST /v1/admin/catalogos/motivos_reagenda/items rid=bf8ecc5c-fdc6-46bc-86fd-5d74152715fb
+isp-api  | [RES] POST /v1/admin/catalogos/motivos_reagenda/items -> 201 9.1ms rid=bf8ecc5c-fdc6-46bc-86fd-5d74152715fb
+isp-api  | [REQ] GET /v1/materiales rid=652ea375-884b-45ff-b009-e112121be7ee
+isp-api  | [RES] GET /v1/materiales -> 200 3.2ms rid=652ea375-884b-45ff-b009-e112121be7ee
+isp-api  | [REQ] POST /v1/agenda/ordenes/MAN-20250919180843/asignar rid=7c65aa65-643f-4176-9969-aae6a3fb0e64
+isp-api  | [32m[Nest] 1  - [39m09/19/2025, 11:08:43 PM [32m    LOG[39m [38;5;3m[AgendaService] [39m[32m[ASIGNAR] MAN-20250919180843 -> {"ok":true,"orden":[{"codigo":"MAN-20250919180843","estado":"agendada","agendadoPara":"2025-09-19","turno":"am","agendadaAt":"2025-09-19T23:08:43.536Z","tecnicoId":"a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec"}]}[39m
+isp-api  | [RES] POST /v1/agenda/ordenes/MAN-20250919180843/asignar -> 200 5.6ms rid=7c65aa65-643f-4176-9969-aae6a3fb0e64
+isp-api  | [REQ] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes rid=ad31ecff-31c0-4b14-af5d-c3ad447097b0
+isp-api  | [RES] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes -> 200 5.7ms rid=ad31ecff-31c0-4b14-af5d-c3ad447097b0
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919180843/iniciar rid=15807e2d-9783-4a59-a111-4d7df682ead4
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919180843/iniciar -> 200 7.8ms rid=15807e2d-9783-4a59-a111-4d7df682ead4
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919180843/cerrar rid=73a922dc-d5ca-42f1-a139-44aa644519d7
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919180843/cerrar -> 200 13.9ms rid=73a922dc-d5ca-42f1-a139-44aa644519d7
+isp-api  | [REQ] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes rid=15dcd565-f00a-4ca5-9b9a-0aa859ecf72c
+isp-api  | [RES] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes -> 200 6.0ms rid=15dcd565-f00a-4ca5-9b9a-0aa859ecf72c
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919180844/iniciar rid=089a1427-d356-4fd5-b124-4b7ea84475cf
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919180844/iniciar -> 200 5.5ms rid=089a1427-d356-4fd5-b124-4b7ea84475cf
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919180844/cerrar rid=093cf52b-6b98-4b21-8f48-cbd44b604d80
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919180844/cerrar -> 200 5.5ms rid=093cf52b-6b98-4b21-8f48-cbd44b604d80
+isp-api  | [REQ] GET /v1/catalogos/motivos-reagenda rid=6826936a-9909-4c46-a99c-474a00b7394d
+isp-api  | [RES] GET /v1/catalogos/motivos-reagenda -> 200 2.3ms rid=6826936a-9909-4c46-a99c-474a00b7394d
+isp-api  | [REQ] GET /v1/catalogos/motivos_reagenda/items?soloActivos=true rid=4c68016c-0b40-4203-99c3-c7d60019efaf
+isp-api  | [RES] GET /v1/catalogos/motivos_reagenda/items?soloActivos=true -> 200 2.3ms rid=4c68016c-0b40-4203-99c3-c7d60019efaf
+isp-api  | [REQ] GET /v1/catalogos/motivos-reagenda rid=05ca5280-35e7-4b72-81d0-12cc8664dff0
+isp-api  | [RES] GET /v1/catalogos/motivos-reagenda -> 200 2.3ms rid=05ca5280-35e7-4b72-81d0-12cc8664dff0
+isp-api  | [REQ] GET /v1/catalogos/motivos_reagenda/items?soloActivos=true rid=6749d279-a20f-4892-9efa-01a3adb3f24f
+isp-api  | [RES] GET /v1/catalogos/motivos_reagenda/items?soloActivos=true -> 200 2.0ms rid=6749d279-a20f-4892-9efa-01a3adb3f24f
+isp-api  | [REQ] GET /v1/admin/catalogos/motivos_reagenda/items rid=6495ea72-0b00-45ff-bbe2-ce018da0d66a
+isp-api  | [RES] GET /v1/admin/catalogos/motivos_reagenda/items -> 200 3.9ms rid=6495ea72-0b00-45ff-bbe2-ce018da0d66a
+isp-api  | [REQ] POST /v1/admin/catalogos/motivos_reagenda/items rid=a8c630d1-d4ed-4b68-9814-6a60fa73c2d9
+isp-api  | [RES] POST /v1/admin/catalogos/motivos_reagenda/items -> 201 5.6ms rid=a8c630d1-d4ed-4b68-9814-6a60fa73c2d9
+isp-api  | [REQ] GET /v1/materiales rid=af25b51e-a38e-4820-b25a-f2fa8b801f7d
+isp-api  | [RES] GET /v1/materiales -> 200 3.6ms rid=af25b51e-a38e-4820-b25a-f2fa8b801f7d
+isp-api  | [REQ] POST /v1/agenda/ordenes/MAN-20250919180856/asignar rid=bacbfe1a-dcfc-452c-8c1e-d2841d3a168b
+isp-api  | [32m[Nest] 1  - [39m09/19/2025, 11:08:57 PM [32m    LOG[39m [38;5;3m[AgendaService] [39m[32m[ASIGNAR] MAN-20250919180856 -> {"ok":true,"orden":[{"codigo":"MAN-20250919180856","estado":"agendada","agendadoPara":"2025-09-19","turno":"am","agendadaAt":"2025-09-19T23:08:57.000Z","tecnicoId":"a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec"}]}[39m
+isp-api  | [RES] POST /v1/agenda/ordenes/MAN-20250919180856/asignar -> 200 3.4ms rid=bacbfe1a-dcfc-452c-8c1e-d2841d3a168b
+isp-api  | [REQ] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes rid=a056a5dc-ac29-430b-b141-33cf026f257a
+isp-api  | [RES] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes -> 200 3.8ms rid=a056a5dc-ac29-430b-b141-33cf026f257a
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919180856/iniciar rid=4a2b3643-3b1a-4485-90dc-e82e39419936
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919180856/iniciar -> 200 5.3ms rid=4a2b3643-3b1a-4485-90dc-e82e39419936
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919180856/cerrar rid=b54a3686-9db5-4f52-b04a-68acd76bc72e
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919180856/cerrar -> 200 12.5ms rid=b54a3686-9db5-4f52-b04a-68acd76bc72e
+isp-api  | [REQ] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes rid=ad31a682-6190-42c9-95be-01416806bbe8
+isp-api  | [RES] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes -> 200 5.3ms rid=ad31a682-6190-42c9-95be-01416806bbe8
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919180858/iniciar rid=6ab691f9-a5c5-4749-b3b7-571adecaf2c6
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919180858/iniciar -> 200 6.0ms rid=6ab691f9-a5c5-4749-b3b7-571adecaf2c6
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919180858/cerrar rid=fc635f63-62c2-447c-a277-3c88a5bbd0ef
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919180858/cerrar -> 200 5.3ms rid=fc635f63-62c2-447c-a277-3c88a5bbd0ef
+isp-api  | [REQ] GET /v1/catalogos/motivos-reagenda rid=3188314f-4716-4b37-b327-1062d5931d5a
+isp-api  | [RES] GET /v1/catalogos/motivos-reagenda -> 200 19.6ms rid=3188314f-4716-4b37-b327-1062d5931d5a
+isp-api  | [REQ] GET /v1/catalogos/motivos_reagenda/items?soloActivos=true rid=7a243cdb-094f-46ea-932c-3c03f1ceaaf3
+isp-api  | [RES] GET /v1/catalogos/motivos_reagenda/items?soloActivos=true -> 200 2.3ms rid=7a243cdb-094f-46ea-932c-3c03f1ceaaf3
+isp-api  | [REQ] GET /v1/catalogos/motivos-reagenda rid=86b01e39-fe23-4472-ab69-5924877092fc
+isp-api  | [RES] GET /v1/catalogos/motivos-reagenda -> 200 13.6ms rid=86b01e39-fe23-4472-ab69-5924877092fc
+isp-api  | [REQ] GET /v1/catalogos/motivos_reagenda/items?soloActivos=true rid=b3acdf20-b788-414a-9a10-6ef10bf42d25
+isp-api  | [RES] GET /v1/catalogos/motivos_reagenda/items?soloActivos=true -> 200 3.1ms rid=b3acdf20-b788-414a-9a10-6ef10bf42d25
+isp-api  | [REQ] GET /v1/admin/catalogos/motivos_reagenda/items rid=23eaa20a-3b69-40e9-af90-a2025c0eb943
+isp-api  | [RES] GET /v1/admin/catalogos/motivos_reagenda/items -> 200 4.9ms rid=23eaa20a-3b69-40e9-af90-a2025c0eb943
+isp-api  | [REQ] POST /v1/admin/catalogos/motivos_reagenda/items rid=b68d236d-8a5b-4855-b269-571115c7bb52
+isp-api  | [RES] POST /v1/admin/catalogos/motivos_reagenda/items -> 201 8.7ms rid=b68d236d-8a5b-4855-b269-571115c7bb52
+isp-api  | [REQ] GET /v1/materiales rid=0d4362a2-ae7f-4587-9e66-010ed058d2f6
+isp-api  | [RES] GET /v1/materiales -> 200 5.3ms rid=0d4362a2-ae7f-4587-9e66-010ed058d2f6
+isp-api  | [REQ] POST /v1/agenda/ordenes/MAN-20250919181336/asignar rid=af717de1-f730-40ed-9460-905fddf0ade2
+isp-api  | [32m[Nest] 1  - [39m09/19/2025, 11:13:36 PM [32m    LOG[39m [38;5;3m[AgendaService] [39m[32m[ASIGNAR] MAN-20250919181336 -> {"ok":true,"orden":[{"codigo":"MAN-20250919181336","estado":"agendada","agendadoPara":"2025-09-19","turno":"am","agendadaAt":"2025-09-19T23:13:36.805Z","tecnicoId":"a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec"}]}[39m
+isp-api  | [RES] POST /v1/agenda/ordenes/MAN-20250919181336/asignar -> 200 6.2ms rid=af717de1-f730-40ed-9460-905fddf0ade2
+isp-api  | [REQ] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes rid=f201db8c-ecac-4b29-8ef4-9bd04bf42e58
+isp-api  | [RES] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes -> 200 6.0ms rid=f201db8c-ecac-4b29-8ef4-9bd04bf42e58
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919181336/iniciar rid=49ee8790-fcbe-49ff-98c3-b58a376fe968
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919181336/iniciar -> 200 9.3ms rid=49ee8790-fcbe-49ff-98c3-b58a376fe968
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919181336/cerrar rid=3cde8721-4d7d-460d-b8be-ef1d361ea4d9
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919181336/cerrar -> 200 17.2ms rid=3cde8721-4d7d-460d-b8be-ef1d361ea4d9
+isp-api  | [REQ] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes rid=2a46ea48-6fae-45bd-87a5-0b01e478f783
+isp-api  | [RES] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes -> 200 4.8ms rid=2a46ea48-6fae-45bd-87a5-0b01e478f783
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919181338/iniciar rid=df212d72-7728-4e2b-8bda-66bc42efba23
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919181338/iniciar -> 200 5.4ms rid=df212d72-7728-4e2b-8bda-66bc42efba23
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919181338/cerrar rid=5f5d313c-3781-49a3-be6d-8384d10da5ff
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919181338/cerrar -> 200 6.0ms rid=5f5d313c-3781-49a3-be6d-8384d10da5ff
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/IDEM-20250919231340/cerrar rid=082d98ab-902a-47ae-b370-08b6563a5371
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/IDEM-20250919231340/cerrar -> 403 1.5ms rid=082d98ab-902a-47ae-b370-08b6563a5371
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/IDEM-20250919231340/cerrar rid=eeae5330-7ef5-4c5a-a9ec-6df7049e1ec7
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/IDEM-20250919231340/cerrar -> 403 0.9ms rid=eeae5330-7ef5-4c5a-a9ec-6df7049e1ec7
+isp-api  | [REQ] GET /v1/catalogos/motivos-reagenda rid=b446a4b4-ece6-47b7-8153-6117c54c8fec
+isp-api  | [RES] GET /v1/catalogos/motivos-reagenda -> 200 2.6ms rid=b446a4b4-ece6-47b7-8153-6117c54c8fec
+isp-api  | [REQ] GET /v1/catalogos/motivos_reagenda/items?soloActivos=true rid=e8048b4f-9be4-4673-b9ec-41ab01f7e1dc
+isp-api  | [RES] GET /v1/catalogos/motivos_reagenda/items?soloActivos=true -> 200 2.0ms rid=e8048b4f-9be4-4673-b9ec-41ab01f7e1dc
+isp-api  | [REQ] GET /v1/catalogos/motivos-reagenda rid=793270c2-41b7-4ddc-968d-0333eb61f764
+isp-api  | [RES] GET /v1/catalogos/motivos-reagenda -> 200 2.8ms rid=793270c2-41b7-4ddc-968d-0333eb61f764
+isp-api  | [REQ] GET /v1/catalogos/motivos_reagenda/items?soloActivos=true rid=148df000-98e0-4181-bcfa-778c8052b7fc
+isp-api  | [RES] GET /v1/catalogos/motivos_reagenda/items?soloActivos=true -> 200 2.1ms rid=148df000-98e0-4181-bcfa-778c8052b7fc
+isp-api  | [REQ] GET /v1/admin/catalogos/motivos_reagenda/items rid=dd9220a3-5058-4f26-af98-ae4a17796028
+isp-api  | [RES] GET /v1/admin/catalogos/motivos_reagenda/items -> 200 4.4ms rid=dd9220a3-5058-4f26-af98-ae4a17796028
+isp-api  | [REQ] POST /v1/admin/catalogos/motivos_reagenda/items rid=a30bf67d-291a-4e0d-8fb9-69ef104e1ce3
+isp-api  | [RES] POST /v1/admin/catalogos/motivos_reagenda/items -> 201 4.6ms rid=a30bf67d-291a-4e0d-8fb9-69ef104e1ce3
+isp-api  | [REQ] GET /v1/materiales rid=5e22c0ed-2eb8-4699-95e5-dbb8be00e2a9
+isp-api  | [RES] GET /v1/materiales -> 200 3.1ms rid=5e22c0ed-2eb8-4699-95e5-dbb8be00e2a9
+isp-api  | [REQ] POST /v1/agenda/ordenes/MAN-20250919181343/asignar rid=fd7812ae-eb2f-48dc-849b-c972baa65197
+isp-api  | [32m[Nest] 1  - [39m09/19/2025, 11:13:43 PM [32m    LOG[39m [38;5;3m[AgendaService] [39m[32m[ASIGNAR] MAN-20250919181343 -> {"ok":true,"orden":[{"codigo":"MAN-20250919181343","estado":"agendada","agendadoPara":"2025-09-19","turno":"am","agendadaAt":"2025-09-19T23:13:43.924Z","tecnicoId":"a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec"}]}[39m
+isp-api  | [RES] POST /v1/agenda/ordenes/MAN-20250919181343/asignar -> 200 4.4ms rid=fd7812ae-eb2f-48dc-849b-c972baa65197
+isp-api  | [REQ] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes rid=38788b52-3e7b-4199-a392-923e84718fde
+isp-api  | [RES] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes -> 200 4.8ms rid=38788b52-3e7b-4199-a392-923e84718fde
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919181343/iniciar rid=c299fbec-717b-47ff-b03e-513dab0a8512
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919181343/iniciar -> 200 6.5ms rid=c299fbec-717b-47ff-b03e-513dab0a8512
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919181343/cerrar rid=79b7bf4f-f49f-4b23-9cd5-30e9c5167ce9
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919181343/cerrar -> 200 14.1ms rid=79b7bf4f-f49f-4b23-9cd5-30e9c5167ce9
+isp-api  | [REQ] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes rid=af7b274e-cd4e-49e4-9cf0-041c8f81cb09
+isp-api  | [RES] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes -> 200 6.8ms rid=af7b274e-cd4e-49e4-9cf0-041c8f81cb09
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919181345/iniciar rid=3d82c95b-1d6c-48f8-b340-eeeceaf805dc
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919181345/iniciar -> 200 5.4ms rid=3d82c95b-1d6c-48f8-b340-eeeceaf805dc
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919181345/cerrar rid=c8d2eded-b994-4912-893c-e91f21a1844b
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919181345/cerrar -> 200 5.2ms rid=c8d2eded-b994-4912-893c-e91f21a1844b
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/IDEM-20250919231346/cerrar rid=9ff0591c-8c9e-4bee-b3ec-caa66c656253
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/IDEM-20250919231346/cerrar -> 403 1.2ms rid=9ff0591c-8c9e-4bee-b3ec-caa66c656253
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/IDEM-20250919231346/cerrar rid=829e95ff-d08d-49b5-b437-808a01af122d
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/IDEM-20250919231346/cerrar -> 403 0.8ms rid=829e95ff-d08d-49b5-b437-808a01af122d
+isp-api  | [REQ] GET /v1/catalogos/motivos-reagenda rid=70ca2375-ff51-4be6-92c9-126ba13f1be2
+isp-api  | [RES] GET /v1/catalogos/motivos-reagenda -> 200 23.6ms rid=70ca2375-ff51-4be6-92c9-126ba13f1be2
+isp-api  | [REQ] GET /v1/catalogos/motivos_reagenda/items?soloActivos=true rid=17f2316c-8014-456b-881c-c4350566f934
+isp-api  | [RES] GET /v1/catalogos/motivos_reagenda/items?soloActivos=true -> 200 2.3ms rid=17f2316c-8014-456b-881c-c4350566f934
+isp-api  | [REQ] GET /v1/catalogos/motivos-reagenda rid=8c3e4c5e-81d5-44c6-b9f9-3221026a32a9
+isp-api  | [RES] GET /v1/catalogos/motivos-reagenda -> 200 2.6ms rid=8c3e4c5e-81d5-44c6-b9f9-3221026a32a9
+isp-api  | [REQ] GET /v1/catalogos/motivos_reagenda/items?soloActivos=true rid=c0956727-91ed-4abb-9b38-beafa1a4a639
+isp-api  | [RES] GET /v1/catalogos/motivos_reagenda/items?soloActivos=true -> 200 2.4ms rid=c0956727-91ed-4abb-9b38-beafa1a4a639
+isp-api  | [REQ] GET /v1/admin/catalogos/motivos_reagenda/items rid=add72d87-4403-46a0-ad8a-df88fe14c491
+isp-api  | [RES] GET /v1/admin/catalogos/motivos_reagenda/items -> 200 6.2ms rid=add72d87-4403-46a0-ad8a-df88fe14c491
+isp-api  | [REQ] POST /v1/admin/catalogos/motivos_reagenda/items rid=de32d86b-e331-4b24-ace1-e3764d930c10
+isp-api  | [RES] POST /v1/admin/catalogos/motivos_reagenda/items -> 201 9.0ms rid=de32d86b-e331-4b24-ace1-e3764d930c10
+isp-api  | [REQ] GET /v1/materiales rid=cb89cfc4-3f3b-4774-80c0-461919a12332
+isp-api  | [RES] GET /v1/materiales -> 200 4.1ms rid=cb89cfc4-3f3b-4774-80c0-461919a12332
+isp-api  | [REQ] POST /v1/agenda/ordenes/MAN-20250919185311/asignar rid=bbad3ea2-21f4-4cb4-88b3-23b47c738842
+isp-api  | [32m[Nest] 1  - [39m09/19/2025, 11:53:11 PM [32m    LOG[39m [38;5;3m[AgendaService] [39m[32m[ASIGNAR] MAN-20250919185311 -> {"ok":true,"orden":[{"codigo":"MAN-20250919185311","estado":"agendada","agendadoPara":"2025-09-19","turno":"am","agendadaAt":"2025-09-19T23:53:11.409Z","tecnicoId":"a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec"}]}[39m
+isp-api  | [RES] POST /v1/agenda/ordenes/MAN-20250919185311/asignar -> 200 6.1ms rid=bbad3ea2-21f4-4cb4-88b3-23b47c738842
+isp-api  | [REQ] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes rid=7e7f6fbf-298d-4564-b211-52a59438e7c9
+isp-api  | [RES] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes -> 200 7.2ms rid=7e7f6fbf-298d-4564-b211-52a59438e7c9
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919185311/iniciar rid=b2b0aa32-d863-4d43-856c-b05895f8035d
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919185311/iniciar -> 200 7.0ms rid=b2b0aa32-d863-4d43-856c-b05895f8035d
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919185311/cerrar rid=ec160f3a-5dd8-4ad3-a422-1b01349d5104
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919185311/cerrar -> 200 17.8ms rid=ec160f3a-5dd8-4ad3-a422-1b01349d5104
+isp-api  | [REQ] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes rid=4c33714c-616f-42bd-bd16-8ce5d8069e38
+isp-api  | [RES] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes -> 200 5.3ms rid=4c33714c-616f-42bd-bd16-8ce5d8069e38
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919185312/iniciar rid=a2e48053-8731-4cd8-82fa-ee06a44ed3f2
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919185312/iniciar -> 200 8.4ms rid=a2e48053-8731-4cd8-82fa-ee06a44ed3f2
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919185312/cerrar rid=70aac1c8-0089-4031-a087-13b90e9278cb
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919185312/cerrar -> 200 7.2ms rid=70aac1c8-0089-4031-a087-13b90e9278cb
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/IDEM-20250919235314-27860/cerrar rid=358a762f-ba4d-4269-bb84-97c475e5fbf0
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/IDEM-20250919235314-27860/cerrar -> 403 1.4ms rid=358a762f-ba4d-4269-bb84-97c475e5fbf0
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/IDEM-20250919235314-27860/cerrar rid=439b1bb3-1ea8-4992-bb1f-49da60dce8d2
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/IDEM-20250919235314-27860/cerrar -> 403 0.8ms rid=439b1bb3-1ea8-4992-bb1f-49da60dce8d2
+isp-api  | [REQ] GET /v1/catalogos/motivos-reagenda rid=47af35e9-d8a2-4907-88f1-2f49a389743e
+isp-api  | [RES] GET /v1/catalogos/motivos-reagenda -> 200 2.4ms rid=47af35e9-d8a2-4907-88f1-2f49a389743e
+isp-api  | [REQ] GET /v1/catalogos/motivos_reagenda/items?soloActivos=true rid=877ab771-5c28-4696-90bb-3cda5ede5f1c
+isp-api  | [RES] GET /v1/catalogos/motivos_reagenda/items?soloActivos=true -> 200 2.5ms rid=877ab771-5c28-4696-90bb-3cda5ede5f1c
+isp-api  | [REQ] GET /v1/catalogos/motivos-reagenda rid=ecaa7aca-8438-448d-a506-7086b5398602
+isp-api  | [RES] GET /v1/catalogos/motivos-reagenda -> 200 2.2ms rid=ecaa7aca-8438-448d-a506-7086b5398602
+isp-api  | [REQ] GET /v1/catalogos/motivos_reagenda/items?soloActivos=true rid=f26651fa-75d8-4bab-bb42-22569f8edd7e
+isp-api  | [RES] GET /v1/catalogos/motivos_reagenda/items?soloActivos=true -> 200 2.6ms rid=f26651fa-75d8-4bab-bb42-22569f8edd7e
+isp-api  | [REQ] GET /v1/admin/catalogos/motivos_reagenda/items rid=3cc672e6-1d17-4954-9bce-0eb71079399b
+isp-api  | [RES] GET /v1/admin/catalogos/motivos_reagenda/items -> 200 4.3ms rid=3cc672e6-1d17-4954-9bce-0eb71079399b
+isp-api  | [REQ] POST /v1/admin/catalogos/motivos_reagenda/items rid=6295ecbb-1577-43d5-9ea8-675123f3565e
+isp-api  | [RES] POST /v1/admin/catalogos/motivos_reagenda/items -> 201 5.5ms rid=6295ecbb-1577-43d5-9ea8-675123f3565e
+isp-api  | [REQ] GET /v1/materiales rid=0bdd320c-47d1-45ad-b1bf-b7171ef39f9b
+isp-api  | [RES] GET /v1/materiales -> 200 3.0ms rid=0bdd320c-47d1-45ad-b1bf-b7171ef39f9b
+isp-api  | [REQ] POST /v1/agenda/ordenes/MAN-20250919185320/asignar rid=805bc417-00cd-4a0e-9b6e-a9ff4b585ef7
+isp-api  | [32m[Nest] 1  - [39m09/19/2025, 11:53:21 PM [32m    LOG[39m [38;5;3m[AgendaService] [39m[32m[ASIGNAR] MAN-20250919185320 -> {"ok":true,"orden":[{"codigo":"MAN-20250919185320","estado":"agendada","agendadoPara":"2025-09-19","turno":"am","agendadaAt":"2025-09-19T23:53:21.008Z","tecnicoId":"a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec"}]}[39m
+isp-api  | [RES] POST /v1/agenda/ordenes/MAN-20250919185320/asignar -> 200 4.0ms rid=805bc417-00cd-4a0e-9b6e-a9ff4b585ef7
+isp-api  | [REQ] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes rid=d5e71c2c-45d5-4dd1-9250-7bba2aaf5d4b
+isp-api  | [RES] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes -> 200 4.5ms rid=d5e71c2c-45d5-4dd1-9250-7bba2aaf5d4b
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919185320/iniciar rid=7b4f4db9-c27e-48be-937c-77c7aadb9a6c
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919185320/iniciar -> 200 6.1ms rid=7b4f4db9-c27e-48be-937c-77c7aadb9a6c
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919185320/cerrar rid=9cbe9e7e-a621-4ff7-a896-410d7b2bbf54
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919185320/cerrar -> 200 13.8ms rid=9cbe9e7e-a621-4ff7-a896-410d7b2bbf54
+isp-api  | [REQ] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes rid=e71c7211-624d-491a-8a34-e020d6d8f767
+isp-api  | [RES] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes -> 200 5.4ms rid=e71c7211-624d-491a-8a34-e020d6d8f767
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919185322/iniciar rid=964591e2-6d74-4e10-9c55-6cb21dc761c3
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919185322/iniciar -> 200 6.1ms rid=964591e2-6d74-4e10-9c55-6cb21dc761c3
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919185322/cerrar rid=ad073ca5-8dfd-4ad2-9ad2-1738f55bf785
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919185322/cerrar -> 200 5.8ms rid=ad073ca5-8dfd-4ad2-9ad2-1738f55bf785
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/IDEM-20250919235324-12624/cerrar rid=8a6ec93e-6238-4951-a783-4ccba4a2d206
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/IDEM-20250919235324-12624/cerrar -> 403 1.1ms rid=8a6ec93e-6238-4951-a783-4ccba4a2d206
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/IDEM-20250919235324-12624/cerrar rid=a59f247f-685e-4f59-9207-84db1e2c4c73
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/IDEM-20250919235324-12624/cerrar -> 403 0.9ms rid=a59f247f-685e-4f59-9207-84db1e2c4c73
+isp-api  | [REQ] GET /v1/catalogos/motivos-reagenda rid=9ba75f18-dd88-4d5f-9e7d-f2fa2caeeb31
+isp-api  | [RES] GET /v1/catalogos/motivos-reagenda -> 200 18.0ms rid=9ba75f18-dd88-4d5f-9e7d-f2fa2caeeb31
+isp-api  | [REQ] GET /v1/catalogos/motivos_reagenda/items?soloActivos=true rid=6dd6bf69-8080-4364-aa9b-d39ae3f1c5dd
+isp-api  | [RES] GET /v1/catalogos/motivos_reagenda/items?soloActivos=true -> 200 2.1ms rid=6dd6bf69-8080-4364-aa9b-d39ae3f1c5dd
+isp-api  | [REQ] GET /v1/catalogos/motivos-reagenda rid=c221ba6b-317d-42f4-a159-dfeb6a46ce8e
+isp-api  | [RES] GET /v1/catalogos/motivos-reagenda -> 200 2.3ms rid=c221ba6b-317d-42f4-a159-dfeb6a46ce8e
+isp-api  | [REQ] GET /v1/catalogos/motivos_reagenda/items?soloActivos=true rid=0874d161-c6f4-4729-820f-795c10f95483
+isp-api  | [RES] GET /v1/catalogos/motivos_reagenda/items?soloActivos=true -> 200 2.8ms rid=0874d161-c6f4-4729-820f-795c10f95483
+isp-api  | [REQ] GET /v1/admin/catalogos/motivos_reagenda/items rid=e80520cc-b82e-4b32-b71f-7eab32df67ef
+isp-api  | [RES] GET /v1/admin/catalogos/motivos_reagenda/items -> 200 5.9ms rid=e80520cc-b82e-4b32-b71f-7eab32df67ef
+isp-api  | [REQ] POST /v1/admin/catalogos/motivos_reagenda/items rid=390f1ddc-7c7d-48a2-851a-d9fedbd12674
+isp-api  | [RES] POST /v1/admin/catalogos/motivos_reagenda/items -> 201 7.7ms rid=390f1ddc-7c7d-48a2-851a-d9fedbd12674
+isp-api  | [REQ] GET /v1/materiales rid=fc4481a4-2a9c-4d2e-93bf-c51a1f388253
+isp-api  | [RES] GET /v1/materiales -> 200 3.7ms rid=fc4481a4-2a9c-4d2e-93bf-c51a1f388253
+isp-api  | [REQ] POST /v1/agenda/ordenes/MAN-20250919185650/asignar rid=a9b1d305-9873-40d7-9009-30f021a6df62
+isp-api  | [32m[Nest] 1  - [39m09/19/2025, 11:56:51 PM [32m    LOG[39m [38;5;3m[AgendaService] [39m[32m[ASIGNAR] MAN-20250919185650 -> {"ok":true,"orden":[{"codigo":"MAN-20250919185650","estado":"agendada","agendadoPara":"2025-09-19","turno":"am","agendadaAt":"2025-09-19T23:56:51.016Z","tecnicoId":"a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec"}]}[39m
+isp-api  | [RES] POST /v1/agenda/ordenes/MAN-20250919185650/asignar -> 200 6.7ms rid=a9b1d305-9873-40d7-9009-30f021a6df62
+isp-api  | [REQ] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes rid=add276fb-ba1d-4cd7-8c9f-9d6a21304457
+isp-api  | [RES] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes -> 200 8.5ms rid=add276fb-ba1d-4cd7-8c9f-9d6a21304457
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919185650/iniciar rid=cdb8961c-e67e-4963-b030-470955c2ca2c
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919185650/iniciar -> 200 5.4ms rid=cdb8961c-e67e-4963-b030-470955c2ca2c
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919185650/cerrar rid=04ecbce5-9aad-417b-bbf7-1eadec493bfd
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919185650/cerrar -> 200 14.1ms rid=04ecbce5-9aad-417b-bbf7-1eadec493bfd
+isp-api  | [REQ] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes rid=6f9d6734-2e85-46ae-b10e-0536d438bf69
+isp-api  | [RES] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes -> 200 5.5ms rid=6f9d6734-2e85-46ae-b10e-0536d438bf69
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919185652/iniciar rid=e2c41831-008c-45d0-aebb-7cee2849d46c
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919185652/iniciar -> 200 9.9ms rid=e2c41831-008c-45d0-aebb-7cee2849d46c
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919185652/cerrar rid=2d448554-6d54-42a1-a24b-6fe7846f7104
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919185652/cerrar -> 200 5.2ms rid=2d448554-6d54-42a1-a24b-6fe7846f7104
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/IDEM-20250919235654-2424/cerrar rid=48c41443-5d8e-4f77-b485-b9f49e8bc17f
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/IDEM-20250919235654-2424/cerrar -> 403 0.9ms rid=48c41443-5d8e-4f77-b485-b9f49e8bc17f
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/IDEM-20250919235654-2424/cerrar rid=1a299dc5-66fc-48cf-854b-6ac45b2d0fd2
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/IDEM-20250919235654-2424/cerrar -> 403 0.8ms rid=1a299dc5-66fc-48cf-854b-6ac45b2d0fd2
+isp-api  | [REQ] GET /v1/catalogos/motivos-reagenda rid=beb0ce9b-a6fb-4edd-aea8-d4d3162ce1d4
+isp-api  | [RES] GET /v1/catalogos/motivos-reagenda -> 200 2.4ms rid=beb0ce9b-a6fb-4edd-aea8-d4d3162ce1d4
+isp-api  | [REQ] GET /v1/catalogos/motivos_reagenda/items?soloActivos=true rid=ab36298e-0fc6-47c8-9e8d-7b115517d036
+isp-api  | [RES] GET /v1/catalogos/motivos_reagenda/items?soloActivos=true -> 200 2.0ms rid=ab36298e-0fc6-47c8-9e8d-7b115517d036
+isp-api  | [REQ] GET /v1/catalogos/motivos-reagenda rid=1fa1c891-9d23-482c-b0c3-fc9fa7dc0713
+isp-api  | [RES] GET /v1/catalogos/motivos-reagenda -> 200 2.2ms rid=1fa1c891-9d23-482c-b0c3-fc9fa7dc0713
+isp-api  | [REQ] GET /v1/catalogos/motivos_reagenda/items?soloActivos=true rid=42bff1f9-ab5c-4286-92b8-0d6b6c89a228
+isp-api  | [RES] GET /v1/catalogos/motivos_reagenda/items?soloActivos=true -> 200 2.3ms rid=42bff1f9-ab5c-4286-92b8-0d6b6c89a228
+isp-api  | [REQ] GET /v1/admin/catalogos/motivos_reagenda/items rid=d8f1d4de-582d-4957-8598-ac8a1e8996c9
+isp-api  | [RES] GET /v1/admin/catalogos/motivos_reagenda/items -> 200 3.9ms rid=d8f1d4de-582d-4957-8598-ac8a1e8996c9
+isp-api  | [REQ] POST /v1/admin/catalogos/motivos_reagenda/items rid=89d8d589-12c3-448e-a5e6-f342c2cd9418
+isp-api  | [RES] POST /v1/admin/catalogos/motivos_reagenda/items -> 201 4.6ms rid=89d8d589-12c3-448e-a5e6-f342c2cd9418
+isp-api  | [REQ] GET /v1/materiales rid=fefc23d7-6880-4161-a4aa-7cdee3c824f0
+isp-api  | [RES] GET /v1/materiales -> 200 2.4ms rid=fefc23d7-6880-4161-a4aa-7cdee3c824f0
+isp-api  | [REQ] POST /v1/agenda/ordenes/MAN-20250919185659/asignar rid=f7f3ff82-8a11-47fa-80fa-da9461d3a553
+isp-api  | [32m[Nest] 1  - [39m09/19/2025, 11:56:59 PM [32m    LOG[39m [38;5;3m[AgendaService] [39m[32m[ASIGNAR] MAN-20250919185659 -> {"ok":true,"orden":[{"codigo":"MAN-20250919185659","estado":"agendada","agendadoPara":"2025-09-19","turno":"am","agendadaAt":"2025-09-19T23:56:59.739Z","tecnicoId":"a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec"}]}[39m
+isp-api  | [RES] POST /v1/agenda/ordenes/MAN-20250919185659/asignar -> 200 3.5ms rid=f7f3ff82-8a11-47fa-80fa-da9461d3a553
+isp-api  | [REQ] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes rid=3695602d-f870-4548-941a-8ee9d2404f69
+isp-api  | [RES] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes -> 200 5.0ms rid=3695602d-f870-4548-941a-8ee9d2404f69
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919185659/iniciar rid=0483aa06-8f32-406f-ab74-cd011f515a28
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919185659/iniciar -> 200 5.2ms rid=0483aa06-8f32-406f-ab74-cd011f515a28
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919185659/cerrar rid=802cf958-b7e7-4adb-98fd-731cde703fd0
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/MAN-20250919185659/cerrar -> 200 13.8ms rid=802cf958-b7e7-4adb-98fd-731cde703fd0
+isp-api  | [REQ] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes rid=9ee1e2a1-f5cd-48ff-bc24-15d11e627eee
+isp-api  | [RES] GET /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/pendientes -> 200 4.9ms rid=9ee1e2a1-f5cd-48ff-bc24-15d11e627eee
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919185700/iniciar rid=4e634e38-0b1a-4734-a4e7-e1a7dda2c4ce
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919185700/iniciar -> 200 6.1ms rid=4e634e38-0b1a-4734-a4e7-e1a7dda2c4ce
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919185700/cerrar rid=02e7a1ae-63dd-47de-b5fb-5516dd011544
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/TEK-20250919185700/cerrar -> 200 5.7ms rid=02e7a1ae-63dd-47de-b5fb-5516dd011544
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/IDEM-20250919235703-28624/cerrar rid=3a31d64d-a932-49cf-9ac8-953c55d42d9f
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/IDEM-20250919235703-28624/cerrar -> 403 1.1ms rid=3a31d64d-a932-49cf-9ac8-953c55d42d9f
+isp-api  | [REQ] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/IDEM-20250919235703-28624/cerrar rid=1404aeb3-7c5f-4108-a203-4a1985b97f5c
+isp-api  | [RES] POST /v1/tecnicos/a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec/ordenes/IDEM-20250919235703-28624/cerrar -> 403 0.7ms rid=1404aeb3-7c5f-4108-a203-4a1985b97f5c
+isp-api  | [REQ] GET /v1/catalogos/motivos-reagenda rid=ca179fd1-dc07-43f4-a09a-60b50992da7f
+isp-api  | [RES] GET /v1/catalogos/motivos-reagenda -> 200 20.7ms rid=ca179fd1-dc07-43f4-a09a-60b50992da7f
+isp-api  | [REQ] GET /v1/catalogos/motivos_reagenda/items?soloActivos=true rid=092f734a-a8b8-45bc-8f27-e80d6cc72fa9
+isp-api  | [RES] GET /v1/catalogos/motivos_reagenda/items?soloActivos=true -> 200 2.5ms rid=092f734a-a8b8-45bc-8f27-e80d6cc72fa9
+isp-api  | [REQ] GET /v1/ventas rid=f2081734-a6f2-4cce-89df-40ca58928c05
+isp-api  | [RES] GET /v1/ventas -> 404 1.2ms rid=f2081734-a6f2-4cce-89df-40ca58928c05
+isp-api  | [REQ] GET /v1/tecnicos rid=ef128fc1-d3b8-43fc-a8ea-fd2f0ff8ea4f
+isp-api  | [RES] GET /v1/tecnicos -> 404 1.1ms rid=ef128fc1-d3b8-43fc-a8ea-fd2f0ff8ea4f
+isp-api  | [REQ] GET /v1/ordenes/ORD-XXXX/estado rid=5b188b29-bbfc-4078-b52a-f75ace95ace0
+isp-api  | [RES] GET /v1/ordenes/ORD-XXXX/estado -> 404 0.7ms rid=5b188b29-bbfc-4078-b52a-f75ace95ace0
+isp-api  | [REQ] GET /v1/tecnicos/TEC-0001/pendientes rid=dcf70b1f-89b7-4f2f-bb40-1d574f527042
+isp-api  | [RES] GET /v1/tecnicos/TEC-0001/pendientes -> 403 0.9ms rid=dcf70b1f-89b7-4f2f-bb40-1d574f527042
+isp-api  | [REQ] GET /v1/docs-json rid=efbb875d-8431-43f4-8fcb-ce439bb453c4
+isp-api  | [RES] GET /v1/docs-json -> 404 0.7ms rid=efbb875d-8431-43f4-8fcb-ce439bb453c4

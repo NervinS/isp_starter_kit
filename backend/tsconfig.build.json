@@ -1,0 +1,30 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "declaration": false,
+    "sourceMap": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "skipLibCheck": true
+  },
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "test",
+    "**/*.spec.ts",
+
+    // === EXCLUSIONES DE LEGACY/CONFLICTO ===
+    "src/modules/ordenes/orden.entity.ts",
+    "src/modules/materiales/orden-material.entity.ts",
+    "src/modules/ordenes/dto/**",
+    "src/modules/ventas/**",
+    "src/modules/config/**",
+    "src/modules/config-cargos/**",
+    "src/modules/gestion-ordenes/**"
+  ]
+}

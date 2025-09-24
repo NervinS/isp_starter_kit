@@ -1,0 +1,61 @@
+services:
+  db:
+    image: postgres:14-alpine           # <- clúster existente era v14
+    container_name: isp-db
+    environment:
+      POSTGRES_USER: ispuser
+      POSTGRES_PASSWORD: isppass        # <- NO cambia un clúster existente; sirve solo al primer init
+      POSTGRES_DB: ispdb
+      PGDATA: /var/lib/postgresql/data/pgdata   # <- tu volumen ya tiene subcarpeta pgdata
+    ports:
+      - "5433:5432"                     # host 5433, contenedor 5432
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ispuser -d ispdb -h 127.0.0.1 || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    container_name: isp-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: isp-api
+    depends_on:
+      db:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    environment:
+      NODE_ENV: production
+      # Conexión interna (entre contenedores):
+      DATABASE_URL: postgres://ispuser:isppass@db:5432/ispdb
+      # MinIO
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_USE_SSL: "false"
+      # Para smoke/local si lo necesitas:
+      SMOKE_BYPASS_TECH_GUARD: "1"
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+volumes:
+  db_data:
+  minio_data:

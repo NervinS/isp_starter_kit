@@ -1,0 +1,4 @@
+# Solo referencia de objetos (no contiene binarios)
+Ejemplos:
+evidencias/ventas/VEN-000059/recibo.pdf
+evidencias/ventas/VEN-000059/contrato.pdf

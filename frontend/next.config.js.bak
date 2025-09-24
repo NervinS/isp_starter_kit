@@ -1,0 +1,17 @@
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  async rewrites() {
+    return [
+      // Proxy: el navegador llama /api/* y Next reenvía a tu backend local
+      { source: '/api/:path*', destination: 'http://127.0.0.1:3000/v1/:path*' }
+    ];
+  },
+  // Necesario para acceder a /_next/* desde fuera (tu IP pública)
+  allowedDevOrigins: [
+    'http://localhost:3001',
+    'http://127.0.0.1:3001',
+    'http://192.168.1.140:3001',
+    'http://38.188.225.6:3001'
+  ],
+};
+module.exports = nextConfig;

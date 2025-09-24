@@ -1,0 +1,79 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: ispuser
+          POSTGRES_PASSWORD: isppass
+          POSTGRES_DB: ispdb
+        ports:
+          - "5432:5432"
+        # Espera a que la BD esté lista
+        options: >-
+          --health-cmd="pg_isready -U ispuser -d ispdb"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Wait for Postgres
+        run: |
+          for i in {1..60}; do
+            pg_isready -h 127.0.0.1 -U ispuser -d ispdb && break
+            sleep 1
+          done
+
+      # (Opcional) Semilla mínima por si tus tests esperan TEC-0006 y MAT-RJ45
+      # Si tus tests ya insertan/descubren datos, puedes comentar este paso.
+      - name: Seed minimal data (optional)
+        env:
+          PGPASSWORD: isppass
+        run: |
+          psql -h 127.0.0.1 -U ispuser -d ispdb -v ON_ERROR_STOP=1 <<'SQL'
+          -- Crea técnico y material si no existen
+          DO $$
+          BEGIN
+            IF NOT EXISTS (SELECT 1 FROM tecnicos WHERE codigo='TEC-0006') THEN
+              INSERT INTO tecnicos (codigo, nombre, activo) VALUES ('TEC-0006','Tecnico CI', true);
+            END IF;
+
+            IF NOT EXISTS (SELECT 1 FROM materiales WHERE codigo='MAT-RJ45') THEN
+              INSERT INTO materiales (codigo, nombre, unidad, activo) VALUES ('MAT-RJ45','Conector RJ45','UND', true);
+            END IF;
+          END$$;
+          SQL
+
+      - name: Build
+        run: npm run build
+
+      - name: Run e2e
+        env:
+          # Si tus pruebas leen estos envs, aquí puedes resolverlos;
+          # Si no los usan, puedes omitirlos.
+          PGPASSWORD: isppass
+        run: |
+          TECID=$(psql -h 127.0.0.1 -U ispuser -d ispdb -X -A -t -q -c "SELECT id FROM tecnicos WHERE codigo='TEC-0006' LIMIT 1;")
+          MATID=$(psql -h 127.0.0.1 -U ispuser -d ispdb -X -A -t -q -c "SELECT id FROM materiales WHERE codigo='MAT-RJ45' LIMIT 1;")
+          export E2E_TEC_ID="$TECID"
+          export E2E_MAT_ID="$MATID"
+          npm run test:e2e

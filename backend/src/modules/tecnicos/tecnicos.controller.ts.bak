@@ -1,0 +1,69 @@
+// src/modules/tecnicos/tecnicos.controller.ts
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  ParseUUIDPipe,
+} from '@nestjs/common';
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { IsArray, IsInt, IsNumber, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+import { TecnicosService } from './tecnicos.service';
+
+// ----- DTOs -----
+class MaterialItemDto {
+  @IsInt()
+  @Min(1)
+  materialId!: number; // en tu DB es INT
+
+  @IsNumber()
+  @Min(0.001)
+  cantidad!: number;
+}
+
+class CerrarOrdenDto {
+  @IsOptional()
+  @IsString()
+  firmaImgKey?: string | null;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => MaterialItemDto)
+  materiales?: MaterialItemDto[];
+}
+
+@ApiTags('Tecnicos')
+@Controller('v1/tecnicos')
+export class TecnicosController {
+  constructor(private readonly tecnicosSrv: TecnicosService) {}
+
+  @Get(':tecnicoId/pendientes')
+  @ApiOperation({ summary: 'Lista las órdenes pendientes del técnico' })
+  pendientes(
+    @Param('tecnicoId', new ParseUUIDPipe({ version: '4' })) tecnicoId: string,
+  ) {
+    return this.tecnicosSrv.pendientes(tecnicoId);
+  }
+
+  @Post(':tecnicoId/ordenes/:codigo/iniciar')
+  @ApiOperation({ summary: 'Inicia una orden para el técnico' })
+  iniciar(
+    @Param('tecnicoId', new ParseUUIDPipe({ version: '4' })) tecnicoId: string,
+    @Param('codigo') codigo: string,
+  ) {
+    return this.tecnicosSrv.iniciarOrden(tecnicoId, codigo);
+  }
+
+  @Post(':tecnicoId/ordenes/:codigo/cerrar')
+  @ApiOperation({ summary: 'Cierra una orden aplicando materiales y firma' })
+  cerrar(
+    @Param('tecnicoId', new ParseUUIDPipe({ version: '4' })) tecnicoId: string,
+    @Param('codigo') codigo: string,
+    @Body() dto: CerrarOrdenDto,
+  ) {
+    return this.tecnicosSrv.cerrarOrden(tecnicoId, codigo, dto);
+  }
+}
