@@ -1,92 +1,43 @@
 // src/modules/agenda/agenda.service.ts
-import { Injectable, Logger, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 
-type Turno = 'am' | 'pm';
-
-type AsignarParams = {
-  tecnicoId: string;
-  fecha: string; // YYYY-MM-DD
-  turno: Turno;
-};
-
-type ReagendarParams = {
-  fecha: string; // YYYY-MM-DD
-  turno: Turno;
-};
-
+/** DTO interno mínimo para anular; evita depender de otros archivos */
 type AnularParams = {
   motivo: string;
-  motivoCodigo?: string;
+  motivoCodigo?: string | null;
 };
 
 @Injectable()
 export class AgendaService {
   private readonly logger = new Logger(AgendaService.name);
+
   constructor(private readonly dataSource: DataSource) {}
 
-  private one<T = any>(rows: T[], notFoundMsg = 'Orden no encontrada'): T {
-    if (!rows || rows.length === 0) {
-      throw new NotFoundException(notFoundMsg);
+  /** Util: normaliza el resultado de DataSource.query a un array de una orden */
+  private one(res: any[]): any[] {
+    if (Array.isArray(res) && res.length > 0) {
+      return res.map((r) => r);
     }
-    return rows[0];
+    return [];
   }
 
-  async listar(q?: { q?: string; desde?: string; hasta?: string }) {
-    const params: any[] = [];
-    const where: string[] = [];
-
-    if (q?.q) {
-      params.push(`%${q.q.trim()}%`);
-      where.push(`o.codigo ILIKE $${params.length}`);
-    }
-    if (q?.desde) {
-      params.push(q.desde);
-      where.push(`o.agendado_para >= $${params.length}::date`);
-    }
-    if (q?.hasta) {
-      params.push(q.hasta);
-      where.push(`o.agendado_para <= $${params.length}::date`);
-    }
-
-    const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
-
-    const items = await this.dataSource.query(
-      `
-      SELECT
-        o.codigo,
-        o.estado,
-        to_char(o.agendado_para,'YYYY-MM-DD') AS "agendadoPara",
-        o.turno,
-        o.agendada_at AS "agendadaAt",
-        o.tecnico_id AS "tecnicoId"
-      FROM ordenes o
-      ${whereSql}
-      ORDER BY o.agendado_para NULLS LAST, o.codigo ASC
-      LIMIT 200
-      `,
-      params,
-    );
-
-    return { ok: true, items };
-  }
-
-  async asignarPorCodigo(codigo: string, dto: AsignarParams) {
-    const { tecnicoId, fecha, turno } = dto;
-
-    if (!tecnicoId) throw new BadRequestException('tecnicoId es obligatorio');
-    if (!fecha) throw new BadRequestException('fecha es obligatoria (YYYY-MM-DD)');
-    if (!turno) throw new BadRequestException('turno es obligatorio (am|pm)');
-
+  /** Asignar agenda (fecha/turno/técnico) y dejar estado=agendada */
+  async asignarPorCodigo(
+    codigo: string,
+    fecha: string,
+    turno: 'am' | 'pm',
+    tecnicoId?: string | null,
+  ) {
     const res = await this.dataSource.query(
       `
       UPDATE ordenes
       SET
-        tecnico_id    = $2,
-        agendado_para = $3::date,
-        turno         = $4::text,
+        agendado_para = $2::date,
+        turno         = $3::text,
         agendada_at   = now(),
-        estado        = 'agendada'
+        estado        = 'agendada',
+        tecnico_id    = COALESCE($4::uuid, tecnico_id)
       WHERE codigo = $1
       RETURNING
         codigo,
@@ -96,7 +47,7 @@ export class AgendaService {
         agendada_at AS "agendadaAt",
         tecnico_id  AS "tecnicoId"
       `,
-      [codigo, tecnicoId, fecha, turno],
+      [codigo, fecha, turno, (tecnicoId ?? null)],
     );
 
     const orden = this.one(res);
@@ -105,20 +56,31 @@ export class AgendaService {
     return payload;
   }
 
-  async reagendarPorCodigo(codigo: string, dto: ReagendarParams) {
-    const { fecha, turno } = dto;
-
-    if (!fecha) throw new BadRequestException('fecha es obligatoria (YYYY-MM-DD)');
-    if (!turno) throw new BadRequestException('turno es obligatorio (am|pm)');
+  /**
+   * Reagendar agenda (fecha/turno) y persistir motivo de REAGENDA.
+   * Regla: si vienen ambos, se guardan ambos; si no vienen, se ponen en NULL.
+   */
+  async reagendarPorCodigo(
+    codigo: string,
+    fecha: string,
+    turno: 'am' | 'pm',
+    motivo?: string | null,
+    motivoCodigo?: string | null,
+  ) {
+    const motivoTxt   = (motivo ?? '').trim() || null;
+    const motivoCod   = (motivoCodigo ?? '').trim() || null;
 
     const res = await this.dataSource.query(
       `
       UPDATE ordenes
       SET
-        agendado_para = $2::date,
-        turno         = $3::text,
-        agendada_at   = now(),
-        estado        = 'agendada'
+        agendado_para           = $2::date,
+        turno                   = $3::text,
+        agendada_at             = now(),
+        estado                  = 'agendada',
+        -- Persistencia directa (sin COALESCE): lo que venga, se guarda
+        motivo_reagenda         = $4::text,
+        motivo_reagenda_codigo  = $5::text
       WHERE codigo = $1
       RETURNING
         codigo,
@@ -126,9 +88,11 @@ export class AgendaService {
         to_char(agendado_para,'YYYY-MM-DD') AS "agendadoPara",
         turno,
         agendada_at AS "agendadaAt",
-        tecnico_id  AS "tecnicoId"
+        tecnico_id  AS "tecnicoId",
+        motivo_reagenda        AS "motivo",
+        motivo_reagenda_codigo AS "motivoCodigo"
       `,
-      [codigo, fecha, turno],
+      [codigo, fecha, turno, motivoTxt, motivoCod],
     );
 
     const orden = this.one(res);
@@ -137,7 +101,7 @@ export class AgendaService {
     return payload;
   }
 
-  /** Cancelar agenda (mantiene estado actual, solo limpia fecha/turno/marca de agenda) */
+  /** Cancelar agenda (limpia fecha/turno/marca de agenda; no cambia estado) */
   async cancelarPorCodigo(codigo: string) {
     const res = await this.dataSource.query(
       `
@@ -146,7 +110,6 @@ export class AgendaService {
         agendado_para = NULL,
         turno         = NULL,
         agendada_at   = NULL
-        -- NOTA: estado se mantiene; se usa 'anular' para pasar a cancelada
       WHERE codigo = $1
       RETURNING
         codigo,
@@ -198,7 +161,7 @@ export class AgendaService {
         agendada_at        AS "agendadaAt",
         tecnico_id         AS "tecnicoId"
       `,
-      [codigo, motivo.trim(), motivoCodigo ?? null],
+      [codigo, motivo.trim(), (motivoCodigo ?? null)],
     );
 
     const orden = this.one(res);
