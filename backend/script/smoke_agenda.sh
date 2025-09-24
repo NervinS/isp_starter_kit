@@ -1,124 +1,84 @@
 #!/usr/bin/env bash
-# smoke_agenda.sh
-# Asignar -> Reagendar -> Cancelar agenda (100% por DB, sin usar :'var' de psql)
-# Si más adelante expones endpoints HTTP, puedes probar con: AGENDA_MODE=http ./script/smoke_agenda.sh
 set -euo pipefail
 
-API_BASE="${API_BASE:-http://localhost:3000}"
-DB_SVC="${DB_SVC:-db}"
-PSQL_USER="${PSQL_USER:-ispuser}"
-PSQL_DB="${PSQL_DB:-ispdb}"
+# Siempre ejecutar desde backend
+BASE="/home/yarumo/isp_starter_kit/backend"; [ -d "$BASE" ] || BASE="/root/isp_starter_kit/backend"
+cd "$BASE"
+echo "📁 CWD: $(pwd)"
 
-psql_db() {
-  if docker compose ps -q "$DB_SVC" >/dev/null 2>&1; then
-    docker compose exec -T "$DB_SVC" psql -U "$PSQL_USER" -d "$PSQL_DB" -v ON_ERROR_STOP=1 "$@"
-  else
-    psql -U "$PSQL_USER" -d "$PSQL_DB" -v ON_ERROR_STOP=1 "$@"
-  fi
+psqlq='docker compose exec -T db psql -qAtX -U ispuser -d ispdb -c'
+
+# ==== IDs base (técnico y usuario cualquiera) ====
+TECNICO_ID="$($psqlq "SELECT id FROM tecnicos LIMIT 1;" | tr -d '\r')"
+USUARIO_ID="$($psqlq "SELECT COALESCE((SELECT usuario_id FROM ordenes WHERE usuario_id IS NOT NULL LIMIT 1),
+                                      (SELECT id FROM usuarios LIMIT 1));" | tr -d '\r' || true)"
+[ -n "${TECNICO_ID:-}" ] || { echo "❌ No hay técnico"; exit 1; }
+echo "👷 TECNICO_ID=${TECNICO_ID}  👤 USUARIO_ID=${USUARIO_ID:-<NULL>}"
+
+# ==== Fechas/turnos ====
+tomorrow="$(date -u -d '+1 day' +%F 2>/dev/null || date -u -v+1d +%F)"
+day2="$(date -u -d '+2 day' +%F 2>/dev/null || date -u -v+2d +%F)"
+turno_am="am"
+turno_pm="pm"
+
+# ==== Helper para insertar orden ====
+new_order() {
+  if [ -n "${USUARIO_ID:-}" ]; then USUARIO_SQL="'${USUARIO_ID}'"; else USUARIO_SQL="NULL"; fi
+  docker compose exec -T db sh -lc "
+    psql -qAtX -U ispuser -d ispdb -c \"
+      INSERT INTO ordenes (id, codigo, estado, tecnico_id, tipo, subtotal, total, usuario_id)
+      VALUES (
+        uuid_generate_v4(),
+        'INS-' || extract(epoch from clock_timestamp())::bigint || '-' ||
+        substr(replace(uuid_generate_v4()::text,'-',''),1,4),
+        'agendada', '${TECNICO_ID}', 'INS', 0, 0, ${USUARIO_SQL}
+      )
+      RETURNING id;
+    \"
+  " | tr -d '\r' | head -n1
 }
 
-echo "[health]"
-curl -sS "${API_BASE}/v1/health" || true; echo
+# ==== A) Asignar ====
+ORD_ID="$(new_order)"
+[ -n "${ORD_ID}" ] || { echo "❌ No se pudo crear orden"; exit 1; }
+ORD_COD="$($psqlq "SELECT codigo FROM ordenes WHERE id='${ORD_ID}'" | tr -d '\r')"
+echo "🆕 Orden A: ${ORD_COD}"
 
-# --- setup ---------------------------------------------------------
-# Técnico (preferimos TEC-0001, si no, el primero que exista):
-TECID="$(psql_db -Atc "select id::text from tecnicos where codigo='TEC-0001' limit 1;" 2>/dev/null || true)"
-if [[ -z "${TECID}" ]]; then
-  TECID="$(psql_db -Atc "select id::text from tecnicos limit 1;" 2>/dev/null || true)"
-fi
-: "${TECID:=}"   # puede quedar vacío (no rompemos)
+echo "== ASIGNAR =="
+curl -sS -X POST "http://127.0.0.1:3000/v1/agenda/ordenes/${ORD_COD}/asignar" \
+  -H 'Content-Type: application/json' \
+  -d "{\"fecha\":\"${tomorrow}\",\"turno\":\"${turno_am}\",\"tecnicoId\":\"${TECNICO_ID}\"}" | jq
 
-# Tipo válido (evitamos violar ck_ordenes_tipo_dom):
-TIPO_OK="$(psql_db -Atc "select tipo from ordenes where tipo is not null limit 1;" 2>/dev/null || true)"
-TIPO_OK="${TIPO_OK:-instalacion}"
+echo "DB -> $($psqlq "SELECT codigo, estado, agendado_para, turno, agendada_at FROM ordenes WHERE id='${ORD_ID}'" | tr -d '\r')"
 
-STAMP="$(date -u +%Y%m%d%H%M%S)"
-OID="IDEM-${STAMP}-$RANDOM"
+# ==== B) Reagendar ====
+echo "== REAGENDAR =="
+curl -sS -X POST "http://127.0.0.1:3000/v1/agenda/ordenes/${ORD_COD}/reagendar" \
+  -H 'Content-Type: application/json' \
+  -d "{\"fecha\":\"${day2}\",\"turno\":\"${turno_pm}\"}" | jq
 
-# Asegura extensión
-psql_db -c "CREATE EXTENSION IF NOT EXISTS pgcrypto;" >/dev/null || true
+echo "DB -> $($psqlq "SELECT codigo, estado, agendado_para, turno, agendada_at FROM ordenes WHERE id='${ORD_ID}'" | tr -d '\r')"
 
-# Crea orden efímera (si ya existe, ignora)
-psql_db <<SQL
-INSERT INTO ordenes(codigo, estado, tipo)
-VALUES ('$OID','creada','$TIPO_OK')
-ON CONFLICT (codigo) DO NOTHING;
-SQL
+# ==== C) Cancelar ====
+ORD_B_ID="$(new_order)"
+ORD_B_COD="$($psqlq "SELECT codigo FROM ordenes WHERE id='${ORD_B_ID}'" | tr -d '\r')"
+echo "🆕 Orden B (para cancelar): ${ORD_B_COD}"
 
-# --- ASIGNAR -------------------------------------------------------
-echo "[asignar -> DB]"
-psql_db <<SQL
-UPDATE ordenes
-   SET estado        = 'agendada',
-       agendado_para = CURRENT_DATE,
-       turno         = 'am',
-       agendada_at   = NOW(),
-       tecnico_id    = CASE WHEN '$TECID' <> '' THEN '$TECID'::uuid ELSE tecnico_id END
- WHERE codigo = '$OID';
-SQL
+curl -sS -X POST "http://127.0.0.1:3000/v1/agenda/ordenes/${ORD_B_COD}/cancelar" \
+  -H 'Content-Type: application/json' \
+  -d '{"motivo":"Cliente no está"}' | jq
 
-psql_db -Atc "SELECT codigo||'|'||estado||'|'||COALESCE(agendado_para::text,'')||'|'||
-                      COALESCE(turno,'')||'|'||COALESCE(agendada_at::text,'')||'|'||
-                      COALESCE(tecnico_id::text,'')
-               FROM ordenes WHERE codigo='$OID';"
+echo "DB -> $($psqlq "SELECT codigo, estado, motivo_cancelacion, cancelada_at FROM ordenes WHERE id='${ORD_B_ID}'" | tr -d '\r')"
 
-# --- REAGENDAR -----------------------------------------------------
-echo "[reagendar -> DB]"
-psql_db <<SQL
-UPDATE ordenes
-   SET estado        = 'agendada',
-       agendado_para = CURRENT_DATE,
-       turno         = 'pm',
-       agendada_at   = NOW(),
-       tecnico_id    = CASE WHEN '$TECID' <> '' THEN '$TECID'::uuid ELSE tecnico_id END
- WHERE codigo = '$OID';
-SQL
+# ==== D) Anular ====
+ORD_C_ID="$(new_order)"
+ORD_C_COD="$($psqlq "SELECT codigo FROM ordenes WHERE id='${ORD_C_ID}'" | tr -d '\r')"
+echo "🆕 Orden C (para anular): ${ORD_C_COD}"
 
-psql_db -Atc "SELECT codigo||'|'||estado||'|'||COALESCE(agendado_para::text,'')||'|'||
-                      COALESCE(turno,'')||'|'||COALESCE(agendada_at::text,'')||'|'||
-                      COALESCE(tecnico_id::text,'')
-               FROM ordenes WHERE codigo='$OID';"
+curl -sS -X POST "http://127.0.0.1:3000/v1/agenda/ordenes/${ORD_C_COD}/anular" \
+  -H 'Content-Type: application/json' \
+  -d '{"motivo":"No hay cobertura"}' | jq
 
-# --- CANCELAR AGENDA ----------------------------------------------
-echo "[cancelar agenda -> DB]"
-psql_db <<SQL
-UPDATE ordenes
-   SET agendado_para = NULL,
-       turno         = NULL,
-       agendada_at   = NULL
- WHERE codigo = '$OID';
-SQL
+echo "DB -> $($psqlq "SELECT codigo, estado, motivo_codigo, anulada_at FROM ordenes WHERE id='${ORD_C_ID}'" | tr -d '\r')"
 
-psql_db -Atc "SELECT codigo||'|'||estado||'|'||COALESCE(agendado_para::text,'')||'|'||
-                      COALESCE(turno,'')||'|'||COALESCE(agendada_at::text,'')||'|'||
-                      COALESCE(tecnico_id::text,'')
-               FROM ordenes WHERE codigo='$OID';"
-
-echo "✓ smoke_agenda (DB) OK  (orden=${OID})"
-
-# --- HTTP opcional (no bloquea el smoke) --------------------------
-if [[ "${AGENDA_MODE:-db}" == "http" ]]; then
-  echo "[HTTP] pruebas informativas de agenda (si aún no expones endpoints, darán 404)"
-  AUTH_HEADER=""  # Si tienes token: AUTH_HEADER="Authorization: Bearer <TOKEN>"
-
-  try_http() {
-    local method="$1" url="$2" body="$3" label="$4"
-    echo "[$label]"
-    if [[ -n "$body" ]]; then
-      curl -sS -X "$method" -H 'Content-Type: application/json' ${AUTH_HEADER:+-H "$AUTH_HEADER"} \
-        -d "$body" "$url" || true
-    else
-      curl -sS -X "$method" ${AUTH_HEADER:+-H "$AUTH_HEADER"} "$url" || true
-    fi
-    echo; echo
-  }
-
-  BODY="$(jq -nc --arg tec "${TECID}" --arg f "$(date +%F)" '{tecnicoId:$tec, fecha:$f, turno:"am"}')"
-  try_http POST  "${API_BASE}/v1/agenda/ordenes"                        "$(jq -nc --arg c "${OID}" --arg tec "${TECID}" --arg f "$(date +%F)" '{codigo:$c, tecnicoId:$tec, fecha:$f, turno:"am"}')" "POST /v1/agenda/ordenes"
-  try_http PATCH "${API_BASE}/v1/agenda/ordenes/${OID}"                 "$BODY" "PATCH /v1/agenda/ordenes/:codigo"
-  try_http POST  "${API_BASE}/v1/ordenes/${OID}/agenda"                 "$BODY" "POST /v1/ordenes/:codigo/agenda"
-  try_http PATCH "${API_BASE}/v1/ordenes/${OID}/agenda"                 "$BODY" "PATCH /v1/ordenes/:codigo/agenda"
-  try_http POST  "${API_BASE}/v1/ordenes/${OID}/agenda/asignar"         "$BODY" "POST /v1/ordenes/:codigo/agenda/asignar"
-  try_http PATCH "${API_BASE}/v1/ordenes/${OID}/estado"                 "$(jq -nc --arg tec "${TECID}" --arg f "$(date +%F)" '{estado:"agendada", tecnicoId:$tec, fecha:$f, turno:"am"}')" "PATCH /v1/ordenes/:codigo/estado"
-  echo "ℹ️  HTTP solo informativo; el OK del smoke depende del bloque DB."
-fi
+echo "✅ Smoke Agenda OK"
