@@ -18,3 +18,4 @@ Este paquete contiene:
 - Ventas → Órdenes → SmartOLT
 - Facturación y Notificaciones
 - RBAC, Observabilidad, Reportes, Hardening
+# trigger
