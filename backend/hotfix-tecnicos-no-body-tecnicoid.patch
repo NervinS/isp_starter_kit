@@ -1,0 +1,75 @@
+*** 1,1 ****
+--- a/src/modules/tecnicos/tecnicos.controller.ts
++++ b/src/modules/tecnicos/tecnicos.controller.ts
+@@
+   @Post(':tecnicoId/ordenes/codigo/:codigo/iniciar')
+   async iniciarPorCodigo(
+     @Param('tecnicoId') tecnicoId: string,
+     @Param('codigo') codigo: string,
+     @Body() dto: IniciarOrdenDto,
+   ) {
+-    // antes: validaba que dto.tecnicoId coincidiera con la ruta
+-    return this.tecnicosService.iniciarPorCodigo(tecnicoId, codigo, dto);
++    // Tomamos SIEMPRE el tecnicoId de la ruta (body opcional/ignorado)
++    dto.tecnicoId = tecnicoId;
++    return this.tecnicosService.iniciarPorCodigo(tecnicoId, codigo, dto);
+   }
+@@
+   @Post(':tecnicoId/ordenes/:ordenId/iniciar')
+   async iniciarPorId(
+     @Param('tecnicoId') tecnicoId: string,
+     @Param('ordenId') ordenId: string,
+     @Body() dto: IniciarOrdenDto,
+   ) {
+-    return this.tecnicosService.iniciarPorId(tecnicoId, ordenId, dto);
++    dto.tecnicoId = tecnicoId;
++    return this.tecnicosService.iniciarPorId(tecnicoId, ordenId, dto);
+   }
+@@
+   @Post(':tecnicoId/ordenes/codigo/:codigo/cerrar')
+   async cerrarPorCodigo(
+     @Param('tecnicoId') tecnicoId: string,
+     @Param('codigo') codigo: string,
+     @Body() dto: CerrarOrdenDto,
+   ) {
+-    return this.tecnicosService.cerrarPorCodigo(tecnicoId, codigo, dto);
++    dto.tecnicoId = tecnicoId;
++    return this.tecnicosService.cerrarPorCodigo(tecnicoId, codigo, dto);
+   }
+@@
+   @Post(':tecnicoId/ordenes/:ordenId/cerrar')
+   async cerrarPorId(
+     @Param('tecnicoId') tecnicoId: string,
+     @Param('ordenId') ordenId: string,
+     @Body() dto: CerrarOrdenDto,
+   ) {
+-    return this.tecnicosService.cerrarPorId(tecnicoId, ordenId, dto);
++    dto.tecnicoId = tecnicoId;
++    return this.tecnicosService.cerrarPorId(tecnicoId, ordenId, dto);
+   }
+*** 1,1 ****
+--- a/src/modules/tecnicos/dto/iniciar-orden.dto.ts
++++ b/src/modules/tecnicos/dto/iniciar-orden.dto.ts
+@@
+-import { IsUUID } from 'class-validator';
++import { IsUUID, IsOptional } from 'class-validator';
+@@
+-  @IsUUID()
+-  tecnicoId: string;
++  // Opcional en el body: el controller lo setea desde la ruta
++  @IsUUID()
++  @IsOptional()
++  tecnicoId?: string;
+*** 1,1 ****
+--- a/src/modules/tecnicos/dto/cerrar-orden.dto.ts
++++ b/src/modules/tecnicos/dto/cerrar-orden.dto.ts
+@@
+-import { IsUUID } from 'class-validator';
++import { IsUUID, IsOptional } from 'class-validator';
+@@
+-  @IsUUID()
+-  tecnicoId: string;
++  // Opcional en el body: el controller lo setea desde la ruta
++  @IsUUID()
++  @IsOptional()
++  tecnicoId?: string;

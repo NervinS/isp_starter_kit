@@ -1,0 +1,90 @@
+*** 1,1 ****
+--- a/src/modules/ordenes/ordenes.service.ts
++++ b/src/modules/ordenes/ordenes.service.ts
+@@
+-    // ↓ Reglas actuales de estado de usuario por tipo de orden
+-    switch (orden.tipo) {
+-      case 'INS':
+-      case 'RCT':
+-      case 'CMB':
+-      case 'TRA':
+-      case 'REC':
+-      case 'MAN':
+-        await this.ds.query(
+-          `UPDATE usuarios
+-             SET estado = CASE
+-                            WHEN $1 IN ('INS','RCT','CMB','TRA') THEN 'instalado'
+-                            WHEN $1 = 'BAJ' THEN 'retirado'
+-                            ELSE estado
+-                          END,
+-                 estado_conexion = CASE
+-                            WHEN $1 IN ('INS','RCT','CMB','TRA','REC') THEN 'conectado'
+-                            WHEN $1 IN ('BAJ','COR') THEN 'desconectado'
+-                            ELSE estado_conexion
+-                          END,
+-                 updated_at = now()
+-           WHERE id = $2`,
+-          [orden.tipo, orden.usuario_id],
+-        );
+-        break;
+-      case 'BAJ':
+-      case 'COR':
+-        await this.ds.query(
+-          `UPDATE usuarios
+-             SET estado = CASE
+-                            WHEN $1 = 'BAJ' THEN 'retirado'
+-                            ELSE estado
+-                          END,
+-                 estado_conexion = 'desconectado',
+-                 updated_at = now()
+-           WHERE id = $2`,
+-          [orden.tipo, orden.usuario_id],
+-        );
+-        break;
+-      default:
+-        // sin cambios
+-        break;
+-    }
++    // ↓ Reglas de estado de usuario por tipo de orden
++    // IMPORTANTE: MAN (mantenimiento) NO DEBE modificar el estado del usuario
++    if (orden.tipo !== 'MAN') {
++      switch (orden.tipo) {
++        case 'INS':
++        case 'RCT':
++        case 'CMB':
++        case 'TRA':
++        case 'REC':
++          await this.ds.query(
++            `UPDATE usuarios
++               SET estado = CASE
++                              WHEN $1 IN ('INS','RCT','CMB','TRA') THEN 'instalado'
++                              ELSE estado
++                            END,
++                   estado_conexion = CASE
++                              WHEN $1 IN ('INS','RCT','CMB','TRA','REC') THEN 'conectado'
++                              ELSE estado_conexion
++                            END,
++                   updated_at = now()
++             WHERE id = $2`,
++            [orden.tipo, orden.usuario_id],
++          );
++          break;
++        case 'BAJ':
++        case 'COR':
++          await this.ds.query(
++            `UPDATE usuarios
++               SET estado = CASE
++                              WHEN $1 = 'BAJ' THEN 'retirado'
++                              ELSE estado
++                            END,
++                   estado_conexion = 'desconectado',
++                   updated_at = now()
++             WHERE id = $2`,
++            [orden.tipo, orden.usuario_id],
++          );
++          break;
++        default:
++          // sin cambios
++          break;
++      }
++    }

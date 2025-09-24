@@ -1,0 +1,197 @@
+// src/modules/ordenes/ordenes.service.ts
+import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
+import { DataSource } from 'typeorm';
+import { CreateOrdenDto } from './dto/create-orden.dto';
+import { CerrarOrdenDto } from './dto/cerrar-orden.dto';
+
+type OrdenRow = {
+  id: string;
+  codigo: string;
+  estado: string;
+  tipo: string;
+  usuario_id: string | null;
+  cerrada_at: string | null;
+  pdf_url: string | null;
+};
+
+@Injectable()
+export class OrdenesService {
+  private readonly logger = new Logger(OrdenesService.name);
+  constructor(private readonly ds: DataSource) {}
+
+  async crearOrden(dto: CreateOrdenDto) {
+    return this.ds.transaction('READ COMMITTED', async (em) => {
+      // normalizamos tipo
+      const tipo = (dto.tipo ?? 'INS').toUpperCase();
+
+      // 1) inserta cabecera
+      const { usuarioId } = dto;
+      const [orden]: OrdenRow[] = await em.query(
+        `INSERT INTO ordenes (tipo, usuario_id)
+         VALUES ($1, $2)
+         RETURNING id, codigo, estado, tipo, usuario_id, cerrada_at, pdf_url`,
+        [tipo, usuarioId ?? null],
+      );
+
+      // 2) si es COR, la cerramos inmediatamente (flujo admin)
+      if (tipo === 'COR') {
+        await this.cerrarOrdenById(em, orden.id, {}, /*skipLock*/ true, orden);
+      }
+
+      // 3) respuesta
+      const [after]: OrdenRow[] = await em.query(
+        `SELECT id, codigo, estado, tipo, usuario_id, cerrada_at, pdf_url FROM ordenes WHERE id=$1`,
+        [orden.id],
+      );
+
+      const resp: any = {
+        ok: true,
+        orden: {
+          codigo: after.codigo,
+          estado: after.estado,
+          tipo: after.tipo,
+          cerradaAt: after.cerrada_at,
+        },
+      };
+      if (after.tipo === 'COR' && after.usuario_id) {
+        resp.orden.usuarioId = after.usuario_id;
+      }
+      return resp;
+    });
+  }
+
+  async detallePorCodigo(codigo: string) {
+    const [row]: OrdenRow[] = await this.ds.query(
+      `SELECT id, codigo, estado, tipo, usuario_id, cerrada_at, pdf_url
+         FROM ordenes WHERE codigo=$1`,
+      [codigo],
+    );
+    if (!row) {
+      throw new HttpException('Orden no existe', HttpStatus.NOT_FOUND);
+    }
+    return {
+      codigo: row.codigo,
+      estado: row.estado,
+      tipo: row.tipo,
+      cerradaAt: row.cerrada_at,
+      pdfUrl: row.pdf_url ?? null,
+      usuarioId: row.usuario_id,
+    };
+  }
+
+  async cerrarPorCodigo(codigo: string, dto: CerrarOrdenDto) {
+    return this.ds.transaction('READ COMMITTED', async (em) => {
+      // lock por codigo
+      const [orden]: OrdenRow[] = await em.query(
+        `SELECT id, codigo, estado, tipo, usuario_id, cerrada_at, pdf_url
+           FROM ordenes WHERE codigo=$1 FOR UPDATE`,
+        [codigo],
+      );
+      if (!orden) throw new HttpException('Orden no existe', HttpStatus.NOT_FOUND);
+
+      // idempotente
+      if (orden.cerrada_at) {
+        return {
+          codigo: orden.codigo,
+          estado: orden.estado,
+          cerradaAt: orden.cerrada_at,
+          pdfUrl: orden.pdf_url ?? null,
+          _idempotent: true,
+        };
+      }
+
+      await this.cerrarOrdenById(em, orden.id, dto, /*skipLock*/ true, orden);
+
+      const [after]: OrdenRow[] = await em.query(
+        `SELECT codigo, estado, cerrada_at, pdf_url FROM ordenes WHERE id=$1`,
+        [orden.id],
+      );
+      return {
+        codigo: after.codigo,
+        estado: after.estado,
+        cerradaAt: after.cerrada_at,
+        pdfUrl: after.pdf_url ?? null,
+        _idempotent: false,
+      };
+    });
+  }
+
+  /**
+   * Cierra una orden por id aplicando merge de form_data en **una sola** asignación para evitar
+   * "multiple assignments to same column" en Postgres.
+   */
+  private async cerrarOrdenById(
+    em: any,
+    ordenId: string,
+    dto: CerrarOrdenDto,
+    _skipLock = false,
+    ordenObj?: OrdenRow,
+  ) {
+    // construye patch jsonb a partir del DTO (solo campos presentes)
+    const patch: Record<string, any> = {};
+    if (dto.diagnostico !== undefined) patch.diagnostico = dto.diagnostico;
+    if (dto.materiales !== undefined) patch.materiales = dto.materiales;
+    if (dto.evidencias !== undefined) patch.evidencias = dto.evidencias;
+    if (dto.servicio !== undefined) patch.servicio = dto.servicio;
+    if (dto.noDevuelveEquipos !== undefined) patch.noDevuelveEquipos = dto.noDevuelveEquipos;
+
+    // genera pdf (si aplica, otro servicio puede rellenar; aquí solo dejamos null)
+    const pdfKey = null;
+    const pdfUrl = null;
+
+    // Una única asignación de form_data usando operador jsonb ||
+    await em.query(
+      `UPDATE ordenes
+          SET cerrada_at = NOW(),
+              estado = 'cerrada',
+              pdf_key = COALESCE($2, pdf_key),
+              pdf_url = COALESCE($3, pdf_url),
+              form_data = COALESCE(form_data, '{}'::jsonb) || $4::jsonb
+        WHERE id=$1 AND cerrada_at IS NULL`,
+      [ordenId, pdfKey, pdfUrl, JSON.stringify(patch)],
+    );
+
+    // actualizar estado del usuario si corresponde
+    // usamos el tipo de la orden. Si no lo tenemos, lo leemos.
+    let tipo = ordenObj?.tipo as string | undefined;
+    let usuarioId = ordenObj?.usuario_id as string | null | undefined;
+    if (!tipo || usuarioId === undefined) {
+      const [o]: any[] = await em.query(`SELECT tipo, usuario_id FROM ordenes WHERE id=$1`, [ordenId]);
+      tipo = o?.tipo;
+      usuarioId = o?.usuario_id;
+    }
+    if (usuarioId) {
+      // mapping según reglas: INS/REC -> instalado+conectado, COR -> desconectado, BAJ -> terminado
+      let nextEstado: string | null = null;
+      let nextConexion: string | null = null;
+      switch ((tipo ?? '').toUpperCase()) {
+        case 'INS':
+        case 'REC':
+          nextEstado = 'instalado';
+          nextConexion = 'conectado';
+          break;
+        case 'COR':
+          nextEstado = 'desconectado';
+          nextConexion = 'desconectado';
+          break;
+        case 'BAJ':
+          nextEstado = 'terminado';
+          nextConexion = 'desconectado';
+          break;
+        default:
+          // no cambiamos
+          break;
+      }
+      if (nextEstado || nextConexion) {
+        await em.query(
+          `UPDATE usuarios
+              SET estado = COALESCE($2, estado),
+                  estado_conexion = COALESCE($3, estado_conexion),
+                  updated_at = NOW()
+            WHERE id=$1`,
+          [usuarioId, nextEstado, nextConexion],
+        );
+      }
+    }
+  }
+}
