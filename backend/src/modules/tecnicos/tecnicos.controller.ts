@@ -2,11 +2,7 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { TecnicosService } from './tecnicos.service';
-
-type CerrarDto = {
-  tecnicoId: string;
-  materiales?: Array<{ materialIdInt: number; cantidad: number }>;
-};
+import { CerrarOrdenDto } from './dto/cerrar-orden.dto';
 
 @ApiTags('tecnicos')
 @Controller('tecnicos')
@@ -39,28 +35,25 @@ export class TecnicosController {
 
   @Post(':tecnicoId/ordenes/:ordenId/cerrar')
   @ApiOperation({
-    summary:
-      'Cierra una orden por ID (UUID), aplica materiales y firma — idempotente',
+    summary: 'Cierra una orden por ID (UUID), aplica materiales, firma y evidencias — idempotente',
   })
   cerrarPorId(
     @Param('tecnicoId') tecnicoId: string,
     @Param('ordenId') ordenId: string,
-    @Body() body: CerrarDto,
+    @Body() body: CerrarOrdenDto,
   ) {
     return this.svc.cerrarOrdenPorId(tecnicoId, ordenId, body);
   }
 
   @Post(':tecnicoId/ordenes/codigo/:codigo/cerrar')
   @ApiOperation({
-    summary:
-      'Cierra una orden por código, aplica materiales y firma — idempotente',
+    summary: 'Cierra una orden por código, aplica materiales, firma y evidencias — idempotente',
   })
   cerrarPorCodigo(
     @Param('tecnicoId') tecnicoId: string,
     @Param('codigo') codigo: string,
-    @Body() body: CerrarDto,
+    @Body() body: CerrarOrdenDto,
   ) {
-    // 🔧 Fix: antes llamaba a cerrarOrdenPorCodigo (no existe). El método correcto es cerrarPorCodigo.
     return this.svc.cerrarPorCodigo(tecnicoId, codigo, body);
   }
 }

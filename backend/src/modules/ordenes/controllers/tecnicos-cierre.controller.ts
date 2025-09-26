@@ -30,8 +30,7 @@ export class TecnicosCierreController {
     @Headers('x-idempotency-key') _idem?: string,
   ) {
     if (body.tecnicoId !== tecId) {
-      throw new HttpException('tecnicoId no coincide con la ruta', HttpStatus.BAD_REQUEST);
-    }
+      }
 
     const res = await this.ds.transaction('READ COMMITTED', async (em) => {
       // 1) Lock de orden

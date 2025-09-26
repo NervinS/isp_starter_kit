@@ -14,7 +14,7 @@ import { Material } from '../materiales/material.entity';
   imports: [TypeOrmModule.forFeature([StockTecnico, Tecnico, Material])],
   controllers: [InventarioController],
   providers: [InventarioService],
-  // Exportamos para que otros módulos puedan usar el service o los repos si los requieren
+  // Exportamos el service (y el TypeOrmModule configurado) para otros módulos
   exports: [InventarioService, TypeOrmModule],
 })
 export class InventarioModule {}

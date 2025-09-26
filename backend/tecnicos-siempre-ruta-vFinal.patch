@@ -1,0 +1,105 @@
+*** 1,1 ****
+--- a/src/modules/tecnicos/tecnicos.controller.ts
++++ b/src/modules/tecnicos/tecnicos.controller.ts
+@@
+   @Post(':tecnicoId/ordenes/codigo/:codigo/iniciar')
+   async iniciarPorCodigo(
+     @Param('tecnicoId') tecnicoId: string,
+     @Param('codigo') codigo: string,
+     @Body() dto: IniciarOrdenDto,
+   ) {
++    // Forzamos SIEMPRE el tecnicoId de la ruta; body (si vino) se ignora
++    dto.tecnicoId = tecnicoId;
+     return this.tecnicosService.iniciarPorCodigo(tecnicoId, codigo, dto);
+   }
+@@
+   @Post(':tecnicoId/ordenes/:ordenId/iniciar')
+   async iniciarPorId(
+     @Param('tecnicoId') tecnicoId: string,
+     @Param('ordenId') ordenId: string,
+     @Body() dto: IniciarOrdenDto,
+   ) {
++    dto.tecnicoId = tecnicoId;
+     return this.tecnicosService.iniciarPorId(tecnicoId, ordenId, dto);
+   }
+@@
+   @Post(':tecnicoId/ordenes/codigo/:codigo/cerrar')
+   async cerrarPorCodigo(
+     @Param('tecnicoId') tecnicoId: string,
+     @Param('codigo') codigo: string,
+     @Body() dto: CerrarOrdenDto,
+   ) {
++    dto.tecnicoId = tecnicoId;
+     return this.tecnicosService.cerrarPorCodigo(tecnicoId, codigo, dto);
+   }
+@@
+   @Post(':tecnicoId/ordenes/:ordenId/cerrar')
+   async cerrarPorId(
+     @Param('tecnicoId') tecnicoId: string,
+     @Param('ordenId') ordenId: string,
+     @Body() dto: CerrarOrdenDto,
+   ) {
++    dto.tecnicoId = tecnicoId;
+     return this.tecnicosService.cerrarPorId(tecnicoId, ordenId, dto);
+   }
+*** 1,1 ****
+--- a/src/modules/ordenes/controllers/tecnicos-cierre.controller.ts
++++ b/src/modules/ordenes/controllers/tecnicos-cierre.controller.ts
+@@
+   @Post(':tecnicoId/ordenes/codigo/:codigo/cerrar')
+   async cerrarPorCodigo(
+     @Param('tecnicoId') tecnicoId: string,
+     @Param('codigo') codigo: string,
+     @Body() dto: CerrarOrdenDto,
+   ) {
+-    if (dto.tecnicoId !== tecnicoId) {
+-      throw new HttpException('tecnicoId no coincide con la ruta', HttpStatus.BAD_REQUEST);
+-    }
++    // Alineado con endpoints de técnicos: ignorar body y usar el de la ruta
++    dto.tecnicoId = tecnicoId;
+     return this.ordenesService.cerrarPorCodigo(codigo, dto);
+   }
+@@
+   @Post(':tecnicoId/ordenes/:ordenId/cerrar')
+   async cerrarPorId(
+     @Param('tecnicoId') tecnicoId: string,
+     @Param('ordenId') ordenId: string,
+     @Body() dto: CerrarOrdenDto,
+   ) {
+-    if (dto.tecnicoId !== tecnicoId) {
+-      throw new HttpException('tecnicoId no coincide con la ruta', HttpStatus.BAD_REQUEST);
+-    }
++    dto.tecnicoId = tecnicoId;
+     return this.ordenesService.cerrarPorId(ordenId, dto);
+   }
+*** 1,1 ****
+--- a/src/modules/tecnicos/tecnicos.service.ts
++++ b/src/modules/tecnicos/tecnicos.service.ts
+@@
+-    if (dto.tecnicoId !== tecnicoId) {
+-      throw new BadRequestException('tecnicoId no coincide con la ruta');
+-    }
++    // dto.tecnicoId se fuerza en controller con el de la ruta (sin validar body)
+@@
+-    if (dto.tecnicoId !== tecnicoId) {
+-      throw new BadRequestException('tecnicoId no coincide con la ruta');
+-    }
++    // idem: controller ya setea dto.tecnicoId desde la ruta
+*** 1,1 ****
+--- a/src/modules/tecnicos/dto/iniciar-orden.dto.ts
++++ b/src/modules/tecnicos/dto/iniciar-orden.dto.ts
+@@
+-  @IsUUID()
+-  tecnicoId: string;
++  @IsUUID()
++  @IsOptional()
++  tecnicoId?: string;
+*** 1,1 ****
+--- a/src/modules/tecnicos/dto/cerrar-orden.dto.ts
++++ b/src/modules/tecnicos/dto/cerrar-orden.dto.ts
+@@
+-  @IsUUID()
+-  tecnicoId: string;
++  @IsUUID()
++  @IsOptional()
++  tecnicoId?: string;
