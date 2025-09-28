@@ -1,346 +1,326 @@
 // src/modules/tecnicos/tecnicos.service.ts
 import {
-  BadRequestException,
-  ConflictException,
   Injectable,
   NotFoundException,
+  ConflictException,
+  Logger,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
-import { Orden } from '../ordenes/entities/orden.entity';
-import { Tecnico } from './tecnico.entity';
+import { DataSource } from 'typeorm';
 import { InventarioService } from '../inventario/inventario.service';
 import { PdfService } from '../pdf/pdf.service';
-import { CerrarOrdenDto } from './dto/cerrar-orden.dto';
 
-function stripDataUrl(input: string): string {
-  return (input || '').replace(/^data:[^;]+;base64,/, '');
+type EstadoOrden = 'creada' | 'agendada' | 'en_progreso' | 'cerrada' | 'cancelada';
+
+interface CerrarOrdenDto {
+  materiales?: Array<{ materialIdInt?: number; materialId?: number | string; cantidad: number }>;
+  evidenciasBase64?: string[];
+  firmaBase64?: string;
 }
 
 @Injectable()
 export class TecnicosService {
+  private readonly log = new Logger('TecnicosService');
+  // Verbosidad de evidencias (solo info); WARN/ERROR siempre salen
+  private readonly evidLog = String(process.env.EVID_LOG || '0') === '1';
+  // Límite de tamaño y MIMEs permitidos para evidencias
+  private readonly MAX_IMG_BYTES = Number(process.env.EVID_MAX_BYTES || 10 * 1024 * 1024); // 10 MB
+  private readonly ALLOWED_MIME = new Set(['image/png', 'image/jpeg', 'image/webp']);
+
   constructor(
-    @InjectRepository(Orden) private readonly ordenRepo: Repository<Orden>,
-    @InjectRepository(Tecnico) private readonly tecnicoRepo: Repository<Tecnico>,
-    private readonly inv: InventarioService,
-    private readonly pdf: PdfService,
     private readonly dataSource: DataSource,
+    private readonly inventario: InventarioService,
+    private readonly pdf: PdfService,
   ) {}
 
-  // ---------------------------------------------------------
-  // Helpers privados
-  // ---------------------------------------------------------
+  private async getOrdenByCodigo(codigo: string) {
+    const rows = await this.dataSource.query(
+      `SELECT id,codigo,estado,usuario_id,tecnico_id,
+              iniciada_at AS "iniciadaAt",
+              cerrada_at  AS "cerradaAt"
+       FROM ordenes WHERE codigo=$1 LIMIT 1`,
+      [codigo],
+    );
+    return rows[0] ?? null;
+  }
 
-  /** Decodifica base64 seguro */
-  private decodeBase64Safe(b64: string): Buffer {
-    try {
-      const clean = stripDataUrl(b64);
-      return Buffer.from(clean, 'base64');
-    } catch {
-      throw new BadRequestException('Imagen/firma inválida (base64).');
+  private async getOrdenById(ordenId: string) {
+    const rows = await this.dataSource.query(
+      `SELECT id,codigo,estado,usuario_id,tecnico_id,
+              iniciada_at AS "iniciadaAt",
+              cerrada_at  AS "cerradaAt"
+       FROM ordenes WHERE id=$1 LIMIT 1`,
+      [ordenId], // <-- FIX del typo
+    );
+    return rows[0] ?? null;
+  }
+
+  private ensureTecnico(propietario: string | null, tecnicoId: string) {
+    if (propietario && propietario !== tecnicoId) {
+      throw new ConflictException('La orden no pertenece a este técnico.');
     }
   }
 
-  /** Cliente MinIO usando las mismas envs del contenedor */
-  private getMinioClient() {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const Minio = require('minio');
-    const endPoint = process.env.MINIO_ENDPOINT || 'minio';
-    const port = Number(process.env.MINIO_PORT || 9000);
-    const useSSL = String(process.env.MINIO_USE_SSL || 'false').toLowerCase() === 'true';
-    const accessKey = process.env.MINIO_ACCESS_KEY || process.env.MINIO_ROOT_USER || 'minioadmin';
-    const secretKey =
-      process.env.MINIO_SECRET_KEY || process.env.MINIO_ROOT_PASSWORD || 'minioadmin';
-    const client = new Minio.Client({ endPoint, port, useSSL, accessKey, secretKey });
-    return client;
+  async pendientes(tecnicoId: string) {
+    return this.dataSource.query(
+      `SELECT id,codigo,estado,usuario_id,tecnico_id,
+              agendado_para AS "agendadoPara",turno,
+              iniciada_at   AS "iniciadaAt"
+       FROM ordenes
+       WHERE tecnico_id=$1 AND estado IN ('agendada','en_progreso')
+       ORDER BY agendado_para NULLS LAST, created_at DESC`,
+      [tecnicoId],
+    );
   }
 
-  private getEvidenciasBucket(): string {
-    return process.env.MINIO_BUCKET || process.env.MINIO_BUCKET_EVIDENCIAS || 'evidencias';
+  async iniciarOrdenPorId(tecnicoId: string, ordenId: string) {
+    const o = await this.getOrdenById(ordenId);
+    if (!o) throw new NotFoundException('Orden no encontrada');
+    this.ensureTecnico(o.tecnico_id ?? (o as any).tecnicoId, tecnicoId);
+    if (o.estado === 'cerrada' || o.estado === 'cancelada') {
+      throw new ConflictException(`No se puede iniciar una orden en estado ${o.estado}`);
+    }
+    const now = new Date().toISOString();
+    const rows = await this.dataSource.query(
+      `UPDATE ordenes
+          SET estado='en_progreso',
+              iniciada_at = COALESCE(iniciada_at,$2)
+        WHERE id=$1
+      RETURNING codigo,estado,iniciada_at AS "iniciadaAt"`,
+      [o.id, now],
+    );
+    const r = rows[0] ?? { codigo: o.codigo, estado: o.estado, iniciadaAt: (o as any).iniciadaAt };
+    return { codigo: r.codigo, estado: r.estado, iniciadaAt: r.iniciadaAt, _idempotent: o.estado === 'en_progreso' };
   }
 
-  /** Asegura bucket (idempotente) */
-  private async ensureBucketExists(client: any, bucket: string) {
+  async iniciarOrdenPorCodigo(tecnicoId: string, codigo: string) {
+    const o = await this.getOrdenByCodigo(codigo);
+    if (!o) throw new NotFoundException('Orden no encontrada');
+    this.ensureTecnico(o.tecnico_id ?? (o as any).tecnicoId, tecnicoId);
+    if (o.estado === 'cerrada' || o.estado === 'cancelada') {
+      throw new ConflictException(`No se puede iniciar una orden en estado ${o.estado}`);
+    }
+    const now = new Date().toISOString();
+    const rows = await this.dataSource.query(
+      `UPDATE ordenes
+          SET estado='en_progreso',
+              iniciada_at = COALESCE(iniciada_at,$2)
+        WHERE codigo=$1
+      RETURNING codigo,estado,iniciada_at AS "iniciadaAt"`,
+      [codigo, now],
+    );
+    const r = rows[0] ?? { codigo: o.codigo, estado: o.estado, iniciadaAt: (o as any).iniciadaAt };
+    return { codigo: r.codigo, estado: r.estado, iniciadaAt: r.iniciadaAt, _idempotent: o.estado === 'en_progreso' };
+  }
+
+  iniciarPorCodigo(tecnicoId: string, codigo: string) {
+    return this.iniciarOrdenPorCodigo(tecnicoId, codigo);
+  }
+
+  async cerrarOrdenPorId(tecnicoId: string, ordenId: string, dto: CerrarOrdenDto = {}) {
+    const o = await this.getOrdenById(ordenId);
+    if (!o) throw new NotFoundException('Orden no encontrada');
+    this.ensureTecnico(o.tecnico_id ?? (o as any).tecnicoId, tecnicoId);
+    return this._cerrar(tecnicoId, o.codigo, dto);
+  }
+
+  async cerrarOrdenPorCodigo(tecnicoId: string, codigo: string, dto: CerrarOrdenDto = {}) {
+    const o = await this.getOrdenByCodigo(codigo);
+    if (!o) throw new NotFoundException('Orden no encontrada');
+    this.ensureTecnico(o.tecnico_id ?? (o as any).tecnicoId, tecnicoId);
+    return this._cerrar(tecnicoId, codigo, dto);
+  }
+
+  cerrarPorCodigo(tecnicoId: string, codigo: string, dto: CerrarOrdenDto = {}) {
+    return this.cerrarOrdenPorCodigo(tecnicoId, codigo, dto);
+  }
+
+  private async _cerrar(tecnicoId: string, codigo: string, dto: CerrarOrdenDto) {
+    if (this.evidLog) this.log.log(`[TEC][EVID] _cerrar codigo=${codigo}`);
+
+    const orden = await this.getOrdenByCodigo(codigo);
+    if (!orden) throw new NotFoundException('Orden no encontrada');
+    this.ensureTecnico(orden.tecnico_id ?? (orden as any).tecnicoId, tecnicoId);
+
+    if (orden.estado === 'cerrada' || orden.estado === 'cancelada') {
+      await this.safePut(`diag/last-cerrar.txt`, Buffer.from(`IDEMP ${codigo}\n`), 'text/plain');
+      return { codigo, estado: orden.estado as EstadoOrden, cerradaAt: (orden as any).cerradaAt, pdfUrl: null, _idempotent: true };
+    }
+
+    const materiales = (dto.materiales ?? [])
+      .map(m => [m.materialIdInt ?? (m.materialId !== undefined ? Number(m.materialId) : undefined), Number(m.cantidad)] as const)
+      .filter(([id, cant]) => Number.isInteger(id) && (id as number) > 0 && Number.isFinite(cant) && cant > 0)
+      .map(([id, cant]) => ({ materialIdInt: id as number, cantidad: cant }));
+
+    const qr = this.dataSource.createQueryRunner();
+    await qr.connect();
+    await qr.startTransaction('READ COMMITTED');
+
+    let ordenId!: string;
     try {
-      const exists = await client.bucketExists(bucket);
-      if (!exists) await client.makeBucket(bucket);
-    } catch (err) {
-      const msg = (err as Error)?.message || String(err);
-      if (!/previous request .* succeeded|already owned by you|exists/i.test(msg)) {
-        throw new BadRequestException(`No se pudo asegurar bucket "${bucket}": ${msg}`);
+      const now = new Date().toISOString();
+      const row = await qr.query(`SELECT id FROM ordenes WHERE codigo=$1 LIMIT 1`, [codigo]);
+      if (!row.length) throw new NotFoundException('Orden no encontrada');
+      ordenId = row[0].id;
+
+      await qr.query(
+        `UPDATE ordenes SET estado='cerrada', cerrada_at=$2 WHERE id=$1 AND estado<>'cerrada'`,
+        [ordenId, now],
+      );
+
+      for (const m of materiales) {
+        const upd = await qr.query(
+          `UPDATE orden_materiales SET cantidad=cantidad+$3 WHERE orden_id=$1 AND material_id_int=$2 RETURNING 1`,
+          [ordenId, m.materialIdInt, m.cantidad],
+        );
+        if (!upd.length) {
+          await qr.query(
+            `INSERT INTO orden_materiales(orden_id, material_id_int, cantidad) VALUES ($1,$2,$3)`,
+            [ordenId, m.materialIdInt, m.cantidad],
+          );
+        }
+      }
+
+      await qr.commitTransaction();
+    } catch (e) {
+      await qr.rollbackTransaction();
+      throw e;
+    } finally {
+      await qr.release();
+    }
+
+    for (const m of materiales) {
+      try {
+        await this.inventario.descontarStock(
+          tecnicoId,
+          {
+            materialIdInt: m.materialIdInt,
+            cantidad: m.cantidad,
+            refExterna: `om:${codigo}:${m.materialIdInt}`,
+            motivo: `cierre-orden:${codigo}`,
+          },
+          tecnicoId,
+        );
+        await this.dataSource.query(
+          `UPDATE orden_materiales SET descontado=TRUE WHERE orden_id=$1 AND material_id_int=$2`,
+          [ordenId, m.materialIdInt],
+        );
+      } catch (err) {
+        this.log.warn(`[TEC][EVID] fallo descuento stock om:${codigo}:${m.materialIdInt} -> ${String(err)}`);
       }
     }
-  }
 
-  /** Sube firma base64 a MinIO si viene y si la orden aún no tiene firma */
-  private async ensureFirmaFromBase64IfNeeded(
-    orden: Orden,
-    firmaBase64?: string | null,
-  ): Promise<void> {
-    if (!firmaBase64 || (orden as any).firmaKey) return;
+    try {
+      await this.persistirEvidenciasBestEffort(codigo, dto);
+    } catch (e) {
+      this.log.warn(`[TEC][EVID] persistir evidencias fallo codigo=${codigo} -> ${String(e)}`);
+    }
 
-    const client = this.getMinioClient();
-    const bucket = this.getEvidenciasBucket();
-    await this.ensureBucketExists(client, bucket);
+    await this.safePut(`diag/last-cerrar.txt`, Buffer.from(`OK ${codigo}\n`), 'text/plain');
 
-    const mime = (firmaBase64.match(/^data:(image\/[^;]+);base64,/) || [])[1] || 'image/png';
-    const ext = mime.includes('jpeg') ? 'jpg' : (mime.split('/')[1] || 'png');
-    const body = this.decodeBase64Safe(firmaBase64);
-
-    // Key en BD sin prefijo del bucket
-    const key = `firmas/${(orden as any).codigo}.${ext}`;
-    await client.putObject(bucket, key, body, body.length, { 'Content-Type': mime });
-
-    (orden as any).firmaKey = key;
+    return { codigo, estado: 'cerrada' as EstadoOrden, cerradaAt: new Date().toISOString(), pdfUrl: null, _idempotent: false };
   }
 
   /**
-   * Sube evidencias (PNG/JPEG) a MinIO a partir de data URLs/base64.
-   * Devuelve keys guardadas y actualiza orden.formData.evidenciasKeys.
+   * Microfix:
+   * - Si PdfService expone putObject(key, dataUrl, contentType, meta), pasamos la dataURL TAL CUAL.
+   * - Si no existe, caemos a putObjectS3(key, Buffer) decodificando nosotros la dataURL.
    */
-  private async ensureEvidenciasFromBase64IfNeeded(
-    orden: Orden,
-    evidenciasBase64?: string[] | null,
-  ): Promise<string[] | undefined> {
-    if (!evidenciasBase64 || evidenciasBase64.length === 0) return undefined;
+  private async persistirEvidenciasBestEffort(codigo: string, dto: CerrarOrdenDto) {
+    const fotos = dto.evidenciasBase64 ?? [];
+    const hasPutObject = typeof (this.pdf as any).putObject === 'function';
+    const hasPutObjectS3 = typeof (this.pdf as any).putObjectS3 === 'function';
 
-    const client = this.getMinioClient();
-    const bucket = this.getEvidenciasBucket();
-    await this.ensureBucketExists(client, bucket);
+    // Firma (valida mime/tamaño)
+    if (dto.firmaBase64) {
+      const parsed = this.parseDataUrl(dto.firmaBase64);
+      if (!parsed) {
+        this.log.warn(`[TEC][EVID] firma inválida (dataURL)`);
+      } else if (!this.ALLOWED_MIME.has(parsed.mime) || parsed.buf.length > this.MAX_IMG_BYTES) {
+        this.log.warn(`[TEC][EVID] firma rechazada (mime=${parsed.mime} bytes=${parsed.buf.length})`);
+      } else {
+        const key = `firmas/${codigo}.png`; // mantenemos .png para no romper tests/rutas
+        try {
+          if (hasPutObject) {
+            if (this.evidLog) this.log.log(`[TEC][EVID] usando putObject(dataURL) → ${key}`);
+            await (this.pdf as any).putObject(key, dto.firmaBase64, parsed.mime, { 'Cache-Control': 'public, max-age=600' });
+          } else if (hasPutObjectS3) {
+            if (this.evidLog) this.log.log(`[TEC][EVID] usando putObjectS3(Buffer) → ${key} (${parsed.buf.length} bytes)`);
+            await (this.pdf as any).putObjectS3(key, parsed.buf);
+          } else {
+            this.log.warn(`[TEC][EVID] NO hay putObject/putObjectS3 disponibles en PdfService`);
+          }
+        } catch (e) {
+          this.log.warn(`[TEC][EVID] fallo subir firma ${key} -> ${String(e)}`);
+        }
+      }
+    }
 
-    const keys: string[] = [];
-    let idx = 0;
-    for (const raw of evidenciasBase64) {
-      if (!raw) continue;
-      const mime = (raw.match(/^data:(image\/[^;]+);base64,/) || [])[1] || 'image/png';
-      const ext = mime.includes('jpeg') ? 'jpg' : (mime.split('/')[1] || 'png');
-
-      let buf: Buffer;
-      try {
-        buf = Buffer.from(stripDataUrl(raw), 'base64');
-        if (buf.length === 0) continue;
-      } catch {
+    // Fotos (valida mime/tamaño)
+    for (let i = 0; i < fotos.length; i++) {
+      const dataUrl = fotos[i];
+      const parsed = this.parseDataUrl(dataUrl);
+      if (!parsed) continue;
+      if (!this.ALLOWED_MIME.has(parsed.mime) || parsed.buf.length > this.MAX_IMG_BYTES) {
+        this.log.warn(`[TEC][EVID] foto ${i + 1} rechazada (mime=${parsed.mime} bytes=${parsed.buf.length})`);
         continue;
       }
-
-      const key = `ordenes/${(orden as any).codigo}/${String(++idx)}.${ext}`;
+      const key = `fotos/${codigo}/${i + 1}.png`; // mantenemos .png
       try {
-        await client.putObject(bucket, key, buf, buf.length, { 'Content-Type': mime });
-      } catch {
-        // ignora fallos individuales
-      }
-      keys.push(key);
-    }
-
-    if (keys.length) {
-      const formData = ((orden as any).formData as any) || {};
-      formData.evidenciasKeys = keys;
-      (orden as any).formData = formData;
-      return keys;
-    }
-    return undefined;
-  }
-
-  /** Genera/asegura PDF (y actualiza pdfUrl si aplica) — defensivo con nombres */
-  private async ensureOrdenPdf(
-    orden: Orden,
-    opts?: { refresh?: boolean; evidenciasKeys?: string[] },
-  ): Promise<void> {
-    const anyPdf: any = this.pdf as any;
-    const candidates = [
-      'ensureOrdenPdf',
-      'ensure',
-      'ensureOrden',
-      'generarOrdenPdf',
-      'generateOrdenPdf',
-    ].filter((m) => typeof anyPdf?.[m] === 'function');
-
-    if (candidates.length === 0) return;
-
-    const method = candidates[0];
-    const res = await anyPdf[method](orden, {
-      refresh: opts?.refresh,
-      evidenciasKeys: opts?.evidenciasKeys,
-    });
-
-    if (res?.pdfUrl) (orden as any).pdfUrl = res.pdfUrl;
-  }
-
-  // ---------------------------------------------------------
-  // Público
-  // ---------------------------------------------------------
-
-  /** Listado de pendientes para un técnico */
-  async pendientes(tecnicoId: string) {
-    return this.ordenRepo.find({
-      where: { tecnicoId, estado: 'agendada' as any },
-      order: { createdAt: 'DESC' as any },
-      take: 200,
-    });
-  }
-
-  /** Iniciar por ID — idempotente */
-  async iniciarOrdenPorId(tecnicoId: string, ordenId: string) {
-    return this.dataSource.transaction(async (manager) => {
-      const orden = await manager.findOne(Orden, { where: { id: ordenId } });
-      if (!orden) throw new NotFoundException('Orden no existe');
-      if ((orden as any).tecnicoId !== tecnicoId) {
-        throw new ConflictException('Orden no pertenece al técnico');
-      }
-      if ((orden as any).estado === 'en_progreso') {
-        return { codigo: (orden as any).codigo, estado: (orden as any).estado, _idempotent: true };
-      }
-      (orden as any).estado = 'en_progreso';
-      (orden as any).iniciadaAt = new Date();
-      await manager.save(orden);
-      return {
-        codigo: (orden as any).codigo,
-        estado: (orden as any).estado,
-        iniciadaAt: (orden as any).iniciadaAt,
-        _idempotent: false,
-      };
-    });
-  }
-
-  /** Iniciar por código — alias */
-  async iniciarOrdenPorCodigo(tecnicoId: string, codigo: string) {
-    return this.iniciarPorCodigo(tecnicoId, codigo);
-  }
-
-  /** Iniciar por código — idempotente */
-  async iniciarPorCodigo(tecnicoId: string, codigo: string) {
-    const orden = await this.ordenRepo.findOne({ where: { codigo } });
-    if (!orden) throw new NotFoundException('Orden no existe');
-    if ((orden as any).tecnicoId !== tecnicoId) {
-      throw new ConflictException('Orden no pertenece al técnico');
-    }
-    if ((orden as any).estado === 'en_progreso') {
-      return { codigo, estado: (orden as any).estado, _idempotent: true };
-    }
-    (orden as any).estado = 'en_progreso';
-    (orden as any).iniciadaAt = new Date();
-    await this.ordenRepo.save(orden);
-    return {
-      codigo,
-      estado: (orden as any).estado,
-      iniciadaAt: (orden as any).iniciadaAt,
-      _idempotent: false,
-    };
-  }
-
-  /** Cerrar por ID — reusa cerrarPorCodigo */
-  async cerrarOrdenPorId(tecnicoId: string, ordenId: string, dto: CerrarOrdenDto) {
-    const orden = await this.ordenRepo.findOne({ where: { id: ordenId } });
-    if (!orden) throw new NotFoundException('Orden no existe');
-    return this.cerrarPorCodigo(tecnicoId, (orden as any).codigo, dto);
-  }
-
-  /** Cerrar por código — aplica materiales/firma/evidencias, PDF y estado_conexion */
-  async cerrarPorCodigo(tecnicoId: string, codigo: string, dto: CerrarOrdenDto) {
-    return await this.dataSource.transaction(async (manager) => {
-      const orden = await manager.findOne(Orden, { where: { codigo } });
-      if (!orden) throw new NotFoundException('Orden no existe');
-      if ((orden as any).tecnicoId !== tecnicoId) {
-        throw new ConflictException('Orden no pertenece al técnico');
-      }
-
-      const wasClosedBefore = Boolean((orden as any).cerradaAt);
-
-      // -------- 1) Descuento de inventario (service si existe; si no, fallback SQL) --------
-      const materiasRaw = (dto as any)?.materiales;
-      const mats = Array.isArray(materiasRaw)
-        ? materiasRaw
-            .map((m: any) => ({
-              id: Number(m.materialIdInt ?? m.materialId),
-              qty: Number(m.cantidad ?? 0),
-            }))
-            .filter((m: any) => Number.isFinite(m.id) && m.id > 0 && Number.isFinite(m.qty) && m.qty > 0)
-        : [];
-
-      if (mats.length > 0) {
-        const invAny: any = this.inv as any;
-        if (typeof invAny?.descontarDeTecnico === 'function') {
-          await invAny.descontarDeTecnico(tecnicoId, mats, manager);
-        } else if (typeof invAny?.descontar === 'function') {
-          await invAny.descontar(tecnicoId, mats, manager);
+        if (hasPutObject) {
+          if (this.evidLog) this.log.log(`[TEC][EVID] usando putObject(dataURL) → ${key}`);
+          await (this.pdf as any).putObject(key, dataUrl, parsed.mime, { 'Cache-Control': 'public, max-age=600' });
+        } else if (hasPutObjectS3) {
+          if (this.evidLog) this.log.log(`[TEC][EVID] usando putObjectS3(Buffer) → ${key} (${parsed.buf.length} bytes)`);
+          await (this.pdf as any).putObjectS3(key, parsed.buf);
         } else {
-          // Fallback: idempotente por (orden_id, material_id_int) sumado
-          for (const m of mats) {
-            const [{ already }] = await manager.query(
-              `SELECT COALESCE(SUM(cantidad),0)::int AS already
-                 FROM orden_materiales om
-                 WHERE om.orden_id = $1 AND om.material_id_int = $2 AND om.descontado IS TRUE`,
-              [(orden as any).id, m.id],
-            );
-
-            const remaining = Math.max(0, m.qty - Number(already || 0));
-            if (remaining === 0) continue;
-
-            // 1.1) registra movimiento de orden_materiales
-            await manager.query(
-              `INSERT INTO orden_materiales (id, orden_id, material_id, material_id_int, cantidad, descontado)
-               VALUES (gen_random_uuid(), $1, gen_random_uuid(), $2, $3, TRUE)`,
-              [(orden as any).id, m.id, remaining],
-            );
-
-            // 1.2) descuenta inventario del técnico mediante asiento negativo
-            await manager.query(
-              `INSERT INTO inv_tecnico (id, tecnico_id, material_id, cantidad)
-               VALUES (gen_random_uuid(), $1, $2, $3 * -1)`,
-              [tecnicoId, m.id, remaining],
-            );
-          }
+          this.log.warn(`[TEC][EVID] NO hay putObject/putObjectS3 disponibles en PdfService para ${key}`);
         }
+      } catch (e) {
+        this.log.warn(`[TEC][EVID] fallo subir foto ${key} -> ${String(e)}`);
       }
+    }
+  }
 
-      // -------- 2) Firma (opcional, base64) — sólo si no había --------
-      await this.ensureFirmaFromBase64IfNeeded(orden, (dto as any)?.firmaBase64);
+  private dataUrlToBuffer(dataUrl: string): Buffer | null {
+    const idx = String(dataUrl).indexOf('base64,');
+    const b64 = idx >= 0 ? String(dataUrl).slice(idx + 'base64,'.length) : String(dataUrl);
+    try { return Buffer.from(b64, 'base64'); } catch { return null; }
+  }
 
-      // -------- 3) Cambia a cerrada si no estaba --------
-      if (!wasClosedBefore) {
-        (orden as any).estado = 'cerrada';
-        (orden as any).cerradaAt = new Date();
-      }
+  // Parser robusto de dataURL → {mime, buf}
+  private parseDataUrl(dataUrl: string): { mime: string; buf: Buffer } | null {
+    const s = String(dataUrl || '');
+    const i = s.indexOf(',');
+    if (i < 0) return null;
+    const header = s.slice(0, i).toLowerCase(); // ej: data:image/png;base64
+    const b64 = s.slice(i + 1);
+    if (!header.startsWith('data:') || !header.includes('base64')) return null;
+    const semi = header.indexOf(';');
+    const mime = header.slice(5, semi >= 0 ? semi : undefined) || 'application/octet-stream';
+    try { return { mime, buf: Buffer.from(b64, 'base64') }; } catch { return null; }
+  }
 
-      // -------- 4) Evidencias (opcional) --------
-      const evidenciasKeys = await this.ensureEvidenciasFromBase64IfNeeded(
-        orden,
-        (dto as any)?.evidenciasBase64,
-      );
-
-      // -------- 5) PDF --------
-      await this.ensureOrdenPdf(orden, { evidenciasKeys });
-
-      // -------- 6) Estado de conexión del usuario (COR → desconectado; REC/INS → conectado) --------
-      if (!wasClosedBefore) {
-        const [{ usuario_id, tipo }] = await manager.query(
-          `SELECT usuario_id, tipo FROM ordenes WHERE id = $1`,
-          [(orden as any).id],
-        );
-
-        if (tipo === 'COR') {
-          await manager.query(
-            `UPDATE usuarios SET estado_conexion='desconectado' WHERE id=$1`,
-            [usuario_id],
-          );
-        } else if (tipo === 'REC' || tipo === 'INS') {
-          await manager.query(
-            `UPDATE usuarios SET estado_conexion='conectado' WHERE id=$1`,
-            [usuario_id],
-          );
+  private async safePut(key: string, data: Buffer, contentType: string) {
+    try {
+      if (typeof (this.pdf as any).putObject === 'function') {
+        // construir dataURL mínima para texto si se quiere pasar por putObject
+        if (contentType.startsWith('text/')) {
+          const b64 = data.toString('base64');
+          const dataUrl = `data:${contentType};base64,${b64}`;
+          await (this.pdf as any).putObject(key, dataUrl, contentType, { 'Cache-Control': 'public, max-age=60' });
+        } else {
+          // para binario genérico también formamos dataURL
+          const b64 = data.toString('base64');
+          const dataUrl = `data:${contentType};base64,${b64}`;
+          await (this.pdf as any).putObject(key, dataUrl, contentType, { 'Cache-Control': 'public, max-age=600' });
         }
-        // Otros tipos: sin cambio
+      } else if (typeof (this.pdf as any).putObjectS3 === 'function') {
+        await (this.pdf as any).putObjectS3(key, data);
+      } else {
+        this.log.debug(`[TEC][EVID] safePut: PdfService no tiene putObject/putObjectS3`);
       }
-
-      await manager.save(orden);
-
-      return {
-        codigo: (orden as any).codigo,
-        estado: (orden as any).estado,
-        cerradaAt: (orden as any).cerradaAt ?? null,
-        pdfUrl: (orden as any).pdfUrl ?? null,
-        _idempotent: wasClosedBefore,
-      };
-    });
+    } catch (e) {
+      this.log.debug(`[TEC][EVID] safePut fallo ${key}: ${String(e)}`);
+    }
   }
 }
