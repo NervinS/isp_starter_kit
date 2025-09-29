@@ -1,7 +1,6 @@
 {
-  "/agenda/page": "app/agenda/page.js",
-  "/tecnico/[codigo]/page": "app/tecnico/[codigo]/page.js",
   "/tecnico/page": "app/tecnico/page.js",
-  "/page": "app/page.js",
-  "/api/ordenes/route": "app/api/ordenes/route.js"
+  "/ordenes/page": "app/ordenes/page.js",
+  "/agenda/page": "app/agenda/page.js",
+  "/api/usuarios/route": "app/api/usuarios/route.js"
 }

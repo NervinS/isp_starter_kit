@@ -1,0 +1,16 @@
+/v1/agenda/ordenes
+/v1/agenda/ordenes/
+/v1/docs-json
+/v1/inventario/tecnicos/
+/v1/ordenes/ORD-DEMO-2001/cerrar-completo
+/v1/ordenes/ORD-XXXX/estado
+/v1/tecnicos
+/v1/tecnicos/
+/v1/tecnicos/me/ordenes/
+/v1/tecnicos/me/pendientes
+/v1/tecnicos/TEC-0001/ordenes/TEST-123/iniciar
+/v1/tecnicos/TEC-0001/pendientes
+/v1/v1/tecnicos
+/v1/v1/tecnicos/
+/v1/v1/tecnicos/x/pendientes
+/v1/ventas

@@ -1,0 +1,1 @@
+PostgreSQL 14.19 on aarch64-unknown-linux-musl, compiled by gcc (Alpine 14.2.0) 14.2.0, 64-bit

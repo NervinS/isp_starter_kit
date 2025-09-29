@@ -1,0 +1,84 @@
+backend/src/modules/auth/auth.service.ts:8:@Injectable()
+backend/src/modules/auth/app_user.entity.ts:3:@Entity({ name: 'app_users' })
+backend/src/modules/auth/auth.module.ts:8:@Module({
+backend/src/modules/auth/auth.module.ts:10:    TypeOrmModule.forFeature([AppUser]),
+backend/src/modules/auth/auth.controller.ts:5:@Controller('auth')
+backend/src/modules/db/db.module.ts:6:@Module({
+backend/src/modules/tecnicos/tecnicos.module.ts:14:@Module({
+backend/src/modules/tecnicos/tecnicos.module.ts:16:    TypeOrmModule.forFeature([Orden, Tecnico]),
+backend/src/modules/tecnicos/tecnicos.controller.ts:8:@Controller('tecnicos')
+backend/src/modules/tecnicos/tecnico.entity.ts:4:@Entity({ name: 'tecnicos' })
+backend/src/modules/tecnicos/tecnicos.service.ts:20:@Injectable()
+backend/src/modules/storage/minio.service.ts:29:@Injectable()
+backend/src/modules/agenda/agenda.controller.ts:29:@Controller('agenda')
+backend/src/modules/agenda/agenda.service.ts:11:@Injectable()
+backend/src/modules/agenda/agenda.module.ts:11:@Module({
+backend/src/modules/agenda/agenda.module.ts:12:  imports: [TypeOrmModule.forFeature([Orden, Tecnico, Usuario])],
+backend/src/modules/health/health.controller.ts:4:@Controller('health')
+backend/src/modules/health/health.module.ts:3:@Module({ controllers: [HealthController] })
+backend/src/modules/inventario/inventario.service.ts:15:@Injectable()
+backend/src/modules/inventario/inventario.module.ts:12:@Module({
+backend/src/modules/inventario/inventario.module.ts:14:  imports: [TypeOrmModule.forFeature([StockTecnico, Tecnico, Material])],
+backend/src/modules/inventario/inventario.controller.ts:16:@Controller('inventario')
+backend/src/modules/inventario/entities/stock-tecnico.entity.ts:19:@Entity('inv_tecnico')
+backend/src/modules/inventario/stock-tecnico.entity.ts:5:@Entity('inv_tecnico')
+backend/src/modules/pdf/pdf.controller.ts:7:@Controller('pdf')
+backend/src/modules/pdf/pdf.service.ts:15:@Injectable()
+backend/src/modules/pdf/pdf.module.ts:7:@Module({
+backend/src/modules/catalogos/catalogo-item.entity.ts:4:@Entity({ name: 'catalogo_items' })
+backend/src/modules/catalogos/municipio.entity.ts:3:@Entity('municipios')
+backend/src/modules/catalogos/motivos-reagenda.controller.ts:22:@Controller('_deprecated/motivos-reagenda')
+backend/src/modules/catalogos/catalogos.controller.ts:6:@Controller('catalogos')
+backend/src/modules/catalogos/motivos-reagenda.public.controller.ts:5:@Controller('catalogos')
+backend/src/modules/catalogos/motivos-reagenda.public.controller.ts:21:@Controller('catalogos/motivos_reagenda')
+backend/src/modules/catalogos/via.entity.ts:3:@Entity('vias')
+backend/src/modules/catalogos/catalogos.service.ts:6:@Injectable()
+backend/src/modules/catalogos/catalogo.entity.ts:4:@Entity({ name: 'catalogos' })
+backend/src/modules/catalogos/sector.entity.ts:3:@Entity('sectores')
+backend/src/modules/catalogos/config-cargos.service.ts:2:@Injectable()
+backend/src/modules/catalogos/motivos-reagenda.admin.controller.ts:23:@Controller('admin/catalogos/motivos_reagenda/items')
+backend/src/modules/catalogos/catalogos.module.ts:27:@Module({
+backend/src/modules/catalogos/catalogos.module.ts:29:    TypeOrmModule.forFeature([Municipio, Via, Sector]),
+backend/src/modules/usuarios/usuarios.controller.ts:6:@Controller('usuarios')
+backend/src/modules/usuarios/usuario.entity.ts:10:@Entity({ name: 'usuarios' })
+backend/src/modules/usuarios/usuarios.module.ts:6:@Module({
+backend/src/modules/usuarios/usuarios.module.ts:7:  imports: [TypeOrmModule.forFeature([Usuario])],
+backend/src/modules/config/entities/config-cargos.entity.ts:13:@Entity('config_cargos')
+backend/src/modules/config/config.service.ts:14:@Injectable()
+backend/src/modules/config/config.module.ts:9:@Module({
+backend/src/modules/config/config.module.ts:11:    // TypeOrmModule.forFeature([ConfigCargos]),
+backend/src/modules/config/config.controller.ts:4:@Controller('config')
+backend/src/modules/materiales/materiales.module.ts:9:@Module({
+backend/src/modules/materiales/materiales.module.ts:10:  imports: [TypeOrmModule.forFeature([Material])],
+backend/src/modules/materiales/material.entity.ts:10:@Entity({ name: 'materiales' })
+backend/src/modules/materiales/materiales.controller.ts:5:@Controller('materiales') // <-- sin 'v1/'
+backend/src/modules/materiales/orden-material.entity.ts:3:@Entity('orden_materiales')
+backend/src/modules/materiales/materiales.service.ts:15:@Injectable()
+backend/src/modules/smartolt/smartolt.queue.ts:10:@Injectable()
+backend/src/modules/smartolt/smartolt.service.ts:4:@Injectable()
+backend/src/modules/smartolt/smartolt.module.ts:6:@Module({
+backend/src/modules/smartolt/smartolt_log.entity.ts:4:@Entity({ name: 'smartolt_logs' })
+backend/src/modules/planes/plan.entity.ts:3:@Entity({ name: 'planes' })
+backend/src/modules/planes/planes.module.ts:6:@Module({
+backend/src/modules/planes/planes.module.ts:7:  imports: [TypeOrmModule.forFeature([Plan])],
+backend/src/modules/planes/planes.controller.ts:7:@Controller('planes')
+backend/src/modules/ordenes/orden.entity.ts:7:@Entity('ordenes')
+backend/src/modules/ordenes/evidencia.entity.ts:3:@Entity({ name: 'evidencias' })
+backend/src/modules/ordenes/services/idempotencia.service.ts:16:@Injectable()
+backend/src/modules/ordenes/services/agenda.service.ts:5:@Injectable()
+backend/src/modules/ordenes/ordenes.module.ts:17:@Module({
+backend/src/modules/ordenes/ordenes.module.ts:19:    TypeOrmModule.forFeature([
+backend/src/modules/ordenes/entities/orden.entity.ts:3:@Entity({ name: 'ordenes' })
+backend/src/modules/ordenes/entities/orden-material.entity.ts:10:@Entity({ name: 'orden_materiales' })
+backend/src/modules/ordenes/entities/orden-cierre-idem.entity.ts:4:@Entity({ name: 'orden_cierres_idem' })
+backend/src/modules/ordenes/controllers/tecnicos-cierre.controller.ts:20:@Controller('tecnicos/:tecId/ordenes')
+backend/src/modules/ordenes/controllers/agenda.controller.ts:6:@Controller('ordenes/:codigo/agenda')
+backend/src/modules/ordenes/ordenes.service.ts:5:@Injectable()
+backend/src/modules/ordenes/ordenes.controller.ts:11:@Controller('ordenes')
+backend/src/modules/ventas/ventas.entity.ts:3:@Entity({ name: 'ventas' })
+backend/src/modules/ventas/ventas.module.ts:18:@Module({
+backend/src/modules/ventas/ventas.module.ts:20:    TypeOrmModule.forFeature([Venta, Usuario, Orden, Plan]),
+backend/src/modules/ventas/ventas.controller.ts:73:@Controller('ventas')
+backend/src/modules/jobs/jobs.service.ts:5:@Injectable()
+backend/src/modules/jobs/jobs.controller.ts:5:@Controller('jobs')
+backend/src/modules/jobs/jobs.module.ts:6:@Module({

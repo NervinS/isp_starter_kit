@@ -2,6 +2,10 @@
 import { Module, NestModule, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
+
+import { AlertsModule } from './modules/alertas/alerts.module';
+import { PdfModule } from './modules/pdf/pdf.module';
 
 import { HealthModule } from './modules/health/health.module';
 import { CatalogosModule } from './modules/catalogos/catalogos.module';
@@ -10,7 +14,7 @@ import { TecnicosModule } from './modules/tecnicos/tecnicos.module';
 import { MaterialesModule } from './modules/materiales/materiales.module';
 import { InventarioModule } from './modules/inventario/inventario.module';
 import { OrdenesModule } from './modules/ordenes/ordenes.module';
-import { JobsModule } from './modules/jobs/jobs.module'; // ⬅️ NUEVO
+import { JobsModule } from './modules/jobs/jobs.module';
 
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
@@ -28,13 +32,13 @@ function maskDbUrl(url?: string) {
       cache: true,
       expandVariables: true,
     }),
+
     TypeOrmModule.forRootAsync({
       useFactory: async () => {
         const url = process.env.DATABASE_URL ?? process.env.DBURL ?? 'postgresql://ispuser:ispuser@db:5432/ispdb';
 
         // SSL opcional: establece DATABASE_SSL=true para forzar SSL (útil en PaaS)
-        const sslEnabled =
-          String(process.env.DATABASE_SSL ?? process.env.PGSSL ?? '').toLowerCase() === 'true';
+        const sslEnabled = String(process.env.DATABASE_SSL ?? process.env.PGSSL ?? '').toLowerCase() === 'true';
 
         // Pool máximo configurable (por defecto 10)
         const poolMax = parseInt(process.env.PGPOOL_MAX ?? '10', 10);
@@ -56,7 +60,13 @@ function maskDbUrl(url?: string) {
         };
       },
     }),
+
+    // Scheduler global (para @Cron en alertas)
+    ScheduleModule.forRoot(),
+
     // Módulos de dominio
+    AlertsModule,
+    PdfModule,
     HealthModule,
     CatalogosModule,
     AgendaModule,
@@ -64,7 +74,7 @@ function maskDbUrl(url?: string) {
     MaterialesModule,
     InventarioModule,
     OrdenesModule,
-    JobsModule, // ⬅️ NUEVO
+    JobsModule,
   ],
 })
 export class AppModule implements NestModule {

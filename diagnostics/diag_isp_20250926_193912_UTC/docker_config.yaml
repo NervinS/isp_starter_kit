@@ -1,0 +1,111 @@
+name: isp_starter_kit
+services:
+  mailhog:
+    image: mailhog/mailhog
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 1025
+        published: "1025"
+        protocol: tcp
+      - mode: ingress
+        target: 8025
+        published: "8025"
+        protocol: tcp
+  minio:
+    command:
+      - server
+      - /data
+      - --console-address
+      - :9001
+    environment:
+      MINIO_ROOT_PASSWORD: ispminiosecret
+      MINIO_ROOT_USER: ispminio
+    image: minio/minio:latest
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 9000
+        published: "9000"
+        protocol: tcp
+      - mode: ingress
+        target: 9001
+        published: "9001"
+        protocol: tcp
+    volumes:
+      - type: volume
+        source: miniodata
+        target: /data
+        volume: {}
+  postgres:
+    environment:
+      POSTGRES_DB: ispdb
+      POSTGRES_PASSWORD: isppass
+      POSTGRES_USER: ispuser
+      TZ: America/Bogota
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U ispuser -d ispdb
+      timeout: 5s
+      interval: 10s
+      retries: 5
+    image: postgres:15
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 5432
+        published: "5432"
+        protocol: tcp
+    volumes:
+      - type: volume
+        source: dbdata
+        target: /var/lib/postgresql/data
+        volume: {}
+  rabbitmq:
+    environment:
+      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: guest
+    image: rabbitmq:3-management
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 5672
+        published: "5672"
+        protocol: tcp
+      - mode: ingress
+        target: 15672
+        published: "15672"
+        protocol: tcp
+  redis:
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+    image: redis:7
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 6379
+        published: "6379"
+        protocol: tcp
+    volumes:
+      - type: volume
+        source: redisdata
+        target: /data
+        volume: {}
+networks:
+  default:
+    name: isp_starter_kit_default
+volumes:
+  dbdata:
+    name: isp_starter_kit_dbdata
+  miniodata:
+    name: isp_starter_kit_miniodata
+  redisdata:
+    name: isp_starter_kit_redisdata

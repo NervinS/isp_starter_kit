@@ -1,0 +1,27 @@
+=== RESUMEN RÁPIDO (20250926_193912_UTC) ===
+
+# API
+- Health: 
+- OpenAPI: exportado
+
+# GIT
+- Rama: main
+- Último tag: backup-20250926-192024
+- Commits locales sin push: 0
+
+# DB
+- Version: 
+- Esquemas: 
+- Top tablas por tamaño: (ver db_tables.tsv)
+- Triggers/funciones: exportados en db_triggers.tsv / db_functions.sql
+
+# CÓDIGO
+- Módulos ‘almacén/ventas/usuarios’: ver code_modules_tree.txt y code_modules_files.txt
+- Inventario Nest: nest_modules_inventory.txt
+- DTOs: dto_inventory.txt
+
+# SCRIPTS
+- Smokes v2: 4 — headers en scripts_headers.txt
+
+# DOCKER
+- Servicios activos: ver docker_ps.txt

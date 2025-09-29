@@ -1,0 +1,5 @@
+== Modulo: almacen ==
+== Modulo: ventas ==
+backend/src/modules/ventas
+== Modulo: usuarios ==
+backend/src/modules/usuarios

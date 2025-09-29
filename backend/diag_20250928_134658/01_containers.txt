@@ -1,0 +1,8 @@
+== Containers ==
+NAMES                        IMAGE                   STATUS
+isp-api                      backend-api             Up 3 hours
+isp-db                       postgres:14-alpine      Up 17 hours (healthy)
+isp-minio                    minio/minio:latest      Up 20 hours
+isp_starter_kit-postgres-1   postgres:15             Up 10 days (healthy)
+isp_starter_kit-rabbitmq-1   rabbitmq:3-management   Up 10 days
+isp_starter_kit-redis-1      redis:7                 Up 10 days

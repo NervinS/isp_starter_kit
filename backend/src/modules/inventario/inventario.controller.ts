@@ -1,83 +1,93 @@
 // src/modules/inventario/inventario.controller.ts
-import {
-  Controller,
-  Get,
-  Param,
-  ParseUUIDPipe,
-  Post,
-  Body,
-  BadRequestException,
-} from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Controller, Get, Post, Param, Body, Query, Req } from '@nestjs/common';
 import { InventarioService } from './inventario.service';
+
+// DTOs existentes (técnicos)
 import { DescontarStockDto } from './dto/descontar-stock.dto';
+import { AgregarStockDto } from './dto/agregar-stock.dto';
+import { AjusteStockDto } from './dto/ajuste-stock.dto';
 
-@ApiTags('Inventario')
-@Controller('inventario')
+// ✅ DTO corporativo con class-validator
+import { MovimientoDto } from './dto/movimiento.dto';
+
+@Controller('inventario') // recuerda: en runtime será /v1/inventario/... por el globalPrefix
 export class InventarioController {
-  constructor(private readonly inventarioService: InventarioService) {}
+  constructor(private readonly svc: InventarioService) {}
 
-  // GET /v1/inventario/tecnicos/:tecnicoId/stock
+  // ==========================
+  //   RUTAS EXISTENTES (Técnico)
+  // ==========================
+
   @Get('tecnicos/:tecnicoId/stock')
-  @ApiOperation({
-    summary: 'Listar stock actual del técnico',
-    description:
-      'Devuelve el stock por material del técnico indicado (materialId, codigo, nombre, cantidad).',
-  })
-  @ApiParam({
-    name: 'tecnicoId',
-    description: 'UUID del técnico',
-    example: 'd1e89d6f-3d79-40ed-8605-537b9ab1e007',
-  })
-  @ApiResponse({ status: 200, description: 'Listado de stock del técnico.' })
-  async listarStockDeTecnico(
-    @Param('tecnicoId', new ParseUUIDPipe()) tecnicoId: string,
-  ) {
-    return this.inventarioService.listarStockDeTecnico(tecnicoId);
+  async listarStockTecnico(@Param('tecnicoId') tecnicoId: string) {
+    return this.svc.listarStockDeTecnico(tecnicoId);
   }
 
-  // POST /v1/inventario/tecnicos/:tecnicoId/descontar
   @Post('tecnicos/:tecnicoId/descontar')
-  @ApiOperation({
-    summary: 'Descontar stock del técnico',
-    description:
-      'Descuenta cantidad del material en el stock del técnico. Valida existencia y cantidad suficiente.',
-  })
-  @ApiParam({
-    name: 'tecnicoId',
-    description: 'UUID del técnico',
-    example: 'd1e89d6f-3d79-40ed-8605-537b9ab1e007',
-  })
-  @ApiResponse({ status: 201, description: 'Descuento aplicado.' })
-  async descontarStock(
-    @Param('tecnicoId', new ParseUUIDPipe()) tecnicoId: string,
-    @Body() body: DescontarStockDto,
+  async descontarStockTecnico(
+    @Param('tecnicoId') tecnicoId: string,
+    @Body() dto: DescontarStockDto,
   ) {
-    // En tu DTO actual materialId llega como string (uuid). En BD materiales.id es INTEGER.
-    // Convertimos con validación estricta a entero positivo.
-    const materialId = Number((body as any).materialId);
-    if (!Number.isInteger(materialId) || materialId <= 0) {
-      throw new BadRequestException(
-        'materialId debe ser un número entero positivo.',
-      );
-    }
+    const { materialId, cantidad } = dto;
+    return this.svc.descontarStock(tecnicoId, Number(materialId), Number(cantidad));
+  }
 
-    const cantidad = Number(body.cantidad);
-    if (!Number.isInteger(cantidad) || cantidad <= 0) {
-      throw new BadRequestException(
-        'cantidad debe ser un número entero positivo.',
-      );
-    }
+  // (Opcionales expuestos)
+  @Post('tecnicos/:tecnicoId/agregar')
+  async agregarStockTecnico(
+    @Param('tecnicoId') tecnicoId: string,
+    @Body() dto: AgregarStockDto,
+  ) {
+    const { materialId, cantidad } = dto;
+    await this.svc.agregarStock(tecnicoId, Number(materialId), Number(cantidad));
+    return { ok: true };
+  }
 
-    const resultado = await this.inventarioService.descontarStock(
-      tecnicoId,
-      materialId,
-      cantidad,
-    );
+  @Post('tecnicos/:tecnicoId/ajustar')
+  async ajustarStockTecnico(
+    @Param('tecnicoId') tecnicoId: string,
+    @Body() dto: AjusteStockDto,
+  ) {
+    const { materialId, cantidad } = dto;
+    await this.svc.ajustarStock(tecnicoId, Number(materialId), Number(cantidad));
+    return { ok: true };
+  }
 
-    return {
-      ok: true,
-      ...resultado,
-    };
+  // ==========================
+  //   NUEVAS RUTAS CORPORATIVAS
+  // ==========================
+
+  /** Crear movimiento corporativo (ingreso/egreso/transferencia/ajuste). */
+  @Post('movimientos')
+  async crearMovimiento(@Body() dto: MovimientoDto, @Req() req: any) {
+    // Normaliza fallback: materialId(string) -> materialIdInt(number)
+    const materialIdInt =
+      dto.materialIdInt ?? (dto.materialId ? Number(dto.materialId) : undefined);
+
+    const dtoNorm = { ...dto, materialIdInt };
+    const userId = req?.user?.sub ?? undefined;
+
+    return this.svc.crearMovimiento(dtoNorm as any, userId);
+  }
+
+  /** Stock corporativo (stock_almacen). */
+  @Get('stock')
+  async stockCorp(
+    @Query('scope') scope?: 'principal' | 'tecnico',
+    @Query('id') id?: string,
+  ) {
+    return this.svc.getStockCorporativo(scope, id);
+  }
+
+  /** Kardex corporativo (v_kardex). */
+  @Get('kardex')
+  async kardexCorp(
+    @Query('materialIdInt') materialIdInt: string,
+    @Query('almacenId') almacenId?: string,
+    @Query('desde') desde?: string,
+    @Query('hasta') hasta?: string,
+  ) {
+    const mid = Number(materialIdInt);
+    return this.svc.getKardex(mid, almacenId, desde, hasta);
   }
 }

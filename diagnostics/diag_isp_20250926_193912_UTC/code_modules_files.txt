@@ -1,0 +1,6 @@
+backend/src/modules/ventas/ventas.entity.ts
+backend/src/modules/ventas/ventas.module.ts
+backend/src/modules/ventas/ventas.dto.ts
+backend/src/modules/ventas/ventas.controller.ts
+backend/src/modules/usuarios/usuarios.controller.ts
+backend/src/modules/usuarios/usuarios.module.ts

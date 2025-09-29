@@ -1,0 +1,4 @@
+NAME                         IMAGE                   COMMAND                  SERVICE    CREATED      STATUS                PORTS
+isp_starter_kit-postgres-1   postgres:15             "docker-entrypoint.s…"   postgres   8 days ago   Up 8 days (healthy)   0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp
+isp_starter_kit-rabbitmq-1   rabbitmq:3-management   "docker-entrypoint.s…"   rabbitmq   8 days ago   Up 8 days             4369/tcp, 5671/tcp, 0.0.0.0:5672->5672/tcp, [::]:5672->5672/tcp, 15671/tcp, 15691-15692/tcp, 25672/tcp, 0.0.0.0:15672->15672/tcp, [::]:15672->15672/tcp
+isp_starter_kit-redis-1      redis:7                 "docker-entrypoint.s…"   redis      8 days ago   Up 8 days             0.0.0.0:6379->6379/tcp, [::]:6379->6379/tcp

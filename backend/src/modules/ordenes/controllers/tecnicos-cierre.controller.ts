@@ -1,134 +1,80 @@
-import {
-  Body,
-  Controller,
-  Headers,
-  HttpCode,
-  HttpException,
-  HttpStatus,
-  Param,
-  Post,
-} from '@nestjs/common';
+// src/modules/ordenes/controllers/tecnicos-cierre.controller.ts
+import { Controller, Post, Param, Body, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
-import { CerrarOrdenDto } from '../dto/cerrar-orden.dto';
+import { PdfService } from '../../pdf/pdf.service';
 
-function publicUrlFor(key: string | null): string | null {
-  const base = process.env.MINIO_EXTERNAL_URL; // ej: http://127.0.0.1:9000
-  if (!base || !key) return null;
-  return `${base.replace(/\/+$/, '')}/evidencias/${key}`;
-}
-
-@Controller('tecnicos/:tecId/ordenes')
+@Controller('tecnicos/:tecnicoId/ordenes/codigo')
 export class TecnicosCierreController {
-  constructor(private readonly ds: DataSource) {}
+  private readonly logger = new Logger('[TEC-CLOSE]');
 
-  @Post(':ordenId/cerrar')
-  @HttpCode(200)
-  async cerrarOrden(
-    @Param('tecId') tecId: string,
-    @Param('ordenId') ordenId: string,
-    @Body() body: CerrarOrdenDto,
-    @Headers('x-idempotency-key') _idem?: string,
+  constructor(
+    private readonly db: DataSource,
+    private readonly pdf: PdfService,
+  ) {}
+
+  @Post(':codigo/iniciar')
+  async iniciar(@Param('codigo') codigo: string) {
+    await this.db.query(
+      `UPDATE ordenes SET iniciada_at = COALESCE(iniciada_at, now()) WHERE codigo = $1`,
+      [codigo],
+    );
+    return { _idempotent: false };
+  }
+
+  @Post(':codigo/cerrar')
+  async cerrar(
+    @Param('codigo') codigo: string,
+    @Body() body: any,
   ) {
-    if (body.tecnicoId !== tecId) {
+    this.logger.log(`[EVID] ENTER cerrar codigo=${codigo} keys=${Object.keys(body||{}).join(',')}`);
+
+    // Firma
+    if (body?.firmaBase64?.startsWith('data:') && body.firmaBase64.includes(';base64,')) {
+      const key = `firmas/${codigo}.png`;
+      try {
+        this.logger.log(`[EVID] put firma -> ${key}`);
+        await this.pdf.putObject(key, body.firmaBase64, 'image/png', { 'Cache-Control':'public, max-age=600' });
+        this.logger.log(`[EVID] OK firma -> ${key}`);
+      } catch (e) {
+        this.logger.warn(`[EVID] error firma ${key}: ${String((e as any)?.code || e)}`);
       }
+    } else {
+      this.logger.warn('[EVID] firma ausente o no es dataURL base64');
+    }
 
-    const res = await this.ds.transaction('READ COMMITTED', async (em) => {
-      // 1) Lock de orden
-      const [orden] = await em.query(`SELECT * FROM ordenes WHERE id=$1 FOR UPDATE`, [ordenId]);
-      if (!orden) throw new HttpException('Orden no existe', HttpStatus.NOT_FOUND);
-
-      // 2) Idempotente
-      if (orden.cerrada_at) {
-        return {
-          codigo: orden.codigo,
-          estado: orden.estado,
-          cerradaAt: orden.cerrada_at,
-          pdfUrl: orden.pdf_url ?? null,
-          _idempotent: true,
-        };
+    // Fotos
+    if (Array.isArray(body?.evidenciasBase64)) {
+      let i = 0;
+      for (const dataUrl of body.evidenciasBase64) {
+        i++;
+        if (!(typeof dataUrl === 'string' && dataUrl.startsWith('data:') && dataUrl.includes(';base64,'))) {
+          this.logger.warn(`[EVID] foto #${i} ignorada (no es dataURL base64)`);
+          continue;
+        }
+        const key = `fotos/${codigo}/${i}.png`;
+        try {
+          this.logger.log(`[EVID] put foto -> ${key}`);
+          await this.pdf.putObject(key, dataUrl, 'image/png', { 'Cache-Control':'public, max-age=600' });
+          this.logger.log(`[EVID] OK foto -> ${key}`);
+        } catch (e) {
+          this.logger.warn(`[EVID] error foto #${i} ${key}: ${String((e as any)?.code || e)}`);
+        }
       }
+    } else {
+      this.logger.warn('[EVID] evidenciasBase64 ausente o no es array');
+    }
 
-      // 3) Lock líneas
-      await em.query(`SELECT 1 FROM orden_materiales WHERE orden_id=$1 FOR UPDATE`, [ordenId]);
+    await this.db.query(
+      `UPDATE ordenes SET estado='cerrada', cerrada_at=now() WHERE codigo = $1`,
+      [codigo],
+    );
 
-      // 4) Verificación de stock (pendientes)
-      const faltantes = await em.query(
-        `SELECT om.material_id_int, om.cantidad, it.cantidad AS stock
-           FROM orden_materiales om
-      LEFT JOIN inv_tecnico it
-             ON it.tecnico_id=$1 AND it.material_id=om.material_id_int
-          WHERE om.orden_id=$2
-            AND om.descontado=FALSE
-            AND (it.cantidad IS NULL OR it.cantidad < om.cantidad)`,
-        [tecId, ordenId],
-      );
-      if (faltantes.length) {
-        throw new HttpException('Stock insuficiente', HttpStatus.BAD_REQUEST);
-      }
-
-      // 5) Descuento inventario
-      await em.query(
-        `UPDATE inv_tecnico it
-            SET cantidad = it.cantidad - om.cantidad
-           FROM orden_materiales om
-          WHERE om.orden_id=$1
-            AND om.descontado=FALSE
-            AND it.tecnico_id=$2
-            AND it.material_id = om.material_id_int`,
-        [ordenId, tecId],
-      );
-
-      // 6) Flag líneas
-      await em.query(
-        `UPDATE orden_materiales SET descontado=TRUE WHERE orden_id=$1 AND descontado=FALSE`,
-        [ordenId],
-      );
-
-      // 7) PDF (key y URL pública)
-      const pdfKey = `cierre_${orden.codigo}.pdf`;
-      const pdfUrl = publicUrlFor(pdfKey);
-
-      // 8) Cierre
-      await em.query(
-        `UPDATE ordenes
-            SET cerrada_at = NOW(),
-                estado = 'cerrada',
-                pdf_key = $2,
-                pdf_url = $3
-          WHERE id=$1 AND cerrada_at IS NULL`,
-        [ordenId, pdfKey, pdfUrl],
-      );
-
-      // 9) Estado de usuario (si hay vínculo)
-      if (orden.usuario_id) {
-        await em.query(
-          `UPDATE usuarios u
-              SET estado = CASE $2
-                 WHEN 'INS' THEN 'instalado'
-                 WHEN 'REC' THEN 'instalado'
-                 WHEN 'COR' THEN 'desconectado'
-                 WHEN 'BAJ' THEN 'terminado'
-                 ELSE u.estado
-               END
-            WHERE u.id=$1`,
-          [orden.usuario_id, orden.tipo],
-        );
-      }
-
-      // 10) Respuesta final
-      const [after] = await em.query(
-        `SELECT codigo, estado, cerrada_at, pdf_url FROM ordenes WHERE id=$1`,
-        [ordenId],
-      );
-      return {
-        codigo: after.codigo,
-        estado: after.estado,
-        cerradaAt: after.cerrada_at,
-        pdfUrl: after.pdf_url ?? null,
-        _idempotent: false,
-      };
-    });
-
-    return res;
+    return {
+      codigo,
+      estado: 'cerrada',
+      cerradaAt: new Date().toISOString(),
+      pdfUrl: null,
+      _idempotent: false,
+    };
   }
 }

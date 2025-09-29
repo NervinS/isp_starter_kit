@@ -1,0 +1,20 @@
+total 228
+drwxr-xr-x 10 root   root     4096 sep 23 19:07 .
+drwxr-x---  7 yarumo yarumo   4096 sep 26 14:20 ..
+drwxr-xr-x 14 root   root     4096 sep 26 14:06 backend
+drwxr-xr-x  2 root   root     4096 sep  1 11:19 db
+-rw-r--r--  1 root   root     1252 ago 13 12:14 docker-compose.yml
+-rwxr-xr-x  1 root   root     1219 ago 19 11:53 e2e_tecnico.sh
+-rw-r--r--  1 root   root      722 ago 13 12:10 .env
+-rw-r--r--  1 root   root      722 ago 12 23:38 .env.example
+-rw-r--r--  1 root   root      144 sep  1 11:20 evidencias-list.txt
+drwxr-xr-x  7 root   root     4096 sep  9 08:52 frontend
+drwxr-xr-x  8 root   root     4096 sep 26 14:39 .git
+drwxr-xr-x  3 root   root     4096 sep 13 16:32 .github
+-rw-r--r--  1 root   root      284 sep 24 12:53 .gitignore
+-rw-r--r--  1 root   root     1456 sep  1 11:21 HANDOFF.md
+-rw-r--r--  1 root   root   156841 sep  1 11:22 isp_starter_kit_2025-09-01.zip
+drwxr-xr-x  2 root   root     4096 ago 13 12:09 migrations
+drwxr-xr-x  2 root   root     4096 ago 13 12:09 pdf_templates
+-rw-r--r--  1 root   root      812 sep 23 19:32 README.md
+drwxrwxr-x  2 yarumo yarumo   4096 ago 13 20:45 tmp

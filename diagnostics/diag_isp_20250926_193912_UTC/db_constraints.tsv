@@ -1,0 +1,177 @@
+public|app_users|2200_18831_1_not_null|CHECK
+public|app_users|2200_18831_2_not_null|CHECK
+public|app_users|2200_18831_3_not_null|CHECK
+public|app_users|2200_18831_4_not_null|CHECK
+public|app_users|2200_18831_5_not_null|CHECK
+public|app_users|PK_9b97e4fbff9c2f3918fda27f999|PRIMARY KEY
+public|cargos|2200_19182_1_not_null|CHECK
+public|cargos|2200_19182_2_not_null|CHECK
+public|cargos|2200_19182_3_not_null|CHECK
+public|cargos|2200_19182_4_not_null|CHECK
+public|cargos|2200_19182_5_not_null|CHECK
+public|cargos|2200_19182_6_not_null|CHECK
+public|cargos|2200_19182_7_not_null|CHECK
+public|cargos|cargos_orden_id_fkey|FOREIGN KEY
+public|cargos|cargos_pkey|PRIMARY KEY
+public|cargos|cargos_usuario_id_fkey|FOREIGN KEY
+public|catalogo_items|2200_18622_1_not_null|CHECK
+public|catalogo_items|2200_18622_3_not_null|CHECK
+public|catalogo_items|2200_18622_4_not_null|CHECK
+public|catalogo_items|2200_18622_6_not_null|CHECK
+public|catalogo_items|2200_18622_7_not_null|CHECK
+public|catalogo_items|2200_18622_8_not_null|CHECK
+public|catalogo_items|FK_c6775a06bda18c043cf5163791f|FOREIGN KEY
+public|catalogo_items|PK_8181cd85c9a0549622d3531bbc1|PRIMARY KEY
+public|catalogo_motivos_reagenda|2200_18906_1_not_null|CHECK
+public|catalogo_motivos_reagenda|2200_18906_2_not_null|CHECK
+public|catalogo_motivos_reagenda|2200_18906_3_not_null|CHECK
+public|catalogo_motivos_reagenda|2200_18906_4_not_null|CHECK
+public|catalogo_motivos_reagenda|catalogo_motivos_reagenda_codigo_key|UNIQUE
+public|catalogo_motivos_reagenda|catalogo_motivos_reagenda_pkey|PRIMARY KEY
+public|catalogo_tipos_orden|2200_18878_1_not_null|CHECK
+public|catalogo_tipos_orden|2200_18878_2_not_null|CHECK
+public|catalogo_tipos_orden|catalogo_tipos_orden_pkey|PRIMARY KEY
+public|catalogos|2200_18635_1_not_null|CHECK
+public|catalogos|2200_18635_2_not_null|CHECK
+public|catalogos|2200_18635_3_not_null|CHECK
+public|catalogos|2200_18635_5_not_null|CHECK
+public|catalogos|2200_18635_6_not_null|CHECK
+public|catalogos|PK_1d78e1f35ded834637978e7cbf2|PRIMARY KEY
+public|catalogos|UQ_8d2f3ffdd25acfdd036d9f9c89f|UNIQUE
+public|config_cargos|2200_18783_1_not_null|CHECK
+public|config_cargos|2200_18783_2_not_null|CHECK
+public|config_cargos|2200_18783_3_not_null|CHECK
+public|config_cargos|2200_18783_4_not_null|CHECK
+public|config_cargos|2200_18783_5_not_null|CHECK
+public|config_cargos|2200_18783_6_not_null|CHECK
+public|config_cargos|2200_18783_7_not_null|CHECK
+public|config_cargos|PK_6bb3c3cc144d09d47a32b5bb491|PRIMARY KEY
+public|evidencias|2200_18740_1_not_null|CHECK
+public|evidencias|2200_18740_2_not_null|CHECK
+public|evidencias|2200_18740_3_not_null|CHECK
+public|evidencias|2200_18740_4_not_null|CHECK
+public|evidencias|2200_18740_7_not_null|CHECK
+public|evidencias|PK_c2e2ff397deaf434b623ed20507|PRIMARY KEY
+public|inv_tecnico|2200_18775_1_not_null|CHECK
+public|inv_tecnico|2200_18775_2_not_null|CHECK
+public|inv_tecnico|2200_18775_3_not_null|CHECK
+public|inv_tecnico|2200_18775_4_not_null|CHECK
+public|inv_tecnico|FK_bd07979d0f4a7392f0971ae8c25|FOREIGN KEY
+public|inv_tecnico|FK_c33ac7cde98755d25f0905c641e|FOREIGN KEY
+public|inv_tecnico|PK_e58555e9ede4f85a4c9c5507bd0|PRIMARY KEY
+public|materiales|2200_18761_1_not_null|CHECK
+public|materiales|2200_18761_2_not_null|CHECK
+public|materiales|2200_18761_3_not_null|CHECK
+public|materiales|2200_18761_4_not_null|CHECK
+public|materiales|2200_18761_5_not_null|CHECK
+public|materiales|2200_18761_6_not_null|CHECK
+public|materiales|PK_bdb2febb21ca2abcdd52ec12559|PRIMARY KEY
+public|materiales|UQ_7fa98a683ce81de255c3bf2d26a|UNIQUE
+public|municipios|2200_18820_1_not_null|CHECK
+public|municipios|2200_18820_2_not_null|CHECK
+public|municipios|2200_18820_3_not_null|CHECK
+public|municipios|2200_18820_4_not_null|CHECK
+public|municipios|PK_10d04b4b4e39ba40240b61e919d|PRIMARY KEY
+public|orden_cierres_idem|2200_18611_1_not_null|CHECK
+public|orden_cierres_idem|2200_18611_2_not_null|CHECK
+public|orden_cierres_idem|2200_18611_3_not_null|CHECK
+public|orden_cierres_idem|2200_18611_5_not_null|CHECK
+public|orden_cierres_idem|PK_cac2a1d36659e270a31a42be423|PRIMARY KEY
+public|orden_eventos|2200_19035_1_not_null|CHECK
+public|orden_eventos|2200_19035_2_not_null|CHECK
+public|orden_eventos|2200_19035_3_not_null|CHECK
+public|orden_eventos|2200_19035_5_not_null|CHECK
+public|orden_eventos|2200_19035_6_not_null|CHECK
+public|orden_eventos|2200_19035_7_not_null|CHECK
+public|orden_eventos|2200_19035_8_not_null|CHECK
+public|orden_eventos|orden_eventos_orden_id_fkey|FOREIGN KEY
+public|orden_eventos|orden_eventos_pkey|PRIMARY KEY
+public|orden_eventos|orden_eventos_tecnico_id_fkey|FOREIGN KEY
+public|orden_evidencias|2200_18995_1_not_null|CHECK
+public|orden_evidencias|2200_18995_2_not_null|CHECK
+public|orden_evidencias|2200_18995_3_not_null|CHECK
+public|orden_evidencias|2200_18995_4_not_null|CHECK
+public|orden_evidencias|2200_18995_5_not_null|CHECK
+public|orden_evidencias|fk_oe_orden|FOREIGN KEY
+public|orden_evidencias|orden_evidencias_pkey|PRIMARY KEY
+public|orden_materiales|2200_18747_11_not_null|CHECK
+public|orden_materiales|2200_18747_12_not_null|CHECK
+public|orden_materiales|2200_18747_13_not_null|CHECK
+public|orden_materiales|2200_18747_14_not_null|CHECK
+public|orden_materiales|2200_18747_15_not_null|CHECK
+public|orden_materiales|2200_18747_1_not_null|CHECK
+public|orden_materiales|2200_18747_2_not_null|CHECK
+public|orden_materiales|2200_18747_9_not_null|CHECK
+public|orden_materiales|FK_eca538e4af115ad2b8f02925731|FOREIGN KEY
+public|orden_materiales|PK_8fc75b2925fd0a02880631e033b|PRIMARY KEY
+public|orden_materiales|fk_om_material_int|FOREIGN KEY
+public|ordenes|2200_18724_12_not_null|CHECK
+public|ordenes|2200_18724_13_not_null|CHECK
+public|ordenes|2200_18724_1_not_null|CHECK
+public|ordenes|2200_18724_2_not_null|CHECK
+public|ordenes|2200_18724_3_not_null|CHECK
+public|ordenes|2200_18724_7_not_null|CHECK
+public|ordenes|2200_18724_8_not_null|CHECK
+public|ordenes|PK_58713affeb8e3b7b30b9eeeee7a|PRIMARY KEY
+public|ordenes|chk_pdf_pair|CHECK
+public|ordenes|fk_ordenes_usuario|FOREIGN KEY
+public|planes|2200_18710_1_not_null|CHECK
+public|planes|2200_18710_2_not_null|CHECK
+public|planes|2200_18710_3_not_null|CHECK
+public|planes|2200_18710_4_not_null|CHECK
+public|planes|2200_18710_5_not_null|CHECK
+public|planes|2200_18710_6_not_null|CHECK
+public|planes|2200_18710_7_not_null|CHECK
+public|planes|2200_18710_8_not_null|CHECK
+public|planes|PK_91be19f449ba03767fe51acdebc|PRIMARY KEY
+public|planes|UQ_f255684b3d2b750ac6788c5ab98|UNIQUE
+public|sectores|2200_18808_1_not_null|CHECK
+public|sectores|2200_18808_2_not_null|CHECK
+public|sectores|2200_18808_4_not_null|CHECK
+public|sectores|2200_18808_5_not_null|CHECK
+public|sectores|PK_e4690b445beae51b850640e7d9d|PRIMARY KEY
+public|smartolt_logs|2200_18701_1_not_null|CHECK
+public|smartolt_logs|2200_18701_2_not_null|CHECK
+public|smartolt_logs|PK_391e78ee98bda31fd2a09c4411e|PRIMARY KEY
+public|tecnicos|2200_18689_1_not_null|CHECK
+public|tecnicos|2200_18689_2_not_null|CHECK
+public|tecnicos|2200_18689_5_not_null|CHECK
+public|tecnicos|2200_18689_6_not_null|CHECK
+public|tecnicos|PK_57a82263172b130f3dafce11faa|PRIMARY KEY
+public|tecnicos|UQ_b41ede5014b9012fd7b2193b15e|UNIQUE
+public|typeorm_migrations|2200_16397_1_not_null|CHECK
+public|typeorm_migrations|2200_16397_2_not_null|CHECK
+public|typeorm_migrations|2200_16397_3_not_null|CHECK
+public|typeorm_migrations|PK_bb2f075707dd300ba86d0208923|PRIMARY KEY
+public|usuarios|2200_18679_10_not_null|CHECK
+public|usuarios|2200_18679_11_not_null|CHECK
+public|usuarios|2200_18679_1_not_null|CHECK
+public|usuarios|2200_18679_2_not_null|CHECK
+public|usuarios|2200_18679_3_not_null|CHECK
+public|usuarios|2200_18679_4_not_null|CHECK
+public|usuarios|2200_18679_5_not_null|CHECK
+public|usuarios|2200_18679_6_not_null|CHECK
+public|usuarios|2200_18679_9_not_null|CHECK
+public|usuarios|PK_d7281c63c176e152e4c531594a8|PRIMARY KEY
+public|ventas|2200_18652_11_not_null|CHECK
+public|ventas|2200_18652_12_not_null|CHECK
+public|ventas|2200_18652_13_not_null|CHECK
+public|ventas|2200_18652_14_not_null|CHECK
+public|ventas|2200_18652_15_not_null|CHECK
+public|ventas|2200_18652_16_not_null|CHECK
+public|ventas|2200_18652_19_not_null|CHECK
+public|ventas|2200_18652_1_not_null|CHECK
+public|ventas|2200_18652_2_not_null|CHECK
+public|ventas|2200_18652_3_not_null|CHECK
+public|ventas|2200_18652_4_not_null|CHECK
+public|ventas|2200_18652_5_not_null|CHECK
+public|ventas|2200_18652_6_not_null|CHECK
+public|ventas|2200_18652_7_not_null|CHECK
+public|ventas|2200_18652_8_not_null|CHECK
+public|ventas|2200_18652_9_not_null|CHECK
+public|ventas|PK_b8b73abe8561829c019531d9a2e|PRIMARY KEY
+public|vias|2200_18797_1_not_null|CHECK
+public|vias|2200_18797_2_not_null|CHECK
+public|vias|2200_18797_3_not_null|CHECK
+public|vias|2200_18797_4_not_null|CHECK
+public|vias|PK_4d3096c822e57784a81ea79b71c|PRIMARY KEY

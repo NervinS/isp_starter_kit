@@ -1,0 +1,3 @@
+public|materiales_id_seq
+public|orden_cierres_idem_id_seq
+public|typeorm_migrations_id_seq

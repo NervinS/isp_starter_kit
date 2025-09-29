@@ -1,0 +1,32 @@
+backend/script/onboarding_bundle.sh:150:# 6) Inventario de scripts de operación (smokes, stress, migraciones)
+backend/script/smoke-tecnicos.sh:5:# smoke-tecnicos.sh
+backend/script/smoke-tecnicos.sh:76:print_smoke_env() {
+backend/script/smoke-tecnicos.sh:148:    -d "{\"observaciones\":\"smoke\",\"materiales\":[{\"materialId\":${MAT_ID},\"cantidad\":1}],\"fotos\":[],\"firmaKey\":\"minio://firmas/demo.png\"}"
+backend/script/smoke-tecnicos.sh:156:    -d "{\"observaciones\":\"smoke\",\"materiales\":[{\"materialId\":${MAT_ID},\"cantidad\":1}],\"fotos\":[],\"firmaKey\":\"minio://firmas/demo.png\"}"
+backend/script/smoke-tecnicos.sh:165:print_smoke_env
+backend/script/smoke_all.sh:2:# smoke_all.sh – orquesta los smokes. Usa CONTINUE_ON_FAIL=1 para no cortar ante el primer fallo.
+backend/script/smoke_all.sh:30:run smoke_catalogos_mini.sh
+backend/script/smoke_all.sh:31:run smoke_catalogos.sh
+backend/script/smoke_all.sh:32:run smoke_tecnico_flujo.sh
+backend/script/smoke_all.sh:33:run smoke_tecnico.sh
+backend/script/smoke_all.sh:34:run smoke_cierre_con_linea.sh
+backend/script/smoke_all.sh:35:run smoke_cierre_idempotente.sh
+backend/script/smoke_all.sh:36:run smoke_agenda.sh
+backend/script/smoke_all.sh:37:run smoke_stress_cierre.sh
+backend/script/smoke_all.sh:40:echo "✓ Todos los smokes ejecutados."
+backend/script/smoke_tecnicos_cerrar_v2.sh:108:# Material a descontar (en dump: 3 y 9; usamos 3 como en smokes previos)
+backend/script/smoke_catalogos.sh:49:echo "✓ smoke_catalogos.sh OK"
+backend/script/diagnostico.sh:224:  grep -nE 'Smoke|smoke_|/v1/health' "${OUT}/logs_${API_SVC}.txt" 2>/dev/null || true
+backend/script/diagnostico.sh:225:} > "${OUT}/smokes.txt" 2>&1
+backend/script/smoke_cierre_idempotente_hard.sh:100:    '{observaciones:"cierre smoke", fotos:["minio://evidencias/1.jpg"], firmaKey:"minio://firmas/demo.png",
+backend/script/smoke_cierre_idempotente_hard.sh:104:  payload='{"observaciones":"cierre smoke","fotos":["minio://evidencias/1.jpg"],"firmaKey":"minio://firmas/demo.png","materiales":[{"materialId":"DROP_1","cantidad":1}]}'
+backend/script/smoke_cierre_idempotente_hard.sh:144:echo "✓ smoke_cierre_idempotente_hard OK"
+backend/script/smoke_tecnico_flujo.sh:183:  -d "{\"materiales\":[{\"materialId\":$MAT_ID,\"cantidad\":1,\"precioUnitario\":1200}],\"snapshot\":{\"nota\":\"smoke tecnico\"}}")" || {
+backend/script/smoke_tecnico.sh:153:say "✓ smoke_tecnico OK"
+backend/script/smoke_cierre_idempotente.sh:2:# smoke_cierre_idempotente.sh
+backend/script/smoke_tecnicos.sh:87:  -d "{\"motivoId\":\"$MOTIVO_ID\",\"observaciones\":\"smoke\"}" \
+backend/script/smoke_all_v2.sh:6:chmod +x smoke_ordenes_v2.sh smoke_agenda_v2.sh smoke_tecnicos_cerrar_v2.sh
+backend/script/smoke_all_v2.sh:8:./smoke_ordenes_v2.sh
+backend/script/smoke_all_v2.sh:9:./smoke_agenda_v2.sh
+backend/script/smoke_all_v2.sh:10:./smoke_tecnicos_cerrar_v2.sh
+backend/script/smoke_agenda_http.sh:36:echo "✓ smoke_agenda_http OK"

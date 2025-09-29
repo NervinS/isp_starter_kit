@@ -1,0 +1,6 @@
+== Versions ==
+v22.18.0
+10.9.3
+psql (PostgreSQL) 15.14 (Ubuntu 15.14-1.pgdg22.04+1)
+Docker version 28.3.3, build 980b856
+git_commit: 3801e99

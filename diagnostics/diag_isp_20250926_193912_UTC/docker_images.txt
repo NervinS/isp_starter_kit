@@ -1,0 +1,6 @@
+CONTAINER                    REPOSITORY          TAG                 PLATFORM            IMAGE ID            SIZE                CREATED
+isp_starter_kit-mailhog-1    mailhog/mailhog     latest              linux/amd64         4de68494cd0d        392MB               292 years ago
+isp_starter_kit-minio-1      minio/minio         latest              linux/arm64         b9292014cabd        167MB               292 years ago
+isp_starter_kit-postgres-1   postgres            15                  linux/arm64/v8      2f8873c7b0e6        468MB               292 years ago
+isp_starter_kit-rabbitmq-1   rabbitmq            3-management        linux/arm64/v8      50925f2c4755        271MB               292 years ago
+isp_starter_kit-redis-1      redis               7                   linux/arm64/v8      08b374128ebd        140MB               292 years ago

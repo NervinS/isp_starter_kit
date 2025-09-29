@@ -1,14 +1,14 @@
 services:
   db:
-    image: postgres:14-alpine           # <- clúster existente era v14
+    image: postgres:14-alpine
     container_name: isp-db
     environment:
       POSTGRES_USER: ispuser
-      POSTGRES_PASSWORD: isppass        # <- NO cambia un clúster existente; sirve solo al primer init
+      POSTGRES_PASSWORD: isppass
       POSTGRES_DB: ispdb
-      PGDATA: /var/lib/postgresql/data/pgdata   # <- tu volumen ya tiene subcarpeta pgdata
+      PGDATA: /var/lib/postgresql/data/pgdata
     ports:
-      - "5433:5432"                     # host 5433, contenedor 5432
+      - "5433:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
     healthcheck:
@@ -43,14 +43,13 @@ services:
         condition: service_started
     environment:
       NODE_ENV: production
-      # Conexión interna (entre contenedores):
       DATABASE_URL: postgres://ispuser:isppass@db:5432/ispdb
-      # MinIO
+      EVID_LOG: "1"
+      PDF_BUCKET: evidencias
       MINIO_ENDPOINT: minio:9000
       MINIO_ACCESS_KEY: minioadmin
       MINIO_SECRET_KEY: minioadmin
       MINIO_USE_SSL: "false"
-      # Para smoke/local si lo necesitas:
       SMOKE_BYPASS_TECH_GUARD: "1"
     ports:
       - "3000:3000"

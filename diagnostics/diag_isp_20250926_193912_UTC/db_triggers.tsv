@@ -1,0 +1,9 @@
+public|inv_tecnico|inv_tecnico_bi_merge|BEFORE|INSERT
+public|orden_materiales|om_biu_merge|BEFORE|INSERT
+public|orden_materiales|om_biu_merge|BEFORE|UPDATE
+public|orden_materiales|trg_om_material_id_default|BEFORE|UPDATE
+public|orden_materiales|trg_om_material_id_default|BEFORE|INSERT
+public|orden_materiales|trg_om_material_id_merge|BEFORE|INSERT
+public|orden_materiales|trg_om_material_id_merge|BEFORE|UPDATE
+public|ordenes|trg_ordenes_log_eventos|AFTER|UPDATE
+public|usuarios|trg_usuarios_updated_at|BEFORE|UPDATE

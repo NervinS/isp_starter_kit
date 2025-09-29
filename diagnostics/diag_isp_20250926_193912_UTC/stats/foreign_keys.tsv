@@ -1,0 +1,11 @@
+19198|public.cargos|cargos_orden_id_fkey|FOREIGN KEY (orden_id) REFERENCES ordenes(id) ON DELETE CASCADE
+19193|public.cargos|cargos_usuario_id_fkey|FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+18647|public.catalogo_items|FK_c6775a06bda18c043cf5163791f|FOREIGN KEY (catalogo_id) REFERENCES catalogos(id) ON DELETE CASCADE
+18863|public.inv_tecnico|FK_bd07979d0f4a7392f0971ae8c25|FOREIGN KEY (material_id) REFERENCES materiales(id) ON DELETE RESTRICT
+18858|public.inv_tecnico|FK_c33ac7cde98755d25f0905c641e|FOREIGN KEY (tecnico_id) REFERENCES tecnicos(id) ON DELETE CASCADE
+19045|public.orden_eventos|orden_eventos_orden_id_fkey|FOREIGN KEY (orden_id) REFERENCES ordenes(id) ON DELETE CASCADE
+19050|public.orden_eventos|orden_eventos_tecnico_id_fkey|FOREIGN KEY (tecnico_id) REFERENCES tecnicos(id) ON DELETE SET NULL
+19004|public.orden_evidencias|fk_oe_orden|FOREIGN KEY (orden_id) REFERENCES ordenes(id) ON DELETE CASCADE
+18853|public.orden_materiales|FK_eca538e4af115ad2b8f02925731|FOREIGN KEY (orden_id) REFERENCES ordenes(id) ON DELETE CASCADE
+18888|public.orden_materiales|fk_om_material_int|FOREIGN KEY (material_id_int) REFERENCES materiales(id) DEFERRABLE INITIALLY DEFERRED
+18895|public.ordenes|fk_ordenes_usuario|FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE SET NULL

@@ -1,9 +1,9 @@
 {
   "pages": {
-    "/agenda/page": [
+    "/tecnico/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/agenda/page.js"
+      "static/chunks/app/tecnico/page.js"
     ],
     "/layout": [
       "static/chunks/webpack.js",
@@ -11,20 +11,15 @@
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
     ],
-    "/tecnico/[codigo]/page": [
+    "/ordenes/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/tecnico/[codigo]/page.js"
+      "static/chunks/app/ordenes/page.js"
     ],
-    "/tecnico/page": [
+    "/agenda/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/tecnico/page.js"
-    ],
-    "/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/page.js"
+      "static/chunks/app/agenda/page.js"
     ]
   }
 }

@@ -1,0 +1,14 @@
+Filesystem                         Size  Used Avail Use% Mounted on
+tmpfs                              793M  2,0M  791M   1% /run
+/dev/mapper/ubuntu--vg-ubuntu--lv  273G   84G  178G  33% /
+tmpfs                              3,9G     0  3,9G   0% /dev/shm
+tmpfs                              5,0M     0  5,0M   0% /run/lock
+/dev/sda2                          2,0G  239M  1,6G  14% /boot
+/dev/sda1                          1,1G  6,4M  1,1G   1% /boot/efi
+overlay                            273G   84G  178G  33% /var/lib/docker/overlay2/6fd686de41066e9732f871bd8eba946aff9e4031941be9d79d60817045d1c5a5/merged
+overlay                            273G   84G  178G  33% /var/lib/docker/overlay2/07fa07efcc97dd50b4a21ac3164cd37a9fb49371400f528850db5948667f98a3/merged
+overlay                            273G   84G  178G  33% /var/lib/docker/overlay2/6480e33c6f5fd6ba8a1ffe17f1e1bde1a6873dea081e1dd6bccd91a154170dc6/merged
+tmpfs                              793M  4,0K  793M   1% /run/user/1000
+overlay                            273G   84G  178G  33% /var/lib/docker/overlay2/13a8aeed228c7522760e8f5cfcbc594d774ef55806f06526810046b8915c8bf1/merged
+overlay                            273G   84G  178G  33% /var/lib/docker/overlay2/d773b0a222d25cf7bd4eb29bbdec6f208dd51949129a699e89a0f699332f66b2/merged
+overlay                            273G   84G  178G  33% /var/lib/docker/overlay2/fc0c6032f8ec5ba1db5c6920662e8754b8afb3a59d0c767361c4886bdb17491c/merged

@@ -1,0 +1,8 @@
+* 49e7cca (HEAD -> main, tag: backup-20250926-192024, origin/main) chore: full snapshot 2025-09-26 19:17:56 UTC
+* 98532f0 (tag: v0.1.2-tecnicos-f1) Tecnicos: iniciar/cerrar idempotente; compat materialId/materialIdInt; MAN sin efecto; REC conecta; descuento inventario seguro
+* 4e1bd62 (tag: v0.1.1-man-rec) hotfix(tecnicos): tecnicoId opcional en body; controller usa el de la ruta
+* b8267f8 (tag: agenda-v1.1) agenda: persistencia de motivo_reagenda + motivo_reagenda_codigo; controller+dto; smoke script y workflow
+* 50b2a7b (tag: agenda-v1) Agenda: persistencia motivo_reagenda + motivo_reagenda_codigo en REAGENDAR; smoke robusto; migración aplicada
+* 3f9d18f Agenda: columnas/índices migration; smoke estable; CI ejecuta agenda
+* 81cad25 chore(ci): trigger smoke
+* 285a191 CI: mover .github a raíz; backend estable (PDF MinIO + idempotencia + smokes)

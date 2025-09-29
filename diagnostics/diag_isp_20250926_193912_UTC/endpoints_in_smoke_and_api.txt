@@ -1,0 +1,5 @@
+/v1/admin/catalogos/motivos_reagenda/items
+/v1/catalogos/motivos-reagenda
+/v1/catalogos/motivos_reagenda/items
+/v1/health
+/v1/materiales
