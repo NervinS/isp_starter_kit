@@ -1,172 +1,167 @@
 // src/modules/agenda/agenda.service.ts
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { DataSource } from 'typeorm';
 
-/** DTO interno mínimo para anular; evita depender de otros archivos */
-type AnularParams = {
-  motivo: string;
-  motivoCodigo?: string | null;
-};
+function asUuidOrNull(v: any): string | null {
+  if (typeof v !== 'string') return null;
+  const s = v.trim();
+  // UUID v4 simple check
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    s,
+  )
+    ? s
+    : null;
+}
 
 @Injectable()
 export class AgendaService {
-  private readonly logger = new Logger(AgendaService.name);
+  constructor(private readonly ds: DataSource) {}
 
-  constructor(private readonly dataSource: DataSource) {}
-
-  /** Util: normaliza el resultado de DataSource.query a un array de una orden */
-  private one(res: any[]): any[] {
-    if (Array.isArray(res) && res.length > 0) {
-      return res.map((r) => r);
-    }
-    return [];
-  }
-
-  /** Asignar agenda (fecha/turno/técnico) y dejar estado=agendada */
+  /**
+   * Asignar por código
+   * Corrige COALESCE uuid vs integer casteando tecnicoId con NULLIF/CAST.
+   */
   async asignarPorCodigo(
     codigo: string,
     fecha: string,
     turno: 'am' | 'pm',
-    tecnicoId?: string | null,
+    tecnicoId?: string,
   ) {
-    const res = await this.dataSource.query(
+    if (!codigo) throw new BadRequestException('codigo requerido');
+    if (!fecha) throw new BadRequestException('fecha requerida');
+
+    const tecUuid = asUuidOrNull(tecnicoId ?? '') ?? null;
+
+    const res = await this.ds.query(
       `
-      UPDATE ordenes
+      UPDATE ordenes o
       SET
+        estado = 'agendada',
         agendado_para = $2::date,
-        turno         = $3::text,
-        agendada_at   = now(),
-        estado        = 'agendada',
-        tecnico_id    = COALESCE($4::uuid, tecnico_id)
-      WHERE codigo = $1
+        turno = $3,
+        agendada_at = NOW(),
+        tecnico_id = CAST(NULLIF($4,'') AS uuid)
+      WHERE o.codigo = $1
       RETURNING
         codigo,
         estado,
-        to_char(agendado_para,'YYYY-MM-DD') AS "agendadoPara",
+        agendado_para AS "agendadoPara",
         turno,
         agendada_at AS "agendadaAt",
-        tecnico_id  AS "tecnicoId"
-      `,
-      [codigo, fecha, turno, (tecnicoId ?? null)],
+        tecnico_id AS "tecnicoId"
+    `,
+      [codigo, fecha, turno, tecUuid ?? ''],
     );
 
-    const orden = this.one(res);
-    const payload = { ok: true, orden };
-    this.logger.log(`[ASIGNAR] ${codigo} -> ${JSON.stringify(payload)}`);
-    return payload;
+    if (!res?.length) throw new NotFoundException('Orden no encontrada');
+    return { ok: true, orden: [res, res.length] };
   }
 
   /**
-   * Reagendar agenda (fecha/turno) y persistir motivo de REAGENDA.
-   * Regla: si vienen ambos, se guardan ambos; si no vienen, se ponen en NULL.
+   * Reagendar por código
    */
   async reagendarPorCodigo(
     codigo: string,
     fecha: string,
     turno: 'am' | 'pm',
-    motivo?: string | null,
-    motivoCodigo?: string | null,
+    motivoCodigo?: string,
+    motivo?: string,
   ) {
-    const motivoTxt   = (motivo ?? '').trim() || null;
-    const motivoCod   = (motivoCodigo ?? '').trim() || null;
+    if (!codigo) throw new BadRequestException('codigo requerido');
+    if (!fecha) throw new BadRequestException('fecha requerida');
 
-    const res = await this.dataSource.query(
+    const res = await this.ds.query(
       `
-      UPDATE ordenes
+      UPDATE ordenes o
       SET
-        agendado_para           = $2::date,
-        turno                   = $3::text,
-        agendada_at             = now(),
-        estado                  = 'agendada',
-        -- Persistencia directa (sin COALESCE): lo que venga, se guarda
-        motivo_reagenda         = $4::text,
-        motivo_reagenda_codigo  = $5::text
-      WHERE codigo = $1
+        estado = 'agendada',
+        agendado_para = $2::date,
+        turno = $3,
+        agendada_at = NOW(),
+        tecnico_id = NULL,
+        motivo = COALESCE($5, 'Reagendada'),
+        motivo_codigo = $4
+      WHERE o.codigo = $1
       RETURNING
         codigo,
         estado,
-        to_char(agendado_para,'YYYY-MM-DD') AS "agendadoPara",
+        agendado_para AS "agendadoPara",
         turno,
         agendada_at AS "agendadaAt",
-        tecnico_id  AS "tecnicoId",
-        motivo_reagenda        AS "motivo",
-        motivo_reagenda_codigo AS "motivoCodigo"
-      `,
-      [codigo, fecha, turno, motivoTxt, motivoCod],
+        tecnico_id AS "tecnicoId",
+        motivo,
+        motivo_codigo AS "motivoCodigo"
+    `,
+      [codigo, fecha, turno, motivoCodigo ?? null, motivo ?? null],
     );
 
-    const orden = this.one(res);
-    const payload = { ok: true, orden };
-    this.logger.log(`[REAGENDAR] ${codigo} -> ${JSON.stringify(payload)}`);
-    return payload;
+    if (!res?.length) throw new NotFoundException('Orden no encontrada');
+    return { ok: true, orden: [res, res.length] };
   }
 
-  /** Cancelar agenda (limpia fecha/turno/marca de agenda; no cambia estado) */
+  /**
+   * Cancelar por código (deja sin fecha/turno y sin técnico)
+   */
   async cancelarPorCodigo(codigo: string) {
-    const res = await this.dataSource.query(
+    if (!codigo) throw new BadRequestException('codigo requerido');
+
+    const res = await this.ds.query(
       `
-      UPDATE ordenes
+      UPDATE ordenes o
       SET
+        estado = 'agendada',
         agendado_para = NULL,
-        turno         = NULL,
-        agendada_at   = NULL
-      WHERE codigo = $1
+        turno = NULL,
+        agendada_at = NULL,
+        tecnico_id = NULL
+      WHERE o.codigo = $1
       RETURNING
         codigo,
         estado,
-        to_char(agendado_para,'YYYY-MM-DD') AS "agendadoPara",
+        agendado_para AS "agendadoPara",
         turno,
         agendada_at AS "agendadaAt",
-        tecnico_id  AS "tecnicoId"
-      `,
+        tecnico_id AS "tecnicoId"
+    `,
       [codigo],
     );
 
-    const orden = this.one(res);
-    const payload = { ok: true, orden };
-    this.logger.log(`[CANCELAR] ${codigo} -> ${JSON.stringify(payload)}`);
-    return payload;
+    if (!res?.length) throw new NotFoundException('Orden no encontrada');
+    return { ok: true, orden: [res, res.length] };
   }
 
-  /** Anular orden: estado=cancelada, guarda motivo/s, libera agenda y técnico */
-  async anularPorCodigo(codigo: string, dto: AnularParams) {
-    const { motivo, motivoCodigo } = dto;
-    if (!motivo || !motivo.trim()) {
-      throw new BadRequestException('motivo es obligatorio');
-    }
+  /**
+   * Anular por código: evita usar columna inexistente "motivo_cancelacion".
+   * Usa "estado = 'anulada'" y almacena el motivo en "motivo".
+   */
+  async anularPorCodigo(codigo: string, motivo?: string) {
+    if (!codigo) throw new BadRequestException('codigo requerido');
 
-    const res = await this.dataSource.query(
+    const textoMotivo =
+      typeof motivo === 'string' && motivo.trim().length >= 3
+        ? motivo.trim()
+        : 'Anulada';
+
+    const res = await this.ds.query(
       `
-      UPDATE ordenes
+      UPDATE ordenes o
       SET
-        estado              = 'cancelada',
-        motivo_cancelacion  = $2,
-        motivo_codigo       = $3,
-        cancelada_at        = now(),
-        -- liberar agenda
-        agendado_para       = NULL,
-        turno               = NULL,
-        agendada_at         = NULL,
-        -- liberar técnico
-        tecnico_id          = NULL
-      WHERE codigo = $1
+        estado = 'anulada',
+        motivo = $2
+      WHERE o.codigo = $1
       RETURNING
         codigo,
         estado,
-        motivo_cancelacion AS "motivo",
-        motivo_codigo      AS "motivoCodigo",
-        cancelada_at       AS "canceladaAt",
-        to_char(agendado_para,'YYYY-MM-DD') AS "agendadoPara",
-        turno,
-        agendada_at        AS "agendadaAt",
-        tecnico_id         AS "tecnicoId"
-      `,
-      [codigo, motivo.trim(), (motivoCodigo ?? null)],
+        motivo
+    `,
+      [codigo, textoMotivo],
     );
 
-    const orden = this.one(res);
-    const payload = { ok: true, orden };
-    this.logger.log(`[ANULAR] ${codigo} -> ${JSON.stringify(payload)}`);
-    return payload;
+    if (!res?.length) throw new NotFoundException('Orden no encontrada');
+    return { ok: true, orden: [res, res.length] };
   }
 }

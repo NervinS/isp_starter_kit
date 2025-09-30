@@ -1,44 +1,52 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-API="${API_BASE:-http://127.0.0.1:3000}"
-TEC_ID="${TEC_ID:-a5fa2f0d-4911-4f05-bbfa-ad3e9f38c4ec}"
+API_V1="http://localhost:3000/v1"
+TECNICO_ID=1
+ALM_TEC='beb7a8f6-28a2-4ad2-b121-5619580ba82d'   # ajusta si tu técnico 1 tiene otro almacén
+MATERIAL_ID=1
 
-echo "Esperando health 200 en $API/v1/health ..."
-until [ "$(curl -s -o /dev/null -w '%{http_code}' "$API/v1/health")" = "200" ]; do sleep 1; done
-echo "OK health"
+export PGPASSWORD="$(docker compose exec -T db printenv POSTGRES_PASSWORD)"
+PSQL='psql -h 127.0.0.1 -p 5433 -U ispuser -d ispdb -v ON_ERROR_STOP=1 -t -A'
 
-OID="MAN-TEST-$(date +%Y%m%d%H%M%S)"
-echo "Creando agenda (no garantiza existencia de la orden física, solo agenda)..."
-curl -s -X POST "$API/v1/agenda/ordenes/$OID/asignar" \
-  -H "Authorization: Bearer dummy" -H "Content-Type: application/json" \
-  -d "{\"tecnicoId\":\"$TEC_ID\",\"fecha\":\"$(date -I)\",\"turno\":\"am\"}" >/dev/null || true
+echo "== Smoke 0: estructura base =="
+$PSQL -c "SELECT 'kardex_cols_ok'
+           WHERE EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='kardex' AND column_name IN ('almacen_id','etiqueta','delta') GROUP BY 1 HAVING count(*)=3);"
+$PSQL -c "SELECT 'kardex_rule_ok' FROM pg_rules WHERE schemaname='public' AND tablename='kardex' AND rulename='kardex_insert' LIMIT 1;"
+$PSQL -c "SELECT 'trigger_ok' FROM pg_trigger
+           WHERE tgrelid='public.movimientos'::regclass AND tgname='trg_movs_sync_stock' AND NOT tgisinternal;"
 
-echo
-echo "=== BYPASS ON (esperado 404 si la orden REAL no existe) ==="
-docker compose stop api >/dev/null
-docker compose run --rm -e SMOKE_BYPASS_TECH_GUARD=1 api true >/dev/null
-docker compose up -d api >/dev/null
-until [ "$(curl -s -o /dev/null -w '%{http_code}' "$API/v1/health")" = "200" ]; do sleep 1; done
+echo "== Smoke 1: iniciar/cerrar orden =="
+NUEVO="MAN-$(date -u +%y%m%d%H%M%S)"
+curl -s -X POST "$API_V1/tecnicos/$TECNICO_ID/ordenes/codigo/$NUEVO/iniciar" \
+  -H 'Content-Type: application/json' -d '{}' | jq -r '._idempotent' | xargs -I{} echo "iniciar_idem={}"
+curl -s -X POST "$API_V1/tecnicos/$TECNICO_ID/ordenes/codigo/$NUEVO/cerrar" \
+  -H 'Content-Type: application/json' \
+  -d "$(jq -n --argjson mid $MATERIAL_ID '{ materiales:[{materialId:$mid, cantidad:1}] }')" \
+  | jq -r '"cerrar_estado="+.estado+" codigo="+.codigo'
 
-code_on=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$API/v1/tecnicos/$TEC_ID/ordenes/$OID/iniciar" -H "Authorization: Bearer dummy")
-echo "Resultado iniciar con BYPASS=1 -> HTTP $code_on"
+echo "== Smoke 2: saldo vs stock tras cierre =="
+Q="WITH s AS (SELECT SUM(delta) saldo FROM public.kardex WHERE almacen_id='${ALM_TEC}'::uuid AND material_id=${MATERIAL_ID})
+   SELECT s.saldo||' '||its.stock FROM s JOIN public.inventario_tecnico_stock its ON its.tecnico_id=${TECNICO_ID} AND its.material_id=${MATERIAL_ID};"
+read SALDO STOCK <<< $($PSQL -c "$Q")
+echo "saldo=$SALDO stock=$STOCK"
+[[ "$SALDO" = "$STOCK" ]] && echo "saldo==stock ✅" || (echo "saldo!=stock ❌"; exit 1)
 
-echo
-echo "=== BYPASS OFF (esperado 403 por guard de JWT) ==="
-docker compose stop api >/dev/null
-docker compose run --rm -e SMOKE_BYPASS_TECH_GUARD=0 api true >/dev/null
-docker compose up -d api >/dev/null
-until [ "$(curl -s -o /dev/null -w '%{http_code}' "$API/v1/health")" = "200" ]; do sleep 1; done
+echo "== Smoke 3: movimiento API (idempotente) y trigger =="
+IDEMP=$(date -u +%s%N)
+BEF=$SALDO
+curl -s -X POST "$API_V1/inventario/movimientos" -H 'Content-Type: application/json' \
+  -d "$(jq -n --arg idk "$IDEMP" --arg alm "$ALM_TEC" \
+        --argjson mid $MATERIAL_ID \
+        '{ idempotencyKey:$idk, tipo:"egreso", almacenOrigenId:$alm, materialId:$mid, cantidad:1, motivo:"smoke"}')" \
+  | jq -r '.id' | xargs -I{} echo "mov_id={}"
 
-code_off=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$API/v1/tecnicos/$TEC_ID/ordenes/$OID/iniciar" -H "Authorization: Bearer dummy")
-echo "Resultado iniciar con BYPASS=0 -> HTTP $code_off"
+read SALDO2 STOCK2 <<< $($PSQL -c "$Q")
+echo "post-mov saldo=$SALDO2 stock=$STOCK2"
+[[ $((BEF-1)) -eq "$SALDO2" && "$SALDO2" = "$STOCK2" ]] && echo "trigger/stock ✅" || (echo "trigger/stock ❌"; exit 1)
 
-echo
-if [[ "$code_on" == "404" && "$code_off" == "403" ]]; then
-  echo "✅ Circulo cerrado: el bypass de JWT funciona (403→404). Para 200, hay que generar la orden real en la DB/flujo."
-  exit 0
-else
-  echo "❌ Algo no cuadra. Revisa logs de 'api' y que el hotfix se aplicó al arranque."
-  exit 1
-fi
+echo "== Smoke 4: índices en movimientos =="
+$PSQL -c "SELECT 'ix_dest_ok' FROM pg_indexes WHERE schemaname='public' AND tablename='movimientos' AND indexname='ix_movs_dest_mat_created';"
+$PSQL -c "SELECT 'ix_orig_ok' FROM pg_indexes WHERE schemaname='public' AND tablename='movimientos' AND indexname='ix_movs_orig_mat_created';"
+
+echo "✅ TODOS LOS SMOKES OK"

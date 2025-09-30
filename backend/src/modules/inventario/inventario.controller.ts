@@ -1,93 +1,120 @@
 // src/modules/inventario/inventario.controller.ts
-import { Controller, Get, Post, Param, Body, Query, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+} from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { InventarioService } from './inventario.service';
+import {
+  IsInt,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+  ValidateIf,
+} from 'class-validator';
+import { Transform } from 'class-transformer';
 
-// DTOs existentes (técnicos)
-import { DescontarStockDto } from './dto/descontar-stock.dto';
-import { AgregarStockDto } from './dto/agregar-stock.dto';
-import { AjusteStockDto } from './dto/ajuste-stock.dto';
+function normalizeMaterialId(v: unknown): string {
+  // Acepta number o string; siempre retorna string sin espacios
+  if (typeof v === 'number') return String(v);
+  if (typeof v === 'string') return v.trim();
+  throw new Error('materialId inválido');
+}
 
-// ✅ DTO corporativo con class-validator
-import { MovimientoDto } from './dto/movimiento.dto';
+class MovimientoTecnicoDto {
+  @Transform(({ value }) => normalizeMaterialId(value))
+  @IsString()
+  @IsNotEmpty()
+  materialId!: string;
 
-@Controller('inventario') // recuerda: en runtime será /v1/inventario/... por el globalPrefix
+  @Transform(({ value }) => (typeof value === 'string' ? Number(value) : value))
+  @IsNumber()
+  @Min(1)
+  cantidad!: number;
+
+  @ValidateIf((o) => o?.nota !== undefined)
+  @IsString()
+  @IsOptional()
+  nota?: string;
+}
+
+@ApiTags('Inventario')
+@Controller('/v1/inventario')
 export class InventarioController {
-  constructor(private readonly svc: InventarioService) {}
+  constructor(private readonly inv: InventarioService) {}
 
-  // ==========================
-  //   RUTAS EXISTENTES (Técnico)
-  // ==========================
-
-  @Get('tecnicos/:tecnicoId/stock')
-  async listarStockTecnico(@Param('tecnicoId') tecnicoId: string) {
-    return this.svc.listarStockDeTecnico(tecnicoId);
+  // Stock por técnico
+  @Get('/tecnicos/:tecnicoId/stock')
+  async stockTecnico(@Param('tecnicoId') tecnicoId: string) {
+    return this.inv.getStockTecnico(tecnicoId);
   }
 
-  @Post('tecnicos/:tecnicoId/descontar')
-  async descontarStockTecnico(
-    @Param('tecnicoId') tecnicoId: string,
-    @Body() dto: DescontarStockDto,
-  ) {
-    const { materialId, cantidad } = dto;
-    return this.svc.descontarStock(tecnicoId, Number(materialId), Number(cantidad));
-  }
-
-  // (Opcionales expuestos)
-  @Post('tecnicos/:tecnicoId/agregar')
+  // Agregar stock a un técnico
+  @Post('/tecnicos/:tecnicoId/agregar')
   async agregarStockTecnico(
     @Param('tecnicoId') tecnicoId: string,
-    @Body() dto: AgregarStockDto,
+    @Body() dto: MovimientoTecnicoDto,
   ) {
-    const { materialId, cantidad } = dto;
-    await this.svc.agregarStock(tecnicoId, Number(materialId), Number(cantidad));
-    return { ok: true };
+    return this.inv.crearMovimiento({
+      tipo: 'ingreso',
+      tecnicoId,
+      materialId: dto.materialId,
+      cantidad: dto.cantidad,
+      nota: dto.nota,
+    });
   }
 
-  @Post('tecnicos/:tecnicoId/ajustar')
+  // Descontar stock a un técnico
+  @Post('/tecnicos/:tecnicoId/descontar')
+  async descontarStockTecnico(
+    @Param('tecnicoId') tecnicoId: string,
+    @Body() dto: MovimientoTecnicoDto,
+  ) {
+    return this.inv.crearMovimiento({
+      tipo: 'egreso',
+      tecnicoId,
+      materialId: dto.materialId,
+      cantidad: dto.cantidad,
+      nota: dto.nota,
+    });
+  }
+
+  // Ajustar stock a un técnico (setear cantidad exacta)
+  @Post('/tecnicos/:tecnicoId/ajustar')
   async ajustarStockTecnico(
     @Param('tecnicoId') tecnicoId: string,
-    @Body() dto: AjusteStockDto,
+    @Body() dto: MovimientoTecnicoDto,
   ) {
-    const { materialId, cantidad } = dto;
-    await this.svc.ajustarStock(tecnicoId, Number(materialId), Number(cantidad));
-    return { ok: true };
+    return this.inv.crearMovimiento({
+      tipo: 'ajuste',
+      tecnicoId,
+      materialId: dto.materialId,
+      cantidad: dto.cantidad,
+      nota: dto.nota,
+      modoAjuste: 'set',
+    });
   }
 
-  // ==========================
-  //   NUEVAS RUTAS CORPORATIVAS
-  // ==========================
-
-  /** Crear movimiento corporativo (ingreso/egreso/transferencia/ajuste). */
-  @Post('movimientos')
-  async crearMovimiento(@Body() dto: MovimientoDto, @Req() req: any) {
-    // Normaliza fallback: materialId(string) -> materialIdInt(number)
-    const materialIdInt =
-      dto.materialIdInt ?? (dto.materialId ? Number(dto.materialId) : undefined);
-
-    const dtoNorm = { ...dto, materialIdInt };
-    const userId = req?.user?.sub ?? undefined;
-
-    return this.svc.crearMovimiento(dtoNorm as any, userId);
+  // (Opcional) endpoints generales ya mapeados por tus logs:
+  @Get('/stock')
+  async stockGlobal() {
+    return this.inv.getStockGlobal();
   }
 
-  /** Stock corporativo (stock_almacen). */
-  @Get('stock')
-  async stockCorp(
-    @Query('scope') scope?: 'principal' | 'tecnico',
-    @Query('id') id?: string,
-  ) {
-    return this.svc.getStockCorporativo(scope, id);
+  @Get('/kardex')
+  async kardex() {
+    return this.inv.getKardex();
   }
 
-  /** Kardex corporativo (v_kardex). */
-  @Get('kardex')
-  async kardexCorp(
-    @Query('materialIdInt') materialIdInt: string,
-    @Query('almacenId') almacenId?: string,
-    @Query('desde') desde?: string,
-    @Query('hasta') hasta?: string,
-  ) {
-    const mid = Number(materialIdInt);
-    return this.svc.getKardex(mid, almacenId, desde, hasta);
+  // Crear movimiento genérico (por si lo usas en UI de almacenes)
+  @Post('/movimientos')
+  async crearMovimiento(@Body() body: any) {
+    return this.inv.crearMovimiento(body);
   }
 }
