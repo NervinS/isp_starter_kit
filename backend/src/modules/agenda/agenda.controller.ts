@@ -59,7 +59,7 @@ export class AgendaController {
     @Body() body: ReagendarOrdenDto,
   ) {
     const turno = ensureTurno(body.turno);
-    // ⚠️ Orden CORRECTO de args: ... fecha, turno, motivo, motivoCodigo
+    // Orden de args: fecha, turno, motivo, motivoCodigo
     return await this.agendaService.reagendarPorCodigo(
       codigo,
       body.fecha,
@@ -88,6 +88,7 @@ export class AgendaController {
   @ApiResponse({ status: 200 })
   @ApiBody({ type: AnularOrdenDto })
   async anular(@Param('codigo') codigo: string, @Body() body: AnularOrdenDto) {
+    // Importante: pasar el código (string) y el dto, no el dto como string
     return await this.agendaService.anularPorCodigo(codigo, body);
   }
 }
