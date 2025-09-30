@@ -3,6 +3,7 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  ConflictException,
 } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { MovimientoDto } from './dto/inventario.dto';
@@ -201,6 +202,20 @@ export class InventarioService {
       if (tipo === 'ingreso') {
         await this.upsertStockTecnico(tecnicoId, materialIdInt, cantidad);
       } else if (tipo === 'egreso') {
+        // Chequeo duro de saldo antes de descontar -> 409 si no alcanza
+        const cur = await this.ds.query(
+          `
+          SELECT cantidad::int AS cantidad
+          FROM inventario_tecnico_stock
+          WHERE tecnico_id = $1::int AND material_id = $2::int
+          LIMIT 1
+          `,
+          [tecnicoId, materialIdInt],
+        );
+        const actual = Number(cur?.[0]?.cantidad ?? 0);
+        if (actual < cantidad) {
+          throw new ConflictException('saldo insuficiente');
+        }
         await this.upsertStockTecnico(tecnicoId, materialIdInt, -cantidad);
       } else {
         // ajuste (solo modo set por ahora)
