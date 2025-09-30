@@ -4,22 +4,26 @@ on:
   push:
   pull_request:
 
+# Ejecuta "run" por defecto dentro de backend/
+defaults:
+  run:
+    working-directory: backend
+
 jobs:
   test:
     runs-on: ubuntu-latest
 
     services:
       postgres:
-        image: postgres:15
+        image: postgres:14-alpine
         env:
           POSTGRES_USER: ispuser
           POSTGRES_PASSWORD: isppass
           POSTGRES_DB: ispdb
         ports:
           - "5432:5432"
-        # Espera a que la BD esté lista
         options: >-
-          --health-cmd="pg_isready -U ispuser -d ispdb"
+          --health-cmd="pg_isready -U ispuser -d ispdb -h 127.0.0.1"
           --health-interval=5s
           --health-timeout=5s
           --health-retries=20
@@ -32,46 +36,68 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
 
-      - name: Install deps
-        run: npm ci
+      - name: Install psql client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
 
       - name: Wait for Postgres
+        env:
+          PGPASSWORD: isppass
         run: |
           for i in {1..60}; do
             pg_isready -h 127.0.0.1 -U ispuser -d ispdb && break
             sleep 1
           done
+          psql -h 127.0.0.1 -U ispuser -d ispdb -c "SELECT version();"
 
-      # (Opcional) Semilla mínima por si tus tests esperan TEC-0006 y MAT-RJ45
-      # Si tus tests ya insertan/descubren datos, puedes comentar este paso.
+      # Aplica el bootstrap idempotente que crea/ajusta:
+      # - vista kardex, regla de inserción
+      # - función sync + trigger movimientos -> stock
+      # - UNIQUE limpio en orden_materiales
+      # - índices de movimientos
+      - name: Apply DB bootstrap (idempotent)
+        env:
+          PGPASSWORD: isppass
+        run: |
+          psql -h 127.0.0.1 -U ispuser -d ispdb -v ON_ERROR_STOP=1 -f script/bootstrap_db_v2.sql
+
+      # (Opcional) Semilla mínima si tus e2e la requieren;
+      # si no, puedes quitar este paso.
       - name: Seed minimal data (optional)
         env:
           PGPASSWORD: isppass
         run: |
           psql -h 127.0.0.1 -U ispuser -d ispdb -v ON_ERROR_STOP=1 <<'SQL'
-          -- Crea técnico y material si no existen
           DO $$
           BEGIN
             IF NOT EXISTS (SELECT 1 FROM tecnicos WHERE codigo='TEC-0006') THEN
               INSERT INTO tecnicos (codigo, nombre, activo) VALUES ('TEC-0006','Tecnico CI', true);
             END IF;
-
             IF NOT EXISTS (SELECT 1 FROM materiales WHERE codigo='MAT-RJ45') THEN
               INSERT INTO materiales (codigo, nombre, unidad, activo) VALUES ('MAT-RJ45','Conector RJ45','UND', true);
             END IF;
           END$$;
           SQL
 
+      - name: Install deps
+        run: npm ci
+
       - name: Build
         run: npm run build
+        env:
+          NODE_ENV: test
 
       - name: Run e2e
         env:
-          # Si tus pruebas leen estos envs, aquí puedes resolverlos;
-          # Si no los usan, puedes omitirlos.
+          NODE_ENV: test
+          DATABASE_URL: postgres://ispuser:isppass@127.0.0.1:5432/ispdb
           PGPASSWORD: isppass
         run: |
+          # Si tus tests pudieran leer estos IDs, los exponemos:
           TECID=$(psql -h 127.0.0.1 -U ispuser -d ispdb -X -A -t -q -c "SELECT id FROM tecnicos WHERE codigo='TEC-0006' LIMIT 1;")
           MATID=$(psql -h 127.0.0.1 -U ispuser -d ispdb -X -A -t -q -c "SELECT id FROM materiales WHERE codigo='MAT-RJ45' LIMIT 1;")
           export E2E_TEC_ID="$TECID"

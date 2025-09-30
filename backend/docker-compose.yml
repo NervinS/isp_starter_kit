@@ -1,21 +1,24 @@
 services:
   db:
-    image: postgres:14-alpine           # <- clúster existente era v14
+    image: postgres:14-alpine
     container_name: isp-db
     environment:
       POSTGRES_USER: ispuser
-      POSTGRES_PASSWORD: isppass        # <- NO cambia un clúster existente; sirve solo al primer init
+      POSTGRES_PASSWORD: isppass          # solo aplica al primer init del volumen
       POSTGRES_DB: ispdb
-      PGDATA: /var/lib/postgresql/data/pgdata   # <- tu volumen ya tiene subcarpeta pgdata
+      PGDATA: /var/lib/postgresql/data/pgdata
     ports:
-      - "5433:5432"                     # host 5433, contenedor 5432
+      - "5433:5432"                       # host 5433 -> container 5432
     volumes:
       - db_data:/var/lib/postgresql/data
+      # ⚠️ Opcional (solo para clúster NUEVO). Si lo habilitas, asegúrate de la ruta relativa.
+      # - ../db/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ispuser -d ispdb -h 127.0.0.1 || exit 1"]
       interval: 5s
       timeout: 5s
       retries: 10
+    restart: unless-stopped
 
   minio:
     image: minio/minio:latest
@@ -43,14 +46,14 @@ services:
         condition: service_started
     environment:
       NODE_ENV: production
-      # Conexión interna (entre contenedores):
+      # Conexión interna a Postgres (entre contenedores)
       DATABASE_URL: postgres://ispuser:isppass@db:5432/ispdb
       # MinIO
       MINIO_ENDPOINT: minio:9000
       MINIO_ACCESS_KEY: minioadmin
       MINIO_SECRET_KEY: minioadmin
       MINIO_USE_SSL: "false"
-      # Para smoke/local si lo necesitas:
+      # Tests / smokes locales
       SMOKE_BYPASS_TECH_GUARD: "1"
     ports:
       - "3000:3000"
