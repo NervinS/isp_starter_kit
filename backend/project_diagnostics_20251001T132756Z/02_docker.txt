@@ -1,0 +1,241 @@
+NAME        IMAGE                COMMAND                  SERVICE   CREATED        STATUS                  PORTS
+isp-api     backend-api          "/sbin/tini -- node …"   api       16 hours ago   Up 16 hours             0.0.0.0:3000->3000/tcp, [::]:3000->3000/tcp
+isp-db      postgres:14-alpine   "docker-entrypoint.s…"   db        20 hours ago   Up 20 hours (healthy)   0.0.0.0:5433->5432/tcp, [::]:5433->5432/tcp
+isp-minio   minio/minio:latest   "/usr/bin/docker-ent…"   minio     38 hours ago   Up 38 hours             0.0.0.0:9000-9001->9000-9001/tcp, [::]:9000-9001->9000-9001/tcp
+
+# imágenes
+isp-backend       dev                            0736d6dd115a   2 weeks ago     420MB
+postgres          14-alpine                      7cc16441e813   3 weeks ago     269MB
+postgres          15-alpine                      c4e9dc301143   3 weeks ago     271MB
+node              20                             40c86503aab2   3 weeks ago     1.1GB
+node              20-alpine                      dc51168f088b   3 weeks ago     134MB
+postgres          15                             2f8873c7b0e6   7 weeks ago     468MB
+minio/mc          latest                         bd7abf680a51   2 months ago    82.3MB
+minio/minio       latest                         b9292014cabd   2 months ago    167MB
+minio/minio       RELEASE.2024-09-09T16-59-28Z   c8a198010037   12 months ago   152MB
+
+# logs api (últ. 400 líneas)
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+isp-api  | [DB] URL: postgres://ispuser:***@db:5432/ispdb | SSL=off | pool.max=10
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[PDF] [39m[32m[init] bucket=evidencias endpoint=minio ssl=false publicBase=http://127.0.0.1:9000/evidencias/ upload=enabled[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +67ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPassportModule dependencies initialized[39m[38;5;3m +16ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHealthModule dependencies initialized[39m[38;5;3m +33ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigHostModule dependencies initialized[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPdfModule dependencies initialized[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmCoreModule dependencies initialized[39m[38;5;3m +66ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +2ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mJobsModule dependencies initialized[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAgendaModule dependencies initialized[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mInventarioModule dependencies initialized[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTecnicosModule dependencies initialized[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMaterialesModule dependencies initialized[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mOrdenesModule dependencies initialized[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mCatalogosModule dependencies initialized[39m[38;5;3m +1ms[39m
+isp-api  | [Swagger] Docs en http://127.0.0.1:3000/v1/docs
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mHealthController {/v1/health}:[39m[38;5;3m +87ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/health, GET} route[39m[38;5;3m +3ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mCatalogosController {/v1/catalogos}:[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/catalogos/municipios, GET} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/catalogos/vias, GET} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/catalogos/sectores, GET} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mMotivosReagendaPublicControllerKebab {/v1/catalogos}:[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/catalogos/motivos-reagenda, GET} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mMotivosReagendaPublicControllerUnderscore {/v1/catalogos/motivos_reagenda}:[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/catalogos/motivos_reagenda/items, GET} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mMotivosReagendaAdminController {/v1/admin/catalogos/motivos_reagenda/items}:[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/admin/catalogos/motivos_reagenda/items, GET} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/admin/catalogos/motivos_reagenda/items, POST} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/admin/catalogos/motivos_reagenda/items/:id, PATCH} route[39m[38;5;3m +2ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/admin/catalogos/motivos_reagenda/items/:id, DELETE} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAgendaController {/v1/agenda}:[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/agenda/ordenes/:codigo/asignar, POST} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/agenda/ordenes/:codigo/reagendar, POST} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/agenda/ordenes/:codigo/cancelar, POST} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/agenda/ordenes/:codigo/anular, POST} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mTecnicosController {/v1/tecnicos}:[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/tecnicos/:tecnicoId/ordenes/pendientes, GET} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/tecnicos/:tecnicoId/ordenes/:ordenId/iniciar, POST} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/tecnicos/:tecnicoId/ordenes/codigo/:codigo/iniciar, POST} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/tecnicos/:tecnicoId/ordenes/:ordenId/cerrar, POST} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/tecnicos/:tecnicoId/ordenes/codigo/:codigo/cerrar, POST} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mPdfController {/v1/pdf}:[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/pdf/probe, GET} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/pdf/probe-put, POST} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mInventarioController {/v1/inventario}:[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/inventario/tecnicos/:tecnicoId/stock, GET} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/inventario/tecnicos/:tecnicoId/agregar, POST} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/inventario/tecnicos/:tecnicoId/descontar, POST} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/inventario/tecnicos/:tecnicoId/ajustar, POST} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/inventario/stock, GET} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/inventario/kardex, GET} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/inventario/movimientos, POST} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mMaterialesController {/v1/materiales}:[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/materiales, GET} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mOrdenesController {/v1/ordenes}:[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes/:codigo/cerrar, PUT} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mJobsController {/v1/jobs}:[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/jobs/simular-cortes, POST} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/jobs/simular-reconexiones, POST} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m09/30/2025, 9:27:25 PM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +6ms[39m
+isp-api  | API running on http://0.0.0.0:3000/v1
+isp-api  | [REQ] POST /v1/inventario/movimientos rid=c6659c62-7e8c-4b4a-9e8d-f16d9a7a8d21
+isp-api  | [RES] POST /v1/inventario/movimientos -> 409 30.2ms rid=c6659c62-7e8c-4b4a-9e8d-f16d9a7a8d21
+isp-api  | [REQ] POST /v1/tecnicos/6/ordenes/codigo/ORD-DEMO-2001/iniciar rid=0369afc5-3fdd-4850-a751-7b5b0db76489
+isp-api  | [RES] POST /v1/tecnicos/6/ordenes/codigo/ORD-DEMO-2001/iniciar -> 404 17.7ms rid=0369afc5-3fdd-4850-a751-7b5b0db76489
+isp-api  | [REQ] POST /v1/tecnicos/6/ordenes/codigo/ORD-DEMO-2001/cerrar rid=ffb0d74a-0bf1-40ad-a1a7-5c7881b23293
+isp-api  | [RES] POST /v1/tecnicos/6/ordenes/codigo/ORD-DEMO-2001/cerrar -> 404 8.8ms rid=ffb0d74a-0bf1-40ad-a1a7-5c7881b23293
+isp-api  | [REQ] POST /v1/inventario/tecnicos/6/descontar rid=5efe1df2-8eb2-4f25-bece-d1b8bc8c2017
+isp-api  | [RES] POST /v1/inventario/tecnicos/6/descontar -> 409 9.8ms rid=5efe1df2-8eb2-4f25-bece-d1b8bc8c2017
+isp-api  | [REQ] POST /v1/inventario/movimientos rid=bc3f6a17-3e3b-4d9b-bea8-191a70495260
+isp-api  | [RES] POST /v1/inventario/movimientos -> 409 5.5ms rid=bc3f6a17-3e3b-4d9b-bea8-191a70495260
+isp-api  | [REQ] POST /v1/inventario/tecnicos/6/agregar rid=ccd52443-ebbb-4434-8422-dc9f2cbfafb5
+isp-api  | [RES] POST /v1/inventario/tecnicos/6/agregar -> 400 3.9ms rid=ccd52443-ebbb-4434-8422-dc9f2cbfafb5
+isp-api  | [REQ] POST /v1/inventario/movimientos rid=e5c332c4-51fd-4d25-b46a-391c09911297
+isp-api  | [RES] POST /v1/inventario/movimientos -> 409 20.3ms rid=e5c332c4-51fd-4d25-b46a-391c09911297
+isp-api  | [REQ] POST /v1/inventario/movimientos rid=66d80365-f063-4389-9ab7-24a16b3a95cc
+isp-api  | [RES] POST /v1/inventario/movimientos -> 409 4.6ms rid=66d80365-f063-4389-9ab7-24a16b3a95cc
+isp-api  | [REQ] POST /v1/inventario/movimientos rid=eebef077-4a40-4f65-8c7a-aca9c0c59449
+isp-api  | [RES] POST /v1/inventario/movimientos -> 409 4.6ms rid=eebef077-4a40-4f65-8c7a-aca9c0c59449
+isp-api  | [REQ] POST /v1/inventario/movimientos rid=817511ca-5aff-4598-8017-31073910519e
+isp-api  | [RES] POST /v1/inventario/movimientos -> 409 4.6ms rid=817511ca-5aff-4598-8017-31073910519e
+isp-api  | [REQ] POST /v1/inventario/tecnicos/6/agregar rid=a79ac348-a530-412d-8865-1f15483b9229
+isp-api  | [RES] POST /v1/inventario/tecnicos/6/agregar -> 400 3.4ms rid=a79ac348-a530-412d-8865-1f15483b9229
+isp-api  | [REQ] GET /v1/inventario/kardex rid=39a3fcd5-03ef-4af6-8336-c468a6c36f64
+isp-api  | [RES] GET /v1/inventario/kardex -> 200 20.0ms rid=39a3fcd5-03ef-4af6-8336-c468a6c36f64
+isp-api  | [REQ] POST /v1/inventario/tecnicos/6/agregar rid=ecbab54d-b142-4091-a52e-958b9a92f8ad
+isp-api  | [RES] POST /v1/inventario/tecnicos/6/agregar -> 400 3.4ms rid=ecbab54d-b142-4091-a52e-958b9a92f8ad
+isp-api  | [REQ] GET /v1/inventario/kardex rid=178e8cd1-0108-4b51-a9bc-4bad62e86749
+isp-api  | [RES] GET /v1/inventario/kardex -> 200 3.8ms rid=178e8cd1-0108-4b51-a9bc-4bad62e86749
+isp-api  | [REQ] GET /v1/inventario/kardex rid=601ef992-f926-4906-8982-68a644ac409e
+isp-api  | [RES] GET /v1/inventario/kardex -> 200 6.0ms rid=601ef992-f926-4906-8982-68a644ac409e
+isp-api  | [REQ] GET /v1/inventario/tecnicos/6/stock rid=1546e64c-ff10-4f44-a040-9e478bc6d0b5
+isp-api  | [RES] GET /v1/inventario/tecnicos/6/stock -> 200 17.9ms rid=1546e64c-ff10-4f44-a040-9e478bc6d0b5
+isp-api  | [REQ] POST /v1/inventario/tecnicos/6/agregar rid=4bd0a39a-6f36-4af4-8c0a-3482c1dd5992
+isp-api  | [RES] POST /v1/inventario/tecnicos/6/agregar -> 201 9.2ms rid=4bd0a39a-6f36-4af4-8c0a-3482c1dd5992
+isp-api  | [REQ] GET /v1/inventario/tecnicos/6/stock rid=784adc57-0753-4ffa-8ab9-06fb33aaeca2
+isp-api  | [RES] GET /v1/inventario/tecnicos/6/stock -> 200 2.6ms rid=784adc57-0753-4ffa-8ab9-06fb33aaeca2
+isp-api  | [REQ] POST /v1/inventario/tecnicos/6/descontar rid=91cd7caf-1dc4-4d8f-beab-e035d30a3115
+isp-api  | [RES] POST /v1/inventario/tecnicos/6/descontar -> 201 9.0ms rid=91cd7caf-1dc4-4d8f-beab-e035d30a3115
+isp-api  | [REQ] GET /v1/inventario/tecnicos/6/stock rid=ab630823-87b4-4c85-a2a3-5fe44d2370d1
+isp-api  | [RES] GET /v1/inventario/tecnicos/6/stock -> 200 2.9ms rid=ab630823-87b4-4c85-a2a3-5fe44d2370d1
+isp-api  | [REQ] GET /v1/inventario/kardex rid=fefd3bce-61ff-4db6-8d45-3c0ab58f9485
+isp-api  | [RES] GET /v1/inventario/kardex -> 200 4.7ms rid=fefd3bce-61ff-4db6-8d45-3c0ab58f9485
+isp-api  | [REQ] POST /v1/inventario/tecnicos/6/agregar rid=c1df3ec5-25c2-4f07-81b1-d51ef05f5dae
+isp-api  | [RES] POST /v1/inventario/tecnicos/6/agregar -> 201 7.9ms rid=c1df3ec5-25c2-4f07-81b1-d51ef05f5dae
+isp-api  | [REQ] POST /v1/inventario/movimientos rid=c09edc8c-4493-46d5-b8ad-98bf68210be6
+isp-api  | [RES] POST /v1/inventario/movimientos -> 201 8.6ms rid=c09edc8c-4493-46d5-b8ad-98bf68210be6
+isp-api  | [REQ] POST /v1/inventario/movimientos rid=42a72dd6-5035-4942-bb66-89f6d00baa00
+isp-api  | [RES] POST /v1/inventario/movimientos -> 409 2.9ms rid=42a72dd6-5035-4942-bb66-89f6d00baa00
+isp-api  | [REQ] POST /v1/inventario/movimientos rid=c1429dd3-3c8c-4725-af69-1daeba87a0af
+isp-api  | [RES] POST /v1/inventario/movimientos -> 409 3.2ms rid=c1429dd3-3c8c-4725-af69-1daeba87a0af
+isp-api  | [REQ] POST /v1/inventario/movimientos rid=6ab1506b-59fc-416c-ba3c-ed50ae498e80
+isp-api  | [RES] POST /v1/inventario/movimientos -> 409 3.4ms rid=6ab1506b-59fc-416c-ba3c-ed50ae498e80
+isp-api  | [REQ] POST /v1/tecnicos/1/ordenes/codigo/MAN-250930213743/iniciar rid=eebce3b0-758c-4be7-845e-dd246f1810e2
+isp-api  | [RES] POST /v1/tecnicos/1/ordenes/codigo/MAN-250930213743/iniciar -> 404 3.1ms rid=eebce3b0-758c-4be7-845e-dd246f1810e2
+isp-api  | [REQ] POST /v1/tecnicos/1/ordenes/codigo/MAN-250930213743/cerrar rid=4f8dfeb5-77a6-4d75-8679-61b1d936657a
+isp-api  | [RES] POST /v1/tecnicos/1/ordenes/codigo/MAN-250930213743/cerrar -> 404 5.3ms rid=4f8dfeb5-77a6-4d75-8679-61b1d936657a
+isp-api  | [REQ] POST /v1/inventario/movimientos rid=59c5b112-75dd-4c3a-ab1c-4a439204f548
+isp-api  | [RES] POST /v1/inventario/movimientos -> 400 1.7ms rid=59c5b112-75dd-4c3a-ab1c-4a439204f548
+isp-api  | [REQ] POST /v1/inventario/tecnicos/6/agregar rid=f5ebc382-8f2f-40ff-be01-68a8e9ce2447
+isp-api  | [RES] POST /v1/inventario/tecnicos/6/agregar -> 201 22.6ms rid=f5ebc382-8f2f-40ff-be01-68a8e9ce2447
+isp-api  | [REQ] POST /v1/inventario/movimientos rid=8adf77bc-1501-4277-8513-cb1e479785f3
+isp-api  | [RES] POST /v1/inventario/movimientos -> 201 7.9ms rid=8adf77bc-1501-4277-8513-cb1e479785f3
+isp-api  | [REQ] POST /v1/inventario/movimientos rid=b9b1764b-baf7-47bc-a7c0-eb67c8e640ca
+isp-api  | [RES] POST /v1/inventario/movimientos -> 409 3.0ms rid=b9b1764b-baf7-47bc-a7c0-eb67c8e640ca
+isp-api  | [REQ] POST /v1/inventario/tecnicos/6/agregar rid=3430f51e-6990-4b26-8a61-fa9133e7916a
+isp-api  | [RES] POST /v1/inventario/tecnicos/6/agregar -> 201 22.1ms rid=3430f51e-6990-4b26-8a61-fa9133e7916a
+isp-api  | [REQ] POST /v1/inventario/movimientos rid=fea92a5f-82da-400f-92b4-2992dc8cfd24
+isp-api  | [RES] POST /v1/inventario/movimientos -> 201 22.5ms rid=fea92a5f-82da-400f-92b4-2992dc8cfd24
+isp-api  | [REQ] POST /v1/inventario/movimientos rid=2abfab5c-c78b-49a2-823e-df2c3192a427
+isp-api  | [RES] POST /v1/inventario/movimientos -> 409 3.9ms rid=2abfab5c-c78b-49a2-823e-df2c3192a427
+isp-api  | [REQ] GET /v1/inventario/tecnicos/6/stock rid=546dfdc5-ff26-419c-ad1f-18187bf1710c
+isp-api  | [RES] GET /v1/inventario/tecnicos/6/stock -> 200 17.1ms rid=546dfdc5-ff26-419c-ad1f-18187bf1710c
+isp-api  | [REQ] POST /v1/inventario/tecnicos/6/agregar rid=70b9bfc0-bdb6-480f-8165-203e67c6b74e
+isp-api  | [RES] POST /v1/inventario/tecnicos/6/agregar -> 201 8.7ms rid=70b9bfc0-bdb6-480f-8165-203e67c6b74e
+isp-api  | [REQ] GET /v1/inventario/tecnicos/6/stock rid=b07ece34-dfb0-4548-8530-1628a6b8be2a
+isp-api  | [RES] GET /v1/inventario/tecnicos/6/stock -> 200 2.8ms rid=b07ece34-dfb0-4548-8530-1628a6b8be2a
+isp-api  | [REQ] POST /v1/inventario/tecnicos/6/descontar rid=bbca7b6d-7fb3-4d3f-a8ce-edf939bb4c8f
+isp-api  | [RES] POST /v1/inventario/tecnicos/6/descontar -> 201 9.3ms rid=bbca7b6d-7fb3-4d3f-a8ce-edf939bb4c8f
+isp-api  | [REQ] GET /v1/inventario/tecnicos/6/stock rid=582436fb-8ae0-4860-ae56-2a1c4e23416b
+isp-api  | [RES] GET /v1/inventario/tecnicos/6/stock -> 200 2.8ms rid=582436fb-8ae0-4860-ae56-2a1c4e23416b
+isp-api  | [REQ] GET /v1/inventario/kardex rid=a6e75c06-5c03-459b-8888-1594b719a318
+isp-api  | [RES] GET /v1/inventario/kardex -> 200 5.0ms rid=a6e75c06-5c03-459b-8888-1594b719a318
+isp-api  | [REQ] POST /v1/inventario/tecnicos/6/agregar rid=03e67930-43c1-4950-9fb1-eeea744c7dff
+isp-api  | [RES] POST /v1/inventario/tecnicos/6/agregar -> 201 9.0ms rid=03e67930-43c1-4950-9fb1-eeea744c7dff
+isp-api  | [REQ] POST /v1/inventario/movimientos rid=a8796a72-9ccb-4c62-844b-2a192712efc7
+isp-api  | [RES] POST /v1/inventario/movimientos -> 201 7.9ms rid=a8796a72-9ccb-4c62-844b-2a192712efc7
+isp-api  | [REQ] POST /v1/inventario/movimientos rid=26ee918b-bc66-45c6-a737-9f025ad0469f
+isp-api  | [RES] POST /v1/inventario/movimientos -> 409 3.4ms rid=26ee918b-bc66-45c6-a737-9f025ad0469f
+isp-api  | [REQ] POST /v1/tecnicos/1/ordenes/codigo/MAN-250930214831/iniciar rid=592a8233-a034-4fa3-850b-d3a7a3d03909
+isp-api  | [RES] POST /v1/tecnicos/1/ordenes/codigo/MAN-250930214831/iniciar -> 404 4.2ms rid=592a8233-a034-4fa3-850b-d3a7a3d03909
+isp-api  | [REQ] POST /v1/tecnicos/1/ordenes/codigo/MAN-250930214831/cerrar rid=21e88871-836a-46d1-973f-f43531f8ccef
+isp-api  | [RES] POST /v1/tecnicos/1/ordenes/codigo/MAN-250930214831/cerrar -> 404 3.3ms rid=21e88871-836a-46d1-973f-f43531f8ccef
+isp-api  | [REQ] POST /v1/inventario/movimientos rid=2f5bd98d-58fc-4833-8f33-d463c55d8432
+isp-api  | [RES] POST /v1/inventario/movimientos -> 400 1.1ms rid=2f5bd98d-58fc-4833-8f33-d463c55d8432
+isp-api  | [REQ] POST /v1/inventario/movimientos rid=a08d6932-ac37-4d26-88b0-e870972c8d73
+isp-api  | [RES] POST /v1/inventario/movimientos -> 409 18.4ms rid=a08d6932-ac37-4d26-88b0-e870972c8d73
+isp-api  | [REQ] POST /v1/inventario/movimientos rid=4ed13efb-9537-4c7d-b2a3-ea621303ab71
+isp-api  | [RES] POST /v1/inventario/movimientos -> 409 18.7ms rid=4ed13efb-9537-4c7d-b2a3-ea621303ab71
+isp-api  | [REQ] POST /v1/inventario/tecnicos/6/agregar rid=3774e0e9-ff60-4478-a6a0-3c494129bd42
+isp-api  | [RES] POST /v1/inventario/tecnicos/6/agregar -> 201 20.9ms rid=3774e0e9-ff60-4478-a6a0-3c494129bd42
+isp-api  | [REQ] GET /v1/inventario/tecnicos/6/stock rid=f88c8328-491f-437d-885d-8c68ab6dae1c
+isp-api  | [RES] GET /v1/inventario/tecnicos/6/stock -> 200 4.3ms rid=f88c8328-491f-437d-885d-8c68ab6dae1c
+isp-api  | [REQ] POST /v1/inventario/movimientos rid=2697fd73-7469-4a4d-a1d1-604d74a936e3
+isp-api  | [RES] POST /v1/inventario/movimientos -> 201 7.5ms rid=2697fd73-7469-4a4d-a1d1-604d74a936e3
+isp-api  | [REQ] POST /v1/inventario/movimientos rid=f84d52e7-8e7e-421a-b8c7-38c57b8c16c0
+isp-api  | [RES] POST /v1/inventario/movimientos -> 409 3.0ms rid=f84d52e7-8e7e-421a-b8c7-38c57b8c16c0
+
+# logs db (últ. 200 líneas)
+isp-db  | 
+isp-db  | PostgreSQL Database directory appears to contain a database; Skipping initialization
+isp-db  | 
+isp-db  | 2025-09-30 17:07:29.011 UTC [1] LOG:  starting PostgreSQL 14.19 on aarch64-unknown-linux-musl, compiled by gcc (Alpine 14.2.0) 14.2.0, 64-bit
+isp-db  | 2025-09-30 17:07:29.011 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+isp-db  | 2025-09-30 17:07:29.011 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+isp-db  | 2025-09-30 17:07:29.014 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+isp-db  | 2025-09-30 17:07:29.018 UTC [27] LOG:  database system was shut down at 2025-09-30 17:07:28 UTC
+isp-db  | 2025-09-30 17:07:29.024 UTC [1] LOG:  database system is ready to accept connections
+isp-db  | 2025-09-30 17:07:34.525 UTC [42] FATAL:  database "ispuser" does not exist
+isp-db  | 2025-09-30 17:07:36.674 UTC [83] FATAL:  database "ispuser" does not exist
+isp-db  | 2025-09-30 19:59:23.968 UTC [16888] FATAL:  database "ispuser" does not exist
+isp-db  | 2025-09-30 20:01:30.073 UTC [17099] FATAL:  database "ispuser" does not exist
+isp-db  | 2025-09-30 20:01:43.042 UTC [17127] FATAL:  database "ispuser" does not exist
+isp-db  | 2025-09-30 20:05:52.509 UTC [17555] FATAL:  database "ispuser" does not exist
+isp-db  | 2025-09-30 20:05:54.365 UTC [17597] FATAL:  database "ispuser" does not exist
+isp-db  | 2025-09-30 20:21:21.467 UTC [19110] FATAL:  database "ispuser" does not exist
+isp-db  | 2025-09-30 20:21:23.289 UTC [19152] FATAL:  database "ispuser" does not exist
+isp-db  | 2025-09-30 20:48:12.634 UTC [21787] FATAL:  database "ispuser" does not exist
+isp-db  | 2025-09-30 20:48:13.936 UTC [21814] FATAL:  database "ispuser" does not exist
+isp-db  | 2025-09-30 20:51:16.530 UTC [22153] FATAL:  database "ispuser" does not exist
+isp-db  | 2025-09-30 21:22:14.671 UTC [25227] FATAL:  database "ispuser" does not exist
+isp-db  | 2025-09-30 21:37:40.559 UTC [26805] FATAL:  database "ispuser" does not exist
+isp-db  | 2025-09-30 21:37:43.079 UTC [26841] FATAL:  database "ispuser" does not exist
+isp-db  | 2025-09-30 21:48:27.724 UTC [27934] FATAL:  database "ispuser" does not exist
+isp-db  | 2025-09-30 21:48:30.380 UTC [27968] FATAL:  database "ispuser" does not exist
+
+# logs minio (últ. 200 líneas)
+isp-minio  | INFO: Formatting 1st pool, 1 set(s), 1 drives per set.
+isp-minio  | INFO: WARNING: Host local has more than 0 drives of set. A host failure will result in data becoming unavailable.
+isp-minio  | MinIO Object Storage Server
+isp-minio  | Copyright: 2015-2025 MinIO, Inc.
+isp-minio  | License: GNU AGPLv3 - https://www.gnu.org/licenses/agpl-3.0.html
+isp-minio  | Version: RELEASE.2025-07-23T15-54-02Z (go1.24.5 linux/arm64)
+isp-minio  | 
+isp-minio  | API: http://172.19.0.3:9000  http://127.0.0.1:9000 
+isp-minio  | WebUI: http://172.19.0.3:9001 http://127.0.0.1:9001  
+isp-minio  | 
+isp-minio  | Docs: https://docs.min.io
+isp-minio  | WARN: Detected default credentials 'minioadmin:minioadmin', we recommend that you change these values with 'MINIO_ROOT_USER' and 'MINIO_ROOT_PASSWORD' environment variables
+isp-minio  | INFO: 
+isp-minio  |  You are running an older version of MinIO released 1 month before the latest release 
+isp-minio  |  Update: Run `mc admin update ALIAS` 
+isp-minio  | 
+isp-minio  | 

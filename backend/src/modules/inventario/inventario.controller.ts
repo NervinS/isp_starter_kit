@@ -4,13 +4,11 @@ import {
   Controller,
   Get,
   Param,
-  ParseIntPipe,
   Post,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { InventarioService } from './inventario.service';
 import {
-  IsInt,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -21,7 +19,6 @@ import {
 import { Transform } from 'class-transformer';
 
 function normalizeMaterialId(v: unknown): string {
-  // Acepta number o string; siempre retorna string sin espacios
   if (typeof v === 'number') return String(v);
   if (typeof v === 'string') return v.trim();
   throw new Error('materialId inválido');
@@ -45,7 +42,9 @@ class MovimientoTecnicoDto {
 }
 
 @ApiTags('Inventario')
-@Controller('/v1/inventario')
+// ⚠️ Importante: SIN /v1 aquí. El globalPrefix('v1') ya lo agrega.
+// Resultado final de las rutas: /v1/inventario/...
+@Controller('inventario')
 export class InventarioController {
   constructor(private readonly inv: InventarioService) {}
 
@@ -101,7 +100,7 @@ export class InventarioController {
     });
   }
 
-  // (Opcional) endpoints generales ya mapeados por tus logs:
+  // Endpoints generales
   @Get('/stock')
   async stockGlobal() {
     return this.inv.getStockGlobal();
@@ -112,7 +111,7 @@ export class InventarioController {
     return this.inv.getKardex();
   }
 
-  // Crear movimiento genérico (por si lo usas en UI de almacenes)
+  // Crear movimiento genérico
   @Post('/movimientos')
   async crearMovimiento(@Body() body: any) {
     return this.inv.crearMovimiento(body);

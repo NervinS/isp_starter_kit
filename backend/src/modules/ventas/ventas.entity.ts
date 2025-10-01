@@ -1,3 +1,4 @@
+// src/modules/ventas/ventas.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity({ name: 'ventas' })
@@ -11,30 +12,16 @@ export class Venta {
   @Column({ length: 30 })  documento: string;
   @Column({ type: 'uuid' }) usuario_id: string;
 
-  // estado: creada | pagada | ...
+  // estado: creada | pagada | anulada
   @Column({ length: 20, default: 'creada' }) estado: string;
 
-  // snapshot del plan en el momento de la venta
-  @Column({ length: 20 })   plan_codigo: string;
-  @Column({ length: 120 })  plan_nombre: string;
-  @Column({ type: 'int', nullable: true }) plan_vel_mbps: number | null;
+  // Plan textual por ahora (puedes normalizar a planes.plan_codigo)
+  @Column({ length: 120 }) plan: string;
 
-  // precios (numeric en PG -> string en TypeORM)
-  @Column({ type: 'numeric', precision: 12, scale: 2, default: 0 })
-  alta_costo: string;
-
-  @Column({ type: 'numeric', precision: 12, scale: 2, default: 0 })
-  mensual_internet: string;
-
-  @Column({ type: 'numeric', precision: 12, scale: 2, default: 0 })
-  mensual_tv: string;
-
+  // totales
   @Column({ type: 'numeric', precision: 12, scale: 2, default: 0 })
   mensual_total: string;
 
-  @Column({ default: false }) incluye_tv: boolean;
-
-  // total cobrado hoy (instalación)
   @Column({ type: 'numeric', precision: 12, scale: 2, default: 0 })
   total: string;
 

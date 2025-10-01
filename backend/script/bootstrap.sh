@@ -9,11 +9,16 @@ DB_PASS="${DB_PASS:-isppass}"
 DB_NAME="${DB_NAME:-ispdb}"
 
 SQL_FILE="${SQL_FILE:-script/bootstrap_db_v2.sql}"
+# Migraciones específicas (puedes sobreescribirlas por env si quieres)
+MIGRATION_FILE_ORDENES="${MIGRATION_FILE_ORDENES:-script/migration_20251001_ventas_ordenes.sql}"
+MIGRATION_FILE_EVIDENCIAS="${MIGRATION_FILE_EVIDENCIAS:-script/migration_20251001_ventas_evidencias.sql}"
+
 SEED_MIN="${SEED_MIN:-0}"         # 1 para sembrar técnico/material mínimos
 
 # -------- Helpers ----------
-msg() { printf "\033[1;36m%s\033[0m\n" "$*"; }
-err() { printf "\033[1;31m%s\033[0m\n" "$*" >&2; }
+msg()  { printf "\033[1;36m%s\033[0m\n" "$*"; }
+warn() { printf "\033[1;33m%s\033[0m\n" "$*"; }
+err()  { printf "\033[1;31m%s\033[0m\n" "$*" >&2; }
 
 need() {
   command -v "$1" >/dev/null 2>&1 || {
@@ -35,6 +40,16 @@ wait_pg() {
 
 psql_run() {
   PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -v ON_ERROR_STOP=1 "$@"
+}
+
+apply_sql_file() {
+  local file="$1"
+  if [ -f "$file" ]; then
+    msg "📜 Aplicando ${file} (idempotente)…"
+    psql_run -f "$file"
+  else
+    warn "⚠️  No se encontró ${file} — se omite."
+  fi
 }
 
 seed_minimal() {
@@ -63,6 +78,8 @@ echo "  DB_PORT=${DB_PORT}"
 echo "  DB_USER=${DB_USER}"
 echo "  DB_NAME=${DB_NAME}"
 echo "  SQL_FILE=${SQL_FILE}"
+echo "  MIGRATION_FILE_ORDENES=${MIGRATION_FILE_ORDENES}"
+echo "  MIGRATION_FILE_EVIDENCIAS=${MIGRATION_FILE_EVIDENCIAS}"
 echo "  SEED_MIN=${SEED_MIN}"
 
 wait_pg
@@ -70,9 +87,18 @@ wait_pg
 msg "🗃️  Versión de Postgres:"
 psql_run -c "SELECT version();"
 
-msg "📜 Aplicando ${SQL_FILE} (idempotente)…"
-psql_run -f "$SQL_FILE"
+# 1) Bootstrap base
+apply_sql_file "$SQL_FILE"
 
+# 2) Migraciones (idempotentes) en orden lógico
+apply_sql_file "$MIGRATION_FILE_ORDENES"
+apply_sql_file "$MIGRATION_FILE_EVIDENCIAS"
+apply_sql_file "script/migration_20251001_ventas_pagos_idem.sql"
+apply_sql_file "script/migration_20251001_ordenes_ins_unica_activa.sql"
+apply_sql_file "script/migration_20251001_catalogo_motivos_anulacion.sql"
+apply_sql_file "script/migration_20251001_ordenes_motivo_anulacion.sql"
+
+# 3) Seed opcional
 if [ "$SEED_MIN" = "1" ]; then
   seed_minimal
 fi
