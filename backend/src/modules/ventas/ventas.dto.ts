@@ -1,3 +1,4 @@
+// src/modules/ventas/ventas.dto.ts
 export class CrearVentaDto {
   cliente_nombre!: string;
   cliente_apellido!: string;

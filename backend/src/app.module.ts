@@ -3,6 +3,7 @@ import { Module, NestModule, MiddlewareConsumer, RequestMethod } from '@nestjs/c
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { VentasModule } from './modules/ventas/ventas.module';
 import { HealthModule } from './modules/health/health.module';
 import { CatalogosModule } from './modules/catalogos/catalogos.module';
 import { AgendaModule } from './modules/agenda/agenda.module';
@@ -57,6 +58,7 @@ function maskDbUrl(url?: string) {
       },
     }),
     // Módulos de dominio
+    VentasModule,
     HealthModule,
     CatalogosModule,
     AgendaModule,
