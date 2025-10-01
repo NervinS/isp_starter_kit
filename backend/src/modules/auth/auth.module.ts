@@ -9,7 +9,7 @@ import { AuthController } from './auth.controller';
   imports: [
     TypeOrmModule.forFeature([AppUser]),
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'devsecretchangeme', // cambia en prod
+      secret: process.env.JWT_SECRET || 'devsecretchangeme_local', // cambia en prod
       signOptions: { expiresIn: '8h' },
     }),
   ],
