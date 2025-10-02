@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-API="http://127.0.0.1:3000/v1"
+API="${API:-http://127.0.0.1:3000/v1}"
 
 say() { echo -e "$@"; }
 
@@ -13,25 +13,27 @@ psqlc() {
 
 fallback_sql_delta() {
   local tecnico_id="$1"; local material_id="$2"; local delta="$3"
-  # delta puede ser +N o -N. Ajusta stock_almacen (uuid) e inv_tecnico (int)
+  # Ajusta tanto stock_almacen (si existe) como inventario_tecnico_stock (legacy)
   psqlc "
-    WITH a AS (
-      SELECT id AS almacen_id FROM almacenes
-      WHERE tipo='tecnico' AND tecnico_id=${tecnico_id}
-      LIMIT 1
-    ),
-    upsert_stock AS (
-      INSERT INTO stock_almacen (almacen_id, material_id, cantidad)
-      SELECT a.almacen_id, ${material_id}, GREATEST(0, ${delta})
-      FROM a
-      ON CONFLICT (almacen_id, material_id)
-      DO UPDATE SET cantidad = GREATEST(0, stock_almacen.cantidad + ${delta})
-      RETURNING 1
-    )
-    INSERT INTO inv_tecnico (tecnico_id, material_id, cantidad)
-    VALUES (${tecnico_id}, ${material_id}, GREATEST(0, ${delta}))
-    ON CONFLICT (tecnico_id, material_id)
-    DO UPDATE SET cantidad = GREATEST(0, inv_tecnico.cantidad + ${delta});
+    DO \$\$
+    DECLARE alm_id uuid;
+    BEGIN
+      -- si existe almacén del técnico, ajusta stock_almacen
+      SELECT id INTO alm_id FROM almacenes
+       WHERE tipo='tecnico' AND tecnico_id=${tecnico_id} LIMIT 1;
+      IF alm_id IS NOT NULL THEN
+        INSERT INTO stock_almacen (almacen_id, material_id, cantidad)
+        VALUES (alm_id, ${material_id}, GREATEST(0, ${delta}))
+        ON CONFLICT (almacen_id, material_id)
+        DO UPDATE SET cantidad = GREATEST(0, stock_almacen.cantidad + ${delta});
+      END IF;
+
+      -- legacy
+      INSERT INTO inventario_tecnico_stock (tecnico_id, material_id, cantidad)
+      VALUES (${tecnico_id}, ${material_id}, GREATEST(0, ${delta}))
+      ON CONFLICT (tecnico_id, material_id)
+      DO UPDATE SET cantidad = GREATEST(0, inventario_tecnico_stock.cantidad + ${delta});
+    END\$\$;
   " >/dev/null
 }
 
@@ -40,7 +42,7 @@ get_stock_mat3() {
     | jq '.[] | select(.materialId==3) | .cantidad // 0'
 }
 
-say "=== 🧪 Smoke Inventario (mínimo con fallback) ==="
+say "=== 🧪 Smoke Inventario (mínimo) ==="
 
 # Esperar API
 say "⏳ Esperando API..."
@@ -50,15 +52,11 @@ for i in {1..60}; do
 done
 curl -s "$API/health" | jq -r '.status?' || true
 
-# Bootstrap BD idempotente
-say "🔧 Bootstrap BD (idempotente)..."
-docker compose exec -T db psql -U ispuser -d ispdb -v ON_ERROR_STOP=1 < script/bootstrap_db_v2.sql
-
 # Pre
 say "🔎 Stock técnico 6 (antes)"
 BEFORE="$(get_stock_mat3)"; say "  materialId=3 => ${BEFORE}"
 
-# ➕ Intentar API agregar
+# ➕ Agregar
 say "➕ Agregar 1 unidad (material 3) vía API"
 ADD_RES="$(curl -s -w '\n%{http_code}' -X POST "$API/inventario/tecnicos/6/agregar" \
   -H "content-type: application/json" \
@@ -73,11 +71,10 @@ else
   echo "$ADD_BODY" | jq . || true
 fi
 
-# Verificar después de agregar
 say "🔎 Stock técnico 6 (después de agregar)"
 AFTER_ADD="$(get_stock_mat3)"; say "  materialId=3 => ${AFTER_ADD}"
 
-# ➖ Intentar API descontar
+# ➖ Descontar
 say "➖ Descontar 1 unidad (material 3) vía API"
 DESC_RES="$(curl -s -w '\n%{http_code}' -X POST "$API/inventario/tecnicos/6/descontar" \
   -H "content-type: application/json" \
