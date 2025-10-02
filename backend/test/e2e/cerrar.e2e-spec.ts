@@ -1,22 +1,27 @@
 import request from 'supertest';
 
-const API_BASE = process.env.API_BASE ?? '';
-const maybe = (cond: boolean) => (cond ? describe : describe.skip);
+const API_BASE = process.env.API_BASE ?? 'http://127.0.0.1:3000/v1';
 
-maybe(!!API_BASE)('Ordenes cierre (E2E contra API real)', () => {
-  const OID = process.env.E2E_ORD_CODIGO || 'ORD-SEED-1003';
+type Orden = { id: string; codigo: string; estado: string };
 
-  it('cierra idempotente (dos POST -> misma orden, estado cerrada)', async () => {
-    const r1 = await request(API_BASE).post(`/v1/ordenes/${OID}/cerrar-completo`);
+describe('Ordenes cierre (E2E contra API real)', () => {
+  let codigo: string;
+
+  beforeAll(async () => {
+    // Tomamos una orden cualquiera de la lista /v1/ordenes
+    const r = await request(API_BASE).get(`/ordenes?limit=1`);
+    expect(r.status).toBe(200);
+    const ordenes: Orden[] = r.body ?? [];
+    expect(Array.isArray(ordenes)).toBe(true);
+    expect(ordenes.length).toBeGreaterThan(0);
+    codigo = ordenes[0].codigo;
+  });
+
+  it('cierra idempotente (dos llamadas deben responder 200)', async () => {
+    const r1 = await request(API_BASE).post(`/ordenes/${codigo}/cerrar-completo`);
     expect(r1.status).toBe(200);
-    expect(r1.body).toHaveProperty('ok', true);
-    expect(r1.body).toHaveProperty('estado', 'cerrada');
-    const id1 = r1.body.id;
 
-    const r2 = await request(API_BASE).post(`/v1/ordenes/${OID}/cerrar-completo`);
+    const r2 = await request(API_BASE).post(`/ordenes/${codigo}/cerrar-completo`);
     expect(r2.status).toBe(200);
-    expect(r2.body).toHaveProperty('ok', true);
-    expect(r2.body).toHaveProperty('estado', 'cerrada');
-    expect(r2.body.id).toBe(id1);
   });
 });

@@ -1,5 +1,6 @@
 // src/app.module.ts
 import { Module, NestModule, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
+import { MetricsModule } from './modules/metrics/metrics.module';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
@@ -66,6 +67,7 @@ function maskDbUrl(url?: string) {
     MaterialesModule,
     InventarioModule,
     OrdenesModule,
+    MetricsModule,
     JobsModule, // ⬅️ NUEVO
   ],
 })

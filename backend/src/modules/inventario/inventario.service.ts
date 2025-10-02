@@ -84,7 +84,6 @@ export class InventarioService {
   // ---------------------------------------------------------------------------
 
   async getStockTecnico(tecnicoId: string) {
-    // Ruta preferida: stock_almacen por almacén-técnico
     const haveStockAlm = await this.existsObject('stock_almacen', 'table');
     if (haveStockAlm) {
       const almId = await this.getAlmacenIdDeTecnico(tecnicoId);
@@ -99,8 +98,8 @@ export class InventarioService {
       );
     }
 
-    // Fallback legacy: inventario_tecnico_stock
-    const rows = await this.ds.query(
+    // Fallback legacy
+    return this.ds.query(
       `SELECT m.id::int AS "materialId",
               COALESCE(s.cantidad,0)::int AS cantidad
          FROM materiales m
@@ -109,7 +108,6 @@ export class InventarioService {
      ORDER BY m.id`,
       [tecnicoId],
     );
-    return rows;
   }
 
   async getStockGlobal() {
@@ -172,43 +170,40 @@ export class InventarioService {
   // Escrituras
   // ---------------------------------------------------------------------------
 
+  /**
+   * Siempre usa wrappers estables en BD:
+   *   - fn_mov_simple_std(tipo text, almacen_id uuid, material_id int, cantidad numeric, nota text)
+   *   - fn_mov_traslado_std(from uuid, to uuid, material_id int, cantidad numeric, nota text)
+   */
   private async movViaFunciones(
     tipo: 'ingreso' | 'egreso' | 'ajuste' | 'traslado',
     params: { almacenId?: string; fromId?: string; toId?: string; materialId: number; cantidad: number; nota?: string },
   ) {
-    const haveFnSimple = await this.existsObject('fn_mov_simple', 'function');
-    const haveFnTras   = await this.existsObject('fn_mov_traslado', 'function');
-    if (!haveFnSimple) return false;
+    const haveSimpleStd = await this.existsObject('fn_mov_simple_std', 'function');
+    const haveTrasStd   = await this.existsObject('fn_mov_traslado_std', 'function');
 
     if (tipo === 'traslado') {
-      if (!haveFnTras) return false;
+      if (!haveTrasStd) return false;
       if (!params.fromId || !params.toId) throw new BadRequestException('from/to requeridos');
-      await this.ds.$transaction
-        ? this.ds.$transaction(async () => {
-            await this.ds.query(
-              `SELECT fn_mov_traslado($1::uuid,$2::uuid,$3::int,$4::numeric,$5)`,
-              [params.fromId, params.toId, params.materialId, params.cantidad, params.nota ?? null],
-            );
-          })
-        : this.ds.query(
-            `SELECT fn_mov_traslado($1::uuid,$2::uuid,$3::int,$4::numeric,$5)`,
-            [params.fromId, params.toId, params.materialId, params.cantidad, params.nota ?? null],
-          );
+
+      await this.ds.transaction(async (manager) => {
+        await manager.query(
+          `SELECT public.fn_mov_traslado_std($1::uuid,$2::uuid,$3::int,$4::numeric,$5)`,
+          [params.fromId, params.toId, params.materialId, params.cantidad, params.nota ?? null],
+        );
+      });
       return true;
     }
 
+    if (!haveSimpleStd) return false;
     if (!params.almacenId) throw new BadRequestException('almacenId requerido');
-    await this.ds.$transaction
-      ? this.ds.$transaction(async () => {
-          await this.ds.query(
-            `SELECT fn_mov_simple($1::text,$2::uuid,$3::int,$4::numeric,$5)`,
-            [tipo, params.almacenId, params.materialId, params.cantidad, params.nota ?? null],
-          );
-        })
-      : this.ds.query(
-          `SELECT fn_mov_simple($1::text,$2::uuid,$3::int,$4::numeric,$5)`,
-          [tipo, params.almacenId, params.materialId, params.cantidad, params.nota ?? null],
-        );
+
+    await this.ds.transaction(async (manager) => {
+      await manager.query(
+        `SELECT public.fn_mov_simple_std($1::text,$2::uuid,$3::int,$4::numeric,$5)`,
+        [tipo, params.almacenId, params.materialId, params.cantidad, params.nota ?? null],
+      );
+    });
     return true;
   }
 
@@ -347,7 +342,7 @@ export class InventarioService {
           tipo === 'egreso' ? -cantidad : cantidad,
           tecnicoId,
           input?.nota ?? null,
-          input?.userId ?? null,
+          (input as any)?.userId ?? null,
           idem,
         ],
       );

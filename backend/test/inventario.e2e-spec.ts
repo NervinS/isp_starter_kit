@@ -1,26 +1,25 @@
 import request from 'supertest';
 
-const API_BASE = process.env.API_BASE ?? '';
-const maybe = (cond: boolean) => (cond ? describe : describe.skip);
+const API_BASE = process.env.API_BASE ?? 'http://127.0.0.1:3000/v1';
 
 type Tecnico = { id: string; codigo: string; nombre: string };
 type Material = { id: number; codigo: string; nombre: string };
 
-maybe(!!API_BASE)('Inventario E2E (contra API real)', () => {
+describe('Inventario E2E (API real)', () => {
   let TECID: string;
   let MATID: number;
 
   beforeAll(async () => {
-    // Resolver TEC-0001
-    const tec = await request(API_BASE).get('/v1/tecnicos');
+    // Tecnicos (tomamos el primero si no está TEC-0001)
+    const tec = await request(API_BASE).get('/tecnicos');
     expect(tec.status).toBe(200);
     const tecnicos: Tecnico[] = tec.body ?? [];
     const t = tecnicos.find((x) => x.codigo === 'TEC-0001') ?? tecnicos[0];
     expect(t).toBeTruthy();
     TECID = t.id;
 
-    // Resolver MAT-0001
-    const mat = await request(API_BASE).get('/v1/materiales');
+    // Materiales (tomamos el primero si no está MAT-0001)
+    const mat = await request(API_BASE).get('/materiales');
     expect(mat.status).toBe(200);
     const materiales: Material[] = mat.body ?? [];
     const m = materiales.find((x) => x.codigo === 'MAT-0001') ?? materiales[0];
@@ -28,28 +27,38 @@ maybe(!!API_BASE)('Inventario E2E (contra API real)', () => {
     MATID = m.id;
   });
 
-  it('GET /v1/inventario/tecnicos/:id/stock -> 200 y array', async () => {
-    const res = await request(API_BASE).get(`/v1/inventario/tecnicos/${TECID}/stock`);
+  it('GET stock técnico -> 200 y array', async () => {
+    const res = await request(API_BASE).get(`/inventario/tecnicos/${TECID}/stock`);
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
   });
 
-  it('POST /agregar-stock -> 2xx y ok:true', async () => {
-    const res = await request(API_BASE)
-      .post(`/v1/inventario/tecnicos/${TECID}/agregar-stock`)
-      .send({ materialId: MATID, cantidad: 1 });
-    expect([200, 201]).toContain(res.status);
-    expect(res.body).toHaveProperty('ok', true);
+  it('flujo feliz: ingreso 5 -> egreso 3 -> ajuste set=2 (todo ok:true)', async () => {
+    const r1 = await request(API_BASE)
+      .post(`/inventario/tecnicos/${TECID}/agregar`)
+      .send({ materialId: MATID, cantidad: 5, nota: 'e2e ingreso' });
+    expect([200, 201]).toContain(r1.status);
+    expect(r1.body).toHaveProperty('ok', true);
+
+    const r2 = await request(API_BASE)
+      .post(`/inventario/tecnicos/${TECID}/descontar`)
+      .send({ materialId: MATID, cantidad: 3, nota: 'e2e egreso' });
+    expect([200, 201]).toContain(r2.status);
+    expect(r2.body).toHaveProperty('ok', true);
+
+    const r3 = await request(API_BASE)
+      .post(`/inventario/tecnicos/${TECID}/ajustar`)
+      .send({ materialId: MATID, cantidad: 2, nota: 'e2e set=2' });
+    expect([200, 201]).toContain(r3.status);
+    expect(r3.body).toHaveProperty('ok', true);
   });
 
-  it('POST /descontar-stock exagerado -> 400', async () => {
+  it('negativo: egreso sin stock suficiente -> 409 saldo insuficiente', async () => {
     const res = await request(API_BASE)
-      .post(`/v1/inventario/tecnicos/${TECID}/descontar-stock`)
-      .send({ materialId: MATID, cantidad: 999999 });
-    expect(res.status).toBe(400);
-    // mensaje claro (si viene)
-    if (res.body?.message) {
-      expect(typeof res.body.message).toBe('string');
-    }
+      .post(`/inventario/tecnicos/${TECID}/descontar`)
+      .send({ materialId: MATID, cantidad: 999999, nota: 'forzar 409' });
+    expect(res.status).toBe(409);
+    expect(res.body?.message ?? '').toMatch(/saldo insuficiente/i);
   });
 });
+
