@@ -52,8 +52,8 @@ jobs:
           done
           psql -h 127.0.0.1 -U ispuser -d ispdb -c "SELECT version();"
 
-      # ⚠️ Importante: aplicar migraciones en orden; NO usar bootstrap_db_v2.sql aquí.
-      - name: Apply core & inventory migrations (idempotent)
+      # Migraciones en orden (sin bootstrap_db_v2.sql)
+      - name: Apply inventory migrations (ordered)
         env:
           PGPASSWORD: isppass
         run: |
@@ -65,27 +65,16 @@ jobs:
           psql -h 127.0.0.1 -U ispuser -d ispdb -v ON_ERROR_STOP=1 -f backend/script/migration_20251002_inventario_funcs.sql
           psql -h 127.0.0.1 -U ispuser -d ispdb -v ON_ERROR_STOP=1 -f backend/script/migration_20251002_kardex_view.sql
 
-      # (Opcional) si tus otros smokes de ventas/agenda se usan en CI, agrega sus migraciones aquí en orden:
-      # - name: Apply ventas/agenda migrations (optional)
-      #   env: { PGPASSWORD: isppass }
-      #   run: |
-      #     psql -h 127.0.0.1 -U ispuser -d ispdb -v ON_ERROR_STOP=1 -f backend/script/migration_20251001_ventas_ordenes.sql
-      #     psql -h 127.0.0.1 -U ispuser -d ispdb -v ON_ERROR_STOP=1 -f backend/script/migration_20251001_ventas_evidencias.sql
-      #     ... (las que necesites para los tests)
-
       - name: Install deps (backend)
         working-directory: backend
         run: npm ci
 
-      # Smokes mínimos (DB only). Si prefieres, deja solo uno.
       - name: Smoke kardex mínimo
         env:
           PGPASSWORD: isppass
-        run: |
-          bash backend/script/smoke_kardex_min.sh
+        run: bash backend/script/smoke_kardex_min.sh
 
       - name: Smoke inventario traslado
         env:
           PGPASSWORD: isppass
-        run: |
-          bash backend/script/smoke_inventario_traslado.sh
+        run: bash backend/script/smoke_inventario_traslado.sh
