@@ -61,7 +61,8 @@ BEGIN
     INSERT INTO public.tecnicos (codigo, nombre, activo) VALUES ('TEC-0006','Tecnico CI', true);
   END IF;
   IF NOT EXISTS (SELECT 1 FROM public.materiales WHERE codigo='MAT-RJ45') THEN
-    INSERT INTO public.materiales (codigo, nombre, unidad, activo) VALUES ('MAT-RJ45','Conector RJ45','UND', true);
+    INSERT INTO public.materiales (codigo, nombre, unidad, activo) VALUES ('MAT-RJ45','Conector RJ45','UND', true)
+    ON CONFLICT (codigo) DO NOTHING;
   END IF;
 END$$;
 SQL
@@ -91,12 +92,45 @@ psql_run -c "SELECT version();"
 apply_sql_file "$SQL_FILE"
 
 # 2) Migraciones (idempotentes) en orden lógico
+#   Ventas / ordenes iniciales
 apply_sql_file "$MIGRATION_FILE_ORDENES"
 apply_sql_file "$MIGRATION_FILE_EVIDENCIAS"
 apply_sql_file "script/migration_20251001_ventas_pagos_idem.sql"
+
+#   Ordenes: tipos y tablas auxiliares
+apply_sql_file "script/migration_20251001_ordenes_tipos_all.sql"
+apply_sql_file "script/migration_20251001_ordenes_datos_tecnicos.sql"
+apply_sql_file "script/migration_20251001_ordenes_evidencias_tbl.sql"
+apply_sql_file "script/migration_20251001_ordenes_pdf.sql"
+
+#   Equipos / inventario maestro y almacenes (seed + backfill)
+apply_sql_file "script/migration_20251001_equipos.sql"
+apply_sql_file "script/migration_20251001_materiales_basics.sql"
+apply_sql_file "script/migration_20251001_materiales_id_identity.sql"
+apply_sql_file "script/migration_20251001_materiales_id_seq_fix.sql"
+apply_sql_file "script/migration_20251001_almacenes_seed.sql"
+apply_sql_file "script/migration_20251001_almacenes_backfill_tecnicos.sql"
+
+#   Reglas adicionales en ordenes
 apply_sql_file "script/migration_20251001_ordenes_ins_unica_activa.sql"
 apply_sql_file "script/migration_20251001_catalogo_motivos_anulacion.sql"
 apply_sql_file "script/migration_20251001_ordenes_motivo_anulacion.sql"
+apply_sql_file "script/migration_20251001_tecnicos_codigo.sql"
+apply_sql_file "script/migration_20251001_tecnicos_basics.sql"
+apply_sql_file "script/migration_20251001_tecnicos_id_identity.sql"
+apply_sql_file "script/migration_20251001_tecnicos_id_seq_fix.sql"
+
+#   Inventario core + vistas
+apply_sql_file "script/migration_20251002_inventario_core.sql"
+apply_sql_file "script/migration_20251002_stock_almacen_timestamps.sql"
+apply_sql_file "script/migration_20251002_movimientos_tipo_traslado.sql"
+
+#   👇 Fuerza limpieza de la función (evita errores de tipo de retorno o "ya existe")
+apply_sql_file "script/migration_20251002_inventario_funcs_force.sql"
+
+#   Funciones y kárdex
+apply_sql_file "script/migration_20251002_inventario_funcs.sql"
+apply_sql_file "script/migration_20251002_kardex_view.sql"
 
 # 3) Seed opcional
 if [ "$SEED_MIN" = "1" ]; then
