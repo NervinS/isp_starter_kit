@@ -2,12 +2,10 @@ name: ci
 
 on:
   push:
-  pull_request:
-
-# Ejecuta "run" por defecto dentro de backend/
-defaults:
-  run:
-    working-directory: backend
+    branches: [ "main" ]
+    tags:
+      - "v*"
+  workflow_dispatch:
 
 jobs:
   test:
@@ -16,12 +14,12 @@ jobs:
     services:
       postgres:
         image: postgres:14-alpine
+        ports:
+          - 5432:5432
         env:
           POSTGRES_USER: ispuser
           POSTGRES_PASSWORD: isppass
           POSTGRES_DB: ispdb
-        ports:
-          - "5432:5432"
         options: >-
           --health-cmd="pg_isready -U ispuser -d ispdb -h 127.0.0.1"
           --health-interval=5s
@@ -35,8 +33,8 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: 20
+          cache: npm
           cache-dependency-path: backend/package-lock.json
 
       - name: Install psql client
@@ -54,52 +52,40 @@ jobs:
           done
           psql -h 127.0.0.1 -U ispuser -d ispdb -c "SELECT version();"
 
-      # Aplica el bootstrap idempotente que crea/ajusta:
-      # - vista kardex, regla de inserción
-      # - función sync + trigger movimientos -> stock
-      # - UNIQUE limpio en orden_materiales
-      # - índices de movimientos
-      - name: Apply DB bootstrap (idempotent)
+      # ⚠️ Importante: aplicar migraciones en orden; NO usar bootstrap_db_v2.sql aquí.
+      - name: Apply core & inventory migrations (idempotent)
         env:
           PGPASSWORD: isppass
         run: |
-          psql -h 127.0.0.1 -U ispuser -d ispdb -v ON_ERROR_STOP=1 -f script/bootstrap_db_v2.sql
+          set -euo pipefail
+          psql -h 127.0.0.1 -U ispuser -d ispdb -v ON_ERROR_STOP=1 -f backend/script/migration_20251002_inventario_core.sql
+          psql -h 127.0.0.1 -U ispuser -d ispdb -v ON_ERROR_STOP=1 -f backend/script/migration_20251002_stock_almacen_timestamps.sql
+          psql -h 127.0.0.1 -U ispuser -d ispdb -v ON_ERROR_STOP=1 -f backend/script/migration_20251002_movimientos_tipo_traslado.sql
+          psql -h 127.0.0.1 -U ispuser -d ispdb -v ON_ERROR_STOP=1 -f backend/script/migration_20251002_inventario_funcs_force.sql
+          psql -h 127.0.0.1 -U ispuser -d ispdb -v ON_ERROR_STOP=1 -f backend/script/migration_20251002_inventario_funcs.sql
+          psql -h 127.0.0.1 -U ispuser -d ispdb -v ON_ERROR_STOP=1 -f backend/script/migration_20251002_kardex_view.sql
 
-      # (Opcional) Semilla mínima si tus e2e la requieren;
-      # si no, puedes quitar este paso.
-      - name: Seed minimal data (optional)
-        env:
-          PGPASSWORD: isppass
-        run: |
-          psql -h 127.0.0.1 -U ispuser -d ispdb -v ON_ERROR_STOP=1 <<'SQL'
-          DO $$
-          BEGIN
-            IF NOT EXISTS (SELECT 1 FROM tecnicos WHERE codigo='TEC-0006') THEN
-              INSERT INTO tecnicos (codigo, nombre, activo) VALUES ('TEC-0006','Tecnico CI', true);
-            END IF;
-            IF NOT EXISTS (SELECT 1 FROM materiales WHERE codigo='MAT-RJ45') THEN
-              INSERT INTO materiales (codigo, nombre, unidad, activo) VALUES ('MAT-RJ45','Conector RJ45','UND', true);
-            END IF;
-          END$$;
-          SQL
+      # (Opcional) si tus otros smokes de ventas/agenda se usan en CI, agrega sus migraciones aquí en orden:
+      # - name: Apply ventas/agenda migrations (optional)
+      #   env: { PGPASSWORD: isppass }
+      #   run: |
+      #     psql -h 127.0.0.1 -U ispuser -d ispdb -v ON_ERROR_STOP=1 -f backend/script/migration_20251001_ventas_ordenes.sql
+      #     psql -h 127.0.0.1 -U ispuser -d ispdb -v ON_ERROR_STOP=1 -f backend/script/migration_20251001_ventas_evidencias.sql
+      #     ... (las que necesites para los tests)
 
-      - name: Install deps
+      - name: Install deps (backend)
+        working-directory: backend
         run: npm ci
 
-      - name: Build
-        run: npm run build
+      # Smokes mínimos (DB only). Si prefieres, deja solo uno.
+      - name: Smoke kardex mínimo
         env:
-          NODE_ENV: test
-
-      - name: Run e2e
-        env:
-          NODE_ENV: test
-          DATABASE_URL: postgres://ispuser:isppass@127.0.0.1:5432/ispdb
           PGPASSWORD: isppass
         run: |
-          # Si tus tests pudieran leer estos IDs, los exponemos:
-          TECID=$(psql -h 127.0.0.1 -U ispuser -d ispdb -X -A -t -q -c "SELECT id FROM tecnicos WHERE codigo='TEC-0006' LIMIT 1;")
-          MATID=$(psql -h 127.0.0.1 -U ispuser -d ispdb -X -A -t -q -c "SELECT id FROM materiales WHERE codigo='MAT-RJ45' LIMIT 1;")
-          export E2E_TEC_ID="$TECID"
-          export E2E_MAT_ID="$MATID"
-          npm run test:e2e
+          bash backend/script/smoke_kardex_min.sh
+
+      - name: Smoke inventario traslado
+        env:
+          PGPASSWORD: isppass
+        run: |
+          bash backend/script/smoke_inventario_traslado.sh
