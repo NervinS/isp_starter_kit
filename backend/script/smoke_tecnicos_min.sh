@@ -9,7 +9,7 @@ set -euo pipefail
 
 API_BASE="${API_BASE:-http://localhost:3000}"
 DB_HOST="${DB_HOST:-127.0.0.1}"
-DB_PORT="${DB_PORT:-5433}"
+DB_PORT="${DB_PORT:-5432}"
 DB_USER="${DB_USER:-ispuser}"
 DB_NAME="${DB_NAME:-ispdb}"
 

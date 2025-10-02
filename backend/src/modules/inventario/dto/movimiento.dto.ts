@@ -11,64 +11,59 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export type TipoMovimiento = 'ingreso' | 'egreso' | 'transferencia' | 'ajuste';
+export type TipoMovimiento = 'ingreso' | 'egreso' | 'ajuste' | 'traslado' | 'transferencia';
 export type ModoAjuste = 'set' | 'delta';
 
 export class MovimientoDto {
-  // Idempotencia: opcional para endpoints internos; el service la autogenera si falta.
+  // ===== Idempotencia (opcional) =====
   @IsOptional()
   @IsString()
   idempotencyKey?: string;
 
-  @IsIn(['ingreso', 'egreso', 'transferencia', 'ajuste'])
+  // ===== Tipo =====
+  @IsIn(['ingreso', 'egreso', 'ajuste', 'traslado', 'transferencia'])
   tipo!: TipoMovimiento;
 
-  // ==== Almacenes según tipo ====
-  @ValidateIf(o => o.tipo === 'egreso' || o.tipo === 'transferencia')
+  // ===== Almacenes (solo para traslado/transferencia) =====
+  @ValidateIf(o => o.tipo === 'traslado' || o.tipo === 'transferencia')
   @IsUUID()
   @IsOptional()
   almacenOrigenId?: string;
 
-  @ValidateIf(o => o.tipo === 'ingreso' || o.tipo === 'transferencia')
+  @ValidateIf(o => o.tipo === 'traslado' || o.tipo === 'transferencia')
   @IsUUID()
   @IsOptional()
   almacenDestinoId?: string;
 
-  // ==== Material ====
-  // Preferido: INTEGER
+  // ===== Material =====
+  // Opción preferida: ID numérico (int)
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
   materialIdInt?: number;
 
-  // Fallback: string parseable
+  // Opción alternativa: ID como string (parseable)
   @IsOptional()
   @IsString()
   materialId?: string;
 
-  // ==== Cantidades ====
-  // Para ingreso/egreso/transferencia: > 0
-  @ValidateIf(o => o.tipo === 'ingreso' || o.tipo === 'egreso' || o.tipo === 'transferencia')
+  // ===== Cantidad =====
+  // Un único campo para todos los tipos:
+  // - ingreso/egreso/traslado/transferencia: > 0  (el service ya valida > 0)
+  // - ajuste (modo "set"): >= 0                 (el service calcula delta)
+  @IsOptional()
   @Type(() => Number)
   @IsNumber()
-  @Min(0.000001)
-  @IsOptional()
+  @Min(0)
   cantidad?: number;
 
-  // Para ajuste
-  @ValidateIf(o => o.tipo === 'ajuste')
-  @Type(() => Number)
-  @IsNumber()
-  @IsOptional()
-  cantidadSigned?: number;
-
-  // Para "ajuste": modo set/delta
+  // ===== Ajuste =====
   @IsOptional()
   @IsIn(['set', 'delta'])
   modoAjuste?: ModoAjuste;
 
-  // ==== Metadatos opcionales ====
+  // ===== Metadatos opcionales =====
   @IsOptional()
   @IsString()
   motivo?: string;

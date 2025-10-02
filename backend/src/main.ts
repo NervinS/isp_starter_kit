@@ -3,6 +3,8 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { useContainer } from 'class-validator';
+import { ReqIdLoggerInterceptor } from './common/interceptors/reqid-logger.interceptor';
+import { ApiKeyGuard } from './common/guards/api-key.guard'; // <-- NUEVO
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
@@ -19,6 +21,17 @@ async function bootstrap() {
       transformOptions: { enableImplicitConversion: true },
     }),
   );
+
+  // <-- Activa guard global (si no hay API_KEY, no bloquea)
+  app.useGlobalGuards(new ApiKeyGuard());
+  if (process.env.API_KEY) {
+    console.log('[SEC] ApiKeyGuard ON (x-api-key requerido)');
+  } else {
+    console.log('[SEC] ApiKeyGuard OFF (sin API_KEY definido)');
+  }
+ 
+  // Interceptor global de request-id + logs
+  app.useGlobalInterceptors(new ReqIdLoggerInterceptor()); // <- NUEVO
 
   // Helmet opcional
   try {
