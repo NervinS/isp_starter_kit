@@ -1,0 +1,23 @@
+                                                        Table "public.almacenes"
+   Column   |           Type           | Collation | Nullable |      Default      | Storage  | Compression | Stats target | Description 
+------------+--------------------------+-----------+----------+-------------------+----------+-------------+--------------+-------------
+ id         | uuid                     |           | not null | gen_random_uuid() | plain    |             |              | 
+ tipo       | text                     |           | not null | 'principal'::text | extended |             |              | 
+ tecnico_id | integer                  |           |          |                   | plain    |             |              | 
+ codigo     | text                     |           | not null |                   | extended |             |              | 
+ nombre     | text                     |           |          |                   | extended |             |              | 
+ activo     | boolean                  |           | not null | true              | plain    |             |              | 
+ created_at | timestamp with time zone |           | not null | now()             | plain    |             |              | 
+Indexes:
+    "almacenes_pkey" PRIMARY KEY, btree (id)
+    "uq_almacenes_codigo" UNIQUE CONSTRAINT, btree (codigo)
+Check constraints:
+    "almacenes_tipo_check" CHECK (tipo = ANY (ARRAY['principal'::text, 'tecnico'::text]))
+Foreign-key constraints:
+    "almacenes_tecnico_id_fkey" FOREIGN KEY (tecnico_id) REFERENCES tecnicos(id)
+Referenced by:
+    TABLE "movimientos" CONSTRAINT "movimientos_from_almacen_id_fkey" FOREIGN KEY (from_almacen_id) REFERENCES almacenes(id) ON DELETE SET NULL
+    TABLE "movimientos" CONSTRAINT "movimientos_to_almacen_id_fkey" FOREIGN KEY (to_almacen_id) REFERENCES almacenes(id) ON DELETE SET NULL
+    TABLE "stock_almacen" CONSTRAINT "stock_almacen_almacen_id_fkey" FOREIGN KEY (almacen_id) REFERENCES almacenes(id) ON DELETE CASCADE
+Access method: heap
+

@@ -1,0 +1,74 @@
+# Host
+Linux yarumo 5.15.0-156-generic #166-Ubuntu SMP Sat Aug 9 00:07:34 UTC 2025 aarch64 aarch64 aarch64 GNU/Linux
+Distributor ID:	Ubuntu
+Description:	Ubuntu 22.04.5 LTS
+Release:	22.04
+Codename:	jammy
+
+# Recursos
+Filesystem                         Size  Used Avail Use% Mounted on
+tmpfs                              793M  1,9M  791M   1% /run
+/dev/mapper/ubuntu--vg-ubuntu--lv  273G   94G  168G  36% /
+tmpfs                              3,9G     0  3,9G   0% /dev/shm
+tmpfs                              5,0M     0  5,0M   0% /run/lock
+/dev/sda2                          2,0G  239M  1,6G  14% /boot
+/dev/sda1                          1,1G  6,4M  1,1G   1% /boot/efi
+overlay                            273G   94G  168G  36% /var/lib/docker/overlay2/71d43e0499c4897d67a82d15efde9382df396a0c6588436d30da760f2a78d1ff/merged
+overlay                            273G   94G  168G  36% /var/lib/docker/overlay2/d6ea6c50d6f65a98ce5243ba0ae3fbc3ee207b84a06d9174cffb53eb394b1d86/merged
+overlay                            273G   94G  168G  36% /var/lib/docker/overlay2/66bc05fe7c3e5938567033efeec6aaafd9f8ebc8a4ed22c139d733edb2789d12/merged
+overlay                            273G   94G  168G  36% /var/lib/docker/overlay2/7febff74ebab68f3096c9923612aae90aa73b76df09b2277a702bb5ec69fb89d/merged
+overlay                            273G   94G  168G  36% /var/lib/docker/overlay2/4c73115c216eaf362de1ccf18ee76cd31f3fd6845bedb5b1f79b8b8e9494160c/merged
+tmpfs                              793M  4,0K  793M   1% /run/user/1000
+               total        used        free      shared  buff/cache   available
+Mem:            7926        1046         608          52        6271        6626
+Swap:           8191           1        8190
+
+# Red
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+enp0s11          UP             192.168.1.140/24 fe80::be24:11ff:feb2:9f51/64 
+docker0          DOWN           172.17.0.1/16 fe80::c3a:76ff:fecb:1850/64 
+br-1ace1c18b8c9  UP             172.19.0.1/16 fe80::b4d0:caff:fe9a:32b/64 
+veth8ec664e@if2  UP             fe80::9488:b5ff:fefa:2676/64 
+vethc5a5207@if2  UP             fe80::1844:50ff:feb2:8d67/64 
+veth29d4e84@if2  UP             fe80::989e:44ff:fe28:7e25/64 
+br-0f1d8def98b7  UP             172.18.0.1/16 fe80::a47a:e4ff:fe74:b23/64 
+vethe3f29e1@if2  UP             fe80::acf9:34ff:fea8:42c5/64 
+vethbd2b29e@if2  UP             fe80::1c7d:40ff:fe96:692/64 
+State  Recv-Q Send-Q Local Address:Port  Peer Address:PortProcess                                       
+LISTEN 0      4096         0.0.0.0:9001       0.0.0.0:*    users:(("docker-proxy",pid=1343019,fd=7))    
+LISTEN 0      4096         0.0.0.0:9000       0.0.0.0:*    users:(("docker-proxy",pid=1343006,fd=7))    
+LISTEN 0      128          0.0.0.0:22         0.0.0.0:*    users:(("sshd",pid=1490676,fd=3))            
+LISTEN 0      128        127.0.0.1:6010       0.0.0.0:*    users:(("sshd",pid=2065485,fd=9))            
+LISTEN 0      4096         0.0.0.0:5672       0.0.0.0:*    users:(("docker-proxy",pid=250653,fd=7))     
+LISTEN 0      4096         0.0.0.0:5432       0.0.0.0:*    users:(("docker-proxy",pid=1731697,fd=7))    
+LISTEN 0      4096         0.0.0.0:3000       0.0.0.0:*    users:(("docker-proxy",pid=2027516,fd=7))    
+LISTEN 0      4096         0.0.0.0:6379       0.0.0.0:*    users:(("docker-proxy",pid=250730,fd=7))     
+LISTEN 0      4096   127.0.0.53%lo:53         0.0.0.0:*    users:(("systemd-resolve",pid=1490706,fd=14))
+LISTEN 0      4096         0.0.0.0:15672      0.0.0.0:*    users:(("docker-proxy",pid=250669,fd=7))     
+LISTEN 0      4096            [::]:9001          [::]:*    users:(("docker-proxy",pid=1343027,fd=7))    
+LISTEN 0      4096            [::]:9000          [::]:*    users:(("docker-proxy",pid=1343012,fd=7))    
+LISTEN 0      128             [::]:22            [::]:*    users:(("sshd",pid=1490676,fd=4))            
+LISTEN 0      4096            [::]:5672          [::]:*    users:(("docker-proxy",pid=250661,fd=7))     
+LISTEN 0      4096            [::]:5432          [::]:*    users:(("docker-proxy",pid=1731704,fd=7))    
+LISTEN 0      128            [::1]:6010          [::]:*    users:(("sshd",pid=2065485,fd=7))            
+LISTEN 0      4096            [::]:3000          [::]:*    users:(("docker-proxy",pid=2027523,fd=7))    
+LISTEN 0      4096            [::]:6379          [::]:*    users:(("docker-proxy",pid=250736,fd=7))     
+LISTEN 0      4096            [::]:15672         [::]:*    users:(("docker-proxy",pid=250678,fd=7))     
+
+# Git
+true
+## main...origin/main
+ M docker-compose.yml
+ M test/e2e/cerrar.e2e-spec.ts
+ M test/inventario.e2e-spec.ts
+?? db/ispdb_20251002165418.dump
+?? db/ispdb_20251002170620.dump
+?? script/diagnostics/
+46e0fef 2025-10-02 16:51:57 -0500 Tu Nombre inventario estable: std wrappers, kardex vista, API key guard, req-id logs, e2e green
+96cc457 2025-10-01 20:19:56 -0500 Tu Nombre ci: fija orden core (stock_almacen después de almacenes/materiales) + incluye guardrail
+e8ed8d8 2025-10-01 20:07:48 -0500 Tu Nombre ci: retrigger main
+7c5c585 2025-10-01 20:07:47 -0500 Tu Nombre ci: orden migraciones + guardrail saldo
+3f637fa 2025-10-01 19:58:35 -0500 Tu Nombre ci: retrigger on main backend/docker-compose.yml          | 28 ++++++++++++++----
+ backend/test/e2e/cerrar.e2e-spec.ts | 45 +++++++++++++++++++++++-----
+ backend/test/inventario.e2e-spec.ts | 59 +++++++++++++++----------------------
+ 3 files changed, 83 insertions(+), 49 deletions(-)

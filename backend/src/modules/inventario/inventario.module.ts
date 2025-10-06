@@ -1,16 +1,17 @@
 // src/modules/inventario/inventario.module.ts
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { InventarioController } from './inventario.controller';
 import { InventarioService } from './inventario.service';
-import { Tecnico } from '../tecnicos/tecnico.entity';
-import { Material } from '../materiales/material.entity';
+import { InventarioController } from './inventario.controller';
+
+// Si tienes entidades específicas, impórtalas aquí:
+// import { AlgoEntity } from './entities/algo.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Tecnico, Material]),
+    TypeOrmModule.forFeature([]),
   ],
-  controllers: [InventarioController],
+  controllers: [InventarioController],   // 👈 solo este
   providers: [InventarioService],
   exports: [InventarioService],
 })

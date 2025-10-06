@@ -9,11 +9,27 @@
     "start:dev": "ts-node-dev --respawn --transpile-only src/main.ts",
     "test": "echo \"no tests\"",
     "test:e2e": "cross-env API_BASE=http://127.0.0.1:3000/v1 jest --config ./test/jest-e2e.json --runInBand",
+
     "typeorm": "node --require ts-node/register ./node_modules/typeorm/cli.js -d src/database/data-source.ts",
-    "migration:show": "npm run typeorm -- migration:show",
-    "migration:run": "npm run typeorm -- migration:run",
-    "migration:revert": "npm run typeorm -- migration:revert",
-    "migration:generate": "npm run typeorm -- migration:generate src/migrations/AutoMigration"
+
+    "m:show": "NODE_ENV=production node ./node_modules/typeorm/cli.js migration:show -d dist/database/data-source.js",
+    "m:run":  "NODE_ENV=production node ./node_modules/typeorm/cli.js migration:run  -d dist/database/data-source.js",
+    "m:revert": "NODE_ENV=production node ./node_modules/typeorm/cli.js migration:revert -d dist/database/data-source.js",
+
+    "m:show:ts": "node --require ts-node/register ./node_modules/typeorm/cli.js migration:show -d src/database/data-source.ts",
+    "m:run:ts":  "node --require ts-node/register ./node_modules/typeorm/cli.js migration:run  -d src/database/data-source.ts",
+    "m:revert:ts": "node --require ts-node/register ./node_modules/typeorm/cli.js migration:revert -d src/database/data-source.ts",
+
+    "print:ds:dist": "NODE_ENV=production node -p \"require('./dist/database/data-source.js').default.options.migrations\"",
+
+    "migration:show": "npm run m:show",
+    "migration:run":  "npm run m:run",
+    "migration:revert": "npm run m:revert",
+    "migration:generate": "npm run typeorm -- migration:generate src/database/migrations/AutoMigration",
+
+    "smoke:ins-equipos": "bash script/smoke_ins_equipos_cierre.sh",
+    "smoke:ins-equipos:ont": "TIPO=ONT SER=ONT-ABC-001 bash script/smoke_ins_equipos_cierre.sh",
+    "smoke:ins-equipos:repeater": "TIPO=REPEATER SER=REP-XYZ-123 bash script/smoke_ins_equipos_cierre.sh"
   },
   "dependencies": {
     "@nestjs/common": "^10.3.0",

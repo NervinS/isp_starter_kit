@@ -7,8 +7,9 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-isppass}   # solo en el primer init del volumen
       POSTGRES_DB: ${POSTGRES_DB:-ispdb}
       PGDATA: /var/lib/postgresql/data/pgdata
+      MAIN_WAREHOUSE_CODE: PRINCIPAL
     ports:
-      - "5432:5432"                                       # host 5433 -> container 5432
+      - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
       # - ../db/init:/docker-entrypoint-initdb.d:ro       # opcional (solo clúster NUEVO)
@@ -37,6 +38,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    # si publicas imagen, reemplaza lo anterior por:
+    # image: backend-api:v0.1.1
     container_name: isp-api
     depends_on:
       db:
@@ -45,18 +48,32 @@ services:
         condition: service_started
     environment:
       NODE_ENV: ${NODE_ENV:-production}
+      HOST: ${HOST:-0.0.0.0}
+      PORT: ${PORT:-3000}
 
       # 🔗 Base de datos — SIEMPRE por servicio 'db' dentro de Docker
       DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-ispuser}:${POSTGRES_PASSWORD:-isppass}@db:5432/${POSTGRES_DB:-ispdb}}
 
-      # 🔐 JWT (usa tu .env en local / secrets en CI)
+      # 🔐 API Key (header x-api-key o query ?api_key=)
+      API_KEY: ${API_KEY:-superdev}
+
+      # 🔐 JWT (usa .env/secret en CI/CD para prod)
       JWT_SECRET: ${JWT_SECRET:-devsecretchangeme_local}
 
-      # 📦 MinIO
-      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-minio:9000}
-      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-${MINIO_ROOT_USER:-minioadmin}}
-      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-${MINIO_ROOT_PASSWORD:-minioadmin}}
+      # 📦 MinIO (interno)
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-minio}
+      MINIO_PORT: ${MINIO_PORT:-9000}
       MINIO_USE_SSL: ${MINIO_USE_SSL:-false}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      MINIO_BUCKET: ${MINIO_BUCKET:-evidencias}
+
+      # 🌐 MinIO público (URLs firmadas/estáticas)
+      MINIO_PUBLIC_BASE: ${MINIO_PUBLIC_BASE:-http://127.0.0.1:9000/evidencias/}
+      PDF_FORCE_PUBLIC_URL: ${PDF_FORCE_PUBLIC_URL:-true}
+
+      # 📖 Swagger ON por defecto (desactiva con SWAGGER_ON=0)
+      SWAGGER_ON: ${SWAGGER_ON:-1}
 
       # 🧪 smokes locales
       SMOKE_BYPASS_TECH_GUARD: ${SMOKE_BYPASS_TECH_GUARD:-1}

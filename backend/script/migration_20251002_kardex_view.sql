@@ -1,25 +1,28 @@
--- Vista con joins útiles para la API
-CREATE OR REPLACE VIEW v_kardex_det AS
+-- script/migration_20251002_kardex_view.sql
+-- Idempotente: si la vista existe con otra firma, la dropeamos y la recreamos.
+
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM   pg_views
+    WHERE  schemaname = 'public'
+    AND    viewname   = 'inventario_kardex_view'
+  ) THEN
+    EXECUTE 'DROP VIEW public.inventario_kardex_view';
+  END IF;
+END
+$$;
+
+-- Versión simple/estable de la vista (ajústala si luego quieres más columnas)
+CREATE VIEW public.inventario_kardex_view AS
 SELECT
-  vk.id,
-  vk.fecha,
-  vk.tipo,
-  vk.material_id,
-  mat.codigo  AS material_codigo,
-  mat.nombre  AS material_nombre,
-  vk.cantidad,
-  vk.delta,
-  vk.almacen_id,
-  alm.codigo  AS almacen_codigo,
-  alm.nombre  AS almacen_nombre,
-  vk.from_almacen_id,
-  fa.codigo   AS from_almacen_codigo,
-  vk.to_almacen_id,
-  ta.codigo   AS to_almacen_codigo,
-  vk.tecnico_id,
-  vk.nota
-FROM v_kardex vk
-LEFT JOIN materiales mat   ON mat.id = vk.material_id
-LEFT JOIN almacenes  alm   ON alm.id = vk.almacen_id
-LEFT JOIN almacenes  fa    ON fa.id  = vk.from_almacen_id
-LEFT JOIN almacenes  ta    ON ta.id  = vk.to_almacen_id;
+  m.id,
+  m.fecha,
+  m.material_id,
+  m.tipo,
+  m.from_almacen_id,
+  m.to_almacen_id,
+  m.cantidad,
+  m.nota
+FROM public.movimientos m;
