@@ -1,0 +1,123 @@
+# git remotes
+origin	git@github.com:NervinS/isp_starter_kit.git (fetch)
+origin	git@github.com:NervinS/isp_starter_kit.git (push)
+
+# git status
+ M ../docker-compose.yml
+ M ../test/e2e/cerrar.e2e-spec.ts
+ M ../test/inventario.e2e-spec.ts
+?? ../db/ispdb_20251002165418.dump
+?? ../db/ispdb_20251002170620.dump
+?? diagnostics/
+?? project_diagnostics_20251003T001135Z/
+
+# últimas 30 commits
+46e0fef inventario estable: std wrappers, kardex vista, API key guard, req-id logs, e2e green
+96cc457 ci: fija orden core (stock_almacen después de almacenes/materiales) + incluye guardrail
+e8ed8d8 ci: retrigger main
+7c5c585 ci: orden migraciones + guardrail saldo
+3f637fa ci: retrigger on main
+ffffe8f ci: aplica migraciones en orden y smokes inventario
+98ef040 inventario: traslado con retorno uuid, kardex estable, smokes OK
+12fbdb6 chore: compose -> DB via service name, .env.example, CI usa Secrets, smokes OK
+73f2ef5 chore: bootstrap + migraciones + agenda (smoke verbose)
+3b32c8c inventario: egreso devuelve 409 saldo insuficiente si no alcanza
+c717960 fix(types): MovimientoDto incluye nota, modoAjuste y userId
+eb6ec8b fix(build): ajustar AgendaController.anular; permitir metadatos en Inventario service; quitar 'nota' de payloads literal
+5f262dd fix(build): ampliar MovimientoDto (nota/userId/modoAjuste) y anularPorCodigo con firma correcta
+b8be428 chore(dev): add .env.example and Makefile helpers
+1d615ba test(smoke_tecnicos_min): usar bootstrap_tecnicos.sql y evitar heredocs
+6374750 test(smoke): fallback via kardex + trigger; logs HTTP/ID
+ec1c0c3 chore(db): bootstrap idempotente (kardex, regla, trigger, idx, unique)
+3f529ed Inventario estable: kardex+rule, trigger sync stock, smokes, idx
+6e6694b feat(inventario+tecnicos): aplica migraciones y repara esquema/queries; smokes listos
+49e7cca chore: full snapshot 2025-09-26 19:17:56 UTC
+98532f0 Tecnicos: iniciar/cerrar idempotente; compat materialId/materialIdInt; MAN sin efecto; REC conecta; descuento inventario seguro
+4e1bd62 hotfix(tecnicos): tecnicoId opcional en body; controller usa el de la ruta
+b8267f8 agenda: persistencia de motivo_reagenda + motivo_reagenda_codigo; controller+dto; smoke script y workflow
+50b2a7b Agenda: persistencia motivo_reagenda + motivo_reagenda_codigo en REAGENDAR; smoke robusto; migración aplicada
+3f9d18f Agenda: columnas/índices migration; smoke estable; CI ejecuta agenda
+81cad25 chore(ci): trigger smoke
+285a191 CI: mover .github a raíz; backend estable (PDF MinIO + idempotencia + smokes)
+
+# árbol (hasta 4 niveles, sin .git ni node_modules)
+.
+./onboarding_bundle.sh
+./smoke_ordenes_v2.sh
+./smoke-tecnicos.sh
+./migration_20251001_materiales_basics.sql
+./migration_20251001_ventas_evidencias.sql
+./smoke_all.sh
+./smoke_ordenes.sh
+./migration_20251002_guardrail_stock_nonnegative.sql
+./smoke_quickcheck.sh
+./migration_20251001_almacenes_seed.sql
+./migration_20251001_ordenes_evidencias_tbl.sql
+./migration_20251001_almacenes_backfill_tecnicos.sql
+./smoke_tecnico_token.sh
+./smoke_agenda_v2.sh
+./smoke_tecnicos_cerrar_v2.sh
+./check_inventario.sh
+./smoke_inventario_min.sh
+./smoke_agenda_verbose.sh
+./migration_20251001_ventas_pagos_idem.sql
+./migration_20251001_ordenes_datos_tecnicos.sql
+./migration_20251002_movimientos_tipo_traslado.sql
+./smoke_catalogos.sh
+./migration_20251002_inventario_funcs_force.sql
+./diagnostico.sh
+./migration_20251002_inventario_core.sql
+./smoke_inventario_v2.sh
+./smoke_tecnicos_min.sh
+./diagnostics
+./diagnostics/diag_20251002_191009
+./diagnostics/diag_20251002_191009/docker_compose.txt
+./diagnostics/diag_20251002_191009/_INDEX.txt
+./diagnostics/diag_20251002_191009/host_repo.txt
+./smoke_cierre_idempotente_hard.sh
+./apply_sql_migrations.sh
+./pg_apply_migrations.sh
+./migration_20251001_tecnicos_basics.sql
+./test_man.sh
+./smoke_tecnico_flujo.sh
+./migration_20251001_ordenes_motivo_anulacion.sql
+./smoke_tecnico.sh
+./smoke_stress_cierre.sh
+./smoke_cerrar_codigo.sh
+./migration_20251001_ventas_ordenes.sql
+./migration_20251001_ordenes_tipos_all.sql
+./collect_project_diagnostics.sh
+./migration_20251001_materiales_id_seq_fix.sql
+./smoke_cierre_idempotente.sh
+./smoke_tecnicos.sh
+./smoke_inventario_traslado.sh
+./bootstrap_db_v2.sql
+./cleanup_pdfs_dev.sh
+./smoke_agenda.sh
+./smoke_catalogos_mini.sh
+./bootstrap_tecnicos.sql
+./smoke_all_v2.sh
+./smoke_cerrar.sh
+./migration_20251001_ordenes_ins_unica_activa.sql
+./migration_20251002_inventario_funcs.sql
+./migration_20251001_equipos.sql
+./migration_20251002_stock_almacen_timestamps.sql
+./migration_20251002_inventario_funcs_fix.sql
+./smoke_kardex_min.sh
+./migration_20251001_tecnicos_id_identity.sql
+./smoke_inventario_v1.sh
+./migration_20251001_materiales_id_identity.sql
+./validacion_extra.sql
+./migration_20251002_kardex_view.sql
+./project_diagnostics_20251003T001135Z
+./project_diagnostics_20251003T001135Z/00_index.txt
+./project_diagnostics_20251003T001135Z/01_repo.txt
+./smoke_cierre_con_linea.sh
+./smoke.sh
+./migration_20251001_tecnicos_codigo.sql
+./migration_20251001_tecnicos_id_seq_fix.sql
+./migration_20251001_catalogo_motivos_anulacion.sql
+./jwt_tecnico_variants.sh
+./bootstrap.sh
+./smoke_agenda_http.sh
+./migration_20251001_ordenes_pdf.sql

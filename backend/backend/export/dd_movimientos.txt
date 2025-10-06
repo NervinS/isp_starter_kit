@@ -1,0 +1,46 @@
+                                                           Table "public.movimientos"
+       Column       |           Type           | Collation | Nullable |      Default      | Storage  | Compression | Stats target | Description 
+--------------------+--------------------------+-----------+----------+-------------------+----------+-------------+--------------+-------------
+ id                 | uuid                     |           | not null | gen_random_uuid() | plain    |             |              | 
+ idempotency_key    | text                     |           |          |                   | extended |             |              | 
+ tipo               | text                     |           | not null |                   | extended |             |              | 
+ almacen_origen_id  | uuid                     |           |          |                   | plain    |             |              | 
+ almacen_destino_id | uuid                     |           |          |                   | plain    |             |              | 
+ material_id        | integer                  |           | not null |                   | plain    |             |              | 
+ cantidad           | integer                  |           | not null |                   | plain    |             |              | 
+ created_at         | timestamp with time zone |           | not null | now()             | plain    |             |              | 
+ motivo             | text                     |           |          |                   | extended |             |              | 
+ ref_externa        | text                     |           |          |                   | extended |             |              | 
+ evidencia_key      | text                     |           |          |                   | extended |             |              | 
+ usuario_op_id      | integer                  |           |          |                   | plain    |             |              | 
+ fecha              | timestamp with time zone |           | not null | now()             | plain    |             |              | 
+ from_almacen_id    | uuid                     |           |          |                   | plain    |             |              | 
+ to_almacen_id      | uuid                     |           |          |                   | plain    |             |              | 
+ tecnico_id         | integer                  |           |          |                   | plain    |             |              | 
+ nota               | text                     |           |          |                   | extended |             |              | 
+Indexes:
+    "movimientos_pkey" PRIMARY KEY, btree (id)
+    "idx_movimientos_created" btree (created_at)
+    "idx_movimientos_destino" btree (almacen_destino_id)
+    "idx_movimientos_material" btree (material_id)
+    "idx_movimientos_origen" btree (almacen_origen_id)
+    "idx_movs_destino" btree (almacen_destino_id) WHERE almacen_destino_id IS NOT NULL
+    "idx_movs_origen" btree (almacen_origen_id) WHERE almacen_origen_id IS NOT NULL
+    "idx_movs_tipo_mat_fecha" btree (tipo, material_id, fecha DESC)
+    "ix_mov_fecha" btree (fecha DESC)
+    "ix_mov_from_almacen" btree (from_almacen_id)
+    "ix_mov_material" btree (material_id)
+    "ix_mov_tipo" btree (tipo)
+    "ix_mov_to_almacen" btree (to_almacen_id)
+    "ix_movs_dest_mat_created" btree (almacen_destino_id, material_id, created_at DESC)
+    "ix_movs_orig_mat_created" btree (almacen_origen_id, material_id, created_at DESC)
+    "movimientos_idempotency_key_key" UNIQUE CONSTRAINT, btree (idempotency_key)
+Check constraints:
+    "movimientos_cantidad_check" CHECK (cantidad > 0)
+    "movimientos_tipo_check" CHECK (tipo = ANY (ARRAY['ingreso'::text, 'egreso'::text, 'ajuste'::text, 'traslado'::text]))
+Foreign-key constraints:
+    "movimientos_from_almacen_id_fkey" FOREIGN KEY (from_almacen_id) REFERENCES almacenes(id) ON DELETE SET NULL
+    "movimientos_tecnico_id_fkey" FOREIGN KEY (tecnico_id) REFERENCES tecnicos(id) ON DELETE SET NULL
+    "movimientos_to_almacen_id_fkey" FOREIGN KEY (to_almacen_id) REFERENCES almacenes(id) ON DELETE SET NULL
+Access method: heap
+

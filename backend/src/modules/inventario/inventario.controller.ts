@@ -1,119 +1,144 @@
 // src/modules/inventario/inventario.controller.ts
 import {
+  BadRequestException,
   Body,
+  ConflictException,
   Controller,
   Get,
+  Headers,
   Param,
   Post,
+  Query,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
-import { InventarioService } from './inventario.service';
-import {
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-  Min,
-  ValidateIf,
-} from 'class-validator';
-import { Transform } from 'class-transformer';
-
-function normalizeMaterialId(v: unknown): string {
-  if (typeof v === 'number') return String(v);
-  if (typeof v === 'string') return v.trim();
-  throw new Error('materialId inválido');
-}
-
-class MovimientoTecnicoDto {
-  @Transform(({ value }) => normalizeMaterialId(value))
-  @IsString()
-  @IsNotEmpty()
-  materialId!: string;
-
-  @Transform(({ value }) => (typeof value === 'string' ? Number(value) : value))
-  @IsNumber()
-  @Min(1)
-  cantidad!: number;
-
-  @ValidateIf((o) => o?.nota !== undefined)
-  @IsString()
-  @IsOptional()
-  nota?: string;
-}
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { InventarioService, MovimientoInput } from './inventario.service';
+import { AjusteStockDto } from './dto/ajuste-stock.dto';
 
 @ApiTags('Inventario')
-// ⚠️ Importante: SIN /v1 aquí. El globalPrefix('v1') ya lo agrega.
-// Resultado final de las rutas: /v1/inventario/...
+// ⚠️ IMPORTANTE: sin /v1 aquí. El /v1 lo pone el globalPrefix en main.ts
 @Controller('inventario')
 export class InventarioController {
   constructor(private readonly inv: InventarioService) {}
 
-  // Stock por técnico
-  @Get('/tecnicos/:tecnicoId/stock')
-  async stockTecnico(@Param('tecnicoId') tecnicoId: string) {
-    return this.inv.getStockTecnico(tecnicoId);
+  // ---------- Lecturas ----------
+  @Get('stock/almacen/:codigo')
+  @ApiOperation({ summary: 'Stock por almacén (código)' })
+  async stockPorAlmacen(@Param('codigo') codigo: string, @Query('materialId') materialId?: string) {
+    const mid = materialId ? Number(materialId) : undefined;
+    return this.inv.getStockPorAlmacenCodigo({ almacenCodigo: codigo, materialId: mid });
   }
 
-  // Agregar stock a un técnico
-  @Post('/tecnicos/:tecnicoId/agregar')
-  async agregarStockTecnico(
-    @Param('tecnicoId') tecnicoId: string,
-    @Body() dto: MovimientoTecnicoDto,
+  @Get('tecnicos/:id/stock')
+  @ApiOperation({ summary: 'Stock de almacén técnico TEC-{id}' })
+  async stockTecnico(@Param('id') id: string) {
+    return this.inv.getStockTecnico(id);
+  }
+
+  @Get('kardex')
+  @ApiOperation({ summary: 'Últimos movimientos (kardex)' })
+  async kardex(@Query('limit') limit?: string) {
+    const lim = limit ? Number(limit) : undefined;
+    return this.inv.getKardex(lim);
+  }
+
+  // ---------- Mutaciones genéricas ----------
+  @Post('movimientos')
+  @ApiOperation({
+    summary: 'Crear movimiento (ingreso/egreso/traslado/ajuste)',
+    description:
+      "Para traslado puedes enviar tipo='traslado' o 'transferencia' (se normaliza a 'traslado').",
+  })
+  async crearMovimiento(
+    @Body() body: MovimientoInput,
+    @Headers('idempotency-key') idempotencyKey?: string,
   ) {
-    return this.inv.crearMovimiento({
-      tipo: 'ingreso',
-      tecnicoId,
-      materialId: dto.materialId,
-      cantidad: dto.cantidad,
-      nota: dto.nota,
-    });
+    try {
+      return await this.inv.crearMovimiento(body, idempotencyKey); // 201 por defecto
+    } catch (e: any) {
+      if (typeof e?.message === 'string' && /saldo insuficiente/i.test(e.message)) {
+        throw new ConflictException({ message: e.message, code: 'INSUFFICIENT_STOCK' });
+      }
+      throw new BadRequestException(e?.message ?? 'Error al crear movimiento');
+    }
   }
 
-  // Descontar stock a un técnico
-  @Post('/tecnicos/:tecnicoId/descontar')
-  async descontarStockTecnico(
-    @Param('tecnicoId') tecnicoId: string,
-    @Body() dto: MovimientoTecnicoDto,
+  // ---------- Acciones de técnico ----------
+  @Post('tecnicos/:id/agregar')
+  @ApiOperation({ summary: 'Trasladar desde MAIN a TEC-{id}' })
+  async agregarTecnico(
+    @Param('id') id: string,
+    @Body() dto: { materialId: number | string; cantidad: number | string; nota?: string | null },
+    @Headers('idempotency-key') idempotencyKey?: string,
   ) {
-    return this.inv.crearMovimiento({
-      tipo: 'egreso',
-      tecnicoId,
-      materialId: dto.materialId,
-      cantidad: dto.cantidad,
-      nota: dto.nota,
-    });
+    try {
+      return await this.inv.agregarATecnico(
+        {
+          tecnicoId: id,
+          materialId: dto.materialId,
+          cantidad: dto.cantidad,
+          nota: dto.nota ?? null,
+        },
+        idempotencyKey,
+      );
+    } catch (e: any) {
+      if (typeof e?.message === 'string' && /saldo insuficiente/i.test(e.message)) {
+        throw new ConflictException({ message: e.message, code: 'INSUFFICIENT_STOCK' });
+      }
+      throw new BadRequestException(e?.message ?? 'Error al agregar a técnico');
+    }
   }
 
-  // Ajustar stock a un técnico (setear cantidad exacta)
-  @Post('/tecnicos/:tecnicoId/ajustar')
-  async ajustarStockTecnico(
-    @Param('tecnicoId') tecnicoId: string,
-    @Body() dto: MovimientoTecnicoDto,
+  @Post('tecnicos/:id/descontar')
+  @ApiOperation({ summary: 'Devolver desde TEC-{id} a MAIN' })
+  async descontarTecnico(
+    @Param('id') id: string,
+    @Body() dto: { materialId: number | string; cantidad: number | string; nota?: string | null },
+    @Headers('idempotency-key') idempotencyKey?: string,
   ) {
-    return this.inv.crearMovimiento({
-      tipo: 'ajuste',
-      tecnicoId,
-      materialId: dto.materialId,
-      cantidad: dto.cantidad,
-      nota: dto.nota,
-      modoAjuste: 'set',
-    });
+    try {
+      return await this.inv.descontarATecnico(
+        {
+          tecnicoId: id,
+          materialId: dto.materialId,
+          cantidad: dto.cantidad,
+          nota: dto.nota ?? null,
+        },
+        idempotencyKey,
+      );
+    } catch (e: any) {
+      if (typeof e?.message === 'string' && /saldo insuficiente/i.test(e.message)) {
+        throw new ConflictException({ message: e.message, code: 'INSUFFICIENT_STOCK' });
+      }
+      throw new BadRequestException(e?.message ?? 'Error al descontar a técnico');
+    }
   }
 
-  // Endpoints generales
-  @Get('/stock')
-  async stockGlobal() {
-    return this.inv.getStockGlobal();
-  }
-
-  @Get('/kardex')
-  async kardex() {
-    return this.inv.getKardex();
-  }
-
-  // Crear movimiento genérico
-  @Post('/movimientos')
-  async crearMovimiento(@Body() body: any) {
-    return this.inv.crearMovimiento(body);
+  @Post('tecnicos/:id/ajustar')
+  @ApiOperation({
+    summary: 'Ajuste sobre TEC-{id}',
+    description: "signo='mas' suma stock, signo='menos' descuenta stock",
+  })
+  async ajustarTecnico(
+    @Param('id') id: string,
+    @Body() dto: AjusteStockDto & { signo: 'mas' | 'menos'; nota?: string | null },
+    @Headers('idempotency-key') idempotencyKey?: string,
+  ) {
+    try {
+      return await this.inv.ajustarTecnico(
+        {
+          tecnicoId: id,
+          materialId: dto.materialId,
+          cantidad: dto.cantidad,
+          signo: dto.signo,
+          nota: dto.nota ?? null,
+        },
+        idempotencyKey,
+      );
+    } catch (e: any) {
+      if (typeof e?.message === 'string' && /saldo insuficiente/i.test(e.message)) {
+        throw new ConflictException({ message: e.message, code: 'INSUFFICIENT_STOCK' });
+      }
+      throw new BadRequestException(e?.message ?? 'Error al ajustar técnico');
+    }
   }
 }

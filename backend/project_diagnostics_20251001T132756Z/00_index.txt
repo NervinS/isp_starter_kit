@@ -1,6 +1,0 @@
-== Repo & árbol ==
-== Docker ==
-== Entorno y .env ==
-== Base de datos – catálogo y tamaños ==
-== Dumps rápidos (schema + seeds) ==
-== API – endpoints clave ==

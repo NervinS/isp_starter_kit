@@ -1,0 +1,3 @@
+# versión
+psql: error: falló la conexión al servidor en «127.0.0.1», puerto 5433: Connection refused
+	¿Está el servidor en ejecución en ese host y aceptando conexiones TCP/IP?

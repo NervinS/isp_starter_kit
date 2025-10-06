@@ -1,0 +1,25 @@
+                                                 Table "public.stock_almacen"
+   Column    |           Type           | Collation | Nullable | Default | Storage | Compression | Stats target | Description 
+-------------+--------------------------+-----------+----------+---------+---------+-------------+--------------+-------------
+ almacen_id  | uuid                     |           | not null |         | plain   |             |              | 
+ material_id | integer                  |           | not null |         | plain   |             |              | 
+ cantidad    | integer                  |           | not null | 0       | plain   |             |              | 
+ updated_at  | timestamp with time zone |           |          | now()   | plain   |             |              | 
+ created_at  | timestamp with time zone |           |          | now()   | plain   |             |              | 
+Indexes:
+    "stock_almacen_pkey" PRIMARY KEY, btree (almacen_id, material_id)
+    "idx_stock_almacen_mat" btree (almacen_id, material_id)
+    "idx_stock_almacen_material" btree (material_id)
+    "idx_stock_almacen_updated" btree (updated_at)
+    "ix_stock_almacen_almacen" btree (almacen_id)
+    "ix_stock_almacen_mat" btree (material_id)
+    "uq_stock_almacen_almacen_material" UNIQUE CONSTRAINT, btree (almacen_id, material_id)
+    "ux_stock_almacen" UNIQUE, btree (almacen_id, material_id)
+Check constraints:
+    "ck_stock_no_negativo" CHECK (cantidad >= 0)
+    "stock_almacen_cantidad_nonneg" CHECK (cantidad >= 0)
+Foreign-key constraints:
+    "stock_almacen_almacen_id_fkey" FOREIGN KEY (almacen_id) REFERENCES almacenes(id) ON DELETE CASCADE
+    "stock_almacen_material_id_fkey" FOREIGN KEY (material_id) REFERENCES materiales(id)
+Access method: heap
+

@@ -9,23 +9,44 @@ import {
   Query,
 } from '@nestjs/common';
 import { DataSource } from 'typeorm';
+import { OrdenesService } from './ordenes.service';
 
 type CerrarOrdenBody = {
   materiales?: Array<{ materialId: number; cantidad: number }>;
   notas?: string | null;
+  equipos?: Array<{
+    equipo_tipo: 'ONT' | 'REPEATER';
+    serial: string;
+    accion: 'asignar' | 'retirar' | 'mantener';
+  }>;
+  payload_cierre?: Record<string, any> | null;
+  firmaBase64?: string | null;
+  evidenciasBase64?: string[];
+  // para mapear almacén técnico por numero (p.ej. TEC-6 => 6)
+  tecnicoIdNum?: number | null;
+  // compat si envías UUID de técnico por otro flujo
+  tecnicoId?: string | null;
 };
 
-@Controller('ordenes') // se servirá como /v1/ordenes por el GlobalPrefix
+type GuardarBody = {
+  payload_abierto?: Record<string, any> | null;
+  evidencias?: Record<string, any> | null;
+};
+
+@Controller('ordenes') // => /v1/ordenes
 export class OrdenesController {
-  constructor(private readonly ds: DataSource) {}
+  constructor(
+    private readonly ds: DataSource,
+    private readonly ordenesService: OrdenesService,
+  ) {}
 
   /**
    * GET /v1/ordenes
    * Filtros:
    *  - tipo: 'INS' | ...
-   *  - estado: 'pendiente' | 'agendada' | 'en_proceso' | 'cerrada' | ...
+   *  - estado: 'creada' | 'agendada' | 'en_proceso' | 'cerrada' | ...
    *  - tecnicoId: UUID
-   *  - desde, hasta: YYYY-MM-DD (filtra por agendado_para)
+   *  - desde, hasta: YYYY-MM-DD (agendado_para)
    *  - limit, offset: paginación (1..200)
    */
   @Get()
@@ -68,18 +89,8 @@ export class OrdenesController {
       params.push(hasta);
     }
 
-    const limit = (() => {
-      const n = Number(limitStr ?? 50);
-      if (!Number.isFinite(n)) return 50;
-      return Math.min(Math.max(n, 1), 200);
-    })();
-
-    const offset = (() => {
-      const n = Number(offsetStr ?? 0);
-      if (!Number.isFinite(n) || n < 0) return 0;
-      return n;
-    })();
-
+    const limit = Math.min(Math.max(Number(limitStr ?? 50) || 50, 1), 200);
+    const offset = Math.max(Number(offsetStr ?? 0) || 0, 0);
     const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
 
     const sql = `
@@ -120,21 +131,35 @@ export class OrdenesController {
   }
 
   /**
+   * PUT /v1/ordenes/:codigo/guardar
+   * Guardado incremental de payload_abierto/evidencias (autosave).
+   */
+  @Put(':codigo/guardar')
+  async guardar(@Param('codigo') codigo: string, @Body() body: GuardarBody) {
+    return this.ordenesService.guardarParcial(codigo, {
+      payload_abierto: body?.payload_abierto ?? null,
+      evidencias: body?.evidencias ?? null,
+    });
+  }
+
+  /**
    * PUT /v1/ordenes/:codigo/cerrar
-   * (Se deja compatible; si tu versión tenía lógica de cierre/inventario,
-   * conserva esa implementación y añade sólo el método listar de arriba.)
+   * Cierre administrativo con soporte de equipos/materiales.
    */
   @Put(':codigo/cerrar')
-  async cerrar(
-    @Param('codigo') codigo: string,
-    @Body() body: CerrarOrdenBody,
-  ) {
-    // No-op mínima para compat; reemplaza por tu implementación real si ya la tenías.
-    return {
-      codigo,
-      estado: 'cerrada',
+  async cerrar(@Param('codigo') codigo: string, @Body() body: CerrarOrdenBody) {
+    const cierre = {
+      tecnicoId: body?.tecnicoId ?? null,
+      tecnicoIdNum: body?.tecnicoIdNum ?? null,
       materiales: body?.materiales ?? [],
+      equipos: Array.isArray(body?.equipos) ? body!.equipos : [],
+      payload_cierre: body?.payload_cierre ?? null,
+      firmaBase64: body?.firmaBase64 ?? null,
+      evidenciasBase64: Array.isArray(body?.evidenciasBase64)
+        ? body!.evidenciasBase64
+        : [],
       notas: body?.notas ?? null,
     };
+    return this.ordenesService.cerrarCompletoAdmin(codigo, cierre);
   }
 }

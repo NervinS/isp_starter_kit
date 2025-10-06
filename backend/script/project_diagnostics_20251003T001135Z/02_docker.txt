@@ -1,0 +1,428 @@
+NAME        IMAGE                COMMAND                  SERVICE   CREATED        STATUS                  PORTS
+isp-api     backend-api          "/sbin/tini -- node …"   api       2 hours ago    Up 2 hours              0.0.0.0:3000->3000/tcp, [::]:3000->3000/tcp
+isp-db      postgres:14-alpine   "docker-entrypoint.s…"   db        10 hours ago   Up 10 hours (healthy)   0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp
+isp-minio   minio/minio:latest   "/usr/bin/docker-ent…"   minio     30 hours ago   Up 30 hours             0.0.0.0:9000-9001->9000-9001/tcp, [::]:9000-9001->9000-9001/tcp
+
+# imágenes
+isp-backend       dev                            0736d6dd115a   2 weeks ago     420MB
+postgres          14-alpine                      7cc16441e813   3 weeks ago     269MB
+postgres          15-alpine                      c4e9dc301143   3 weeks ago     271MB
+node              20-alpine                      dc51168f088b   4 weeks ago     134MB
+node              20                             40c86503aab2   4 weeks ago     1.1GB
+postgres          15                             2f8873c7b0e6   7 weeks ago     468MB
+minio/mc          latest                         bd7abf680a51   2 months ago    82.3MB
+minio/minio       latest                         b9292014cabd   2 months ago    167MB
+minio/minio       RELEASE.2024-09-09T16-59-28Z   c8a198010037   12 months ago   152MB
+
+# logs api (últ. 400 líneas)
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:01 PM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+isp-api  | [DB] URL: postgresql://ispuser:***@db:5432/ispdb | SSL=off | pool.max=10
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:01 PM [32m    LOG[39m [38;5;3m[PDF] [39m[32m[init] bucket=evidencias endpoint=minio ssl=false publicBase=http://127.0.0.1:9000/evidencias/ upload=enabled[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:01 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +72ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:01 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:01 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPassportModule dependencies initialized[39m[38;5;3m +17ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:01 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMetricsModule dependencies initialized[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:01 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigHostModule dependencies initialized[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:01 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPdfModule dependencies initialized[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:01 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:01 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmCoreModule dependencies initialized[39m[38;5;3m +73ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:01 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHealthModule dependencies initialized[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:01 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mVentasModule dependencies initialized[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:01 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:01 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:01 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:01 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:01 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:01 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:01 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:01 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mJobsModule dependencies initialized[39m[38;5;3m +2ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:01 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mInventarioModule dependencies initialized[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:01 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTecnicosModule dependencies initialized[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:01 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAgendaModule dependencies initialized[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:01 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMaterialesModule dependencies initialized[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:01 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mOrdenesModule dependencies initialized[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:01 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mCatalogosModule dependencies initialized[39m[38;5;3m +1ms[39m
+isp-api  | [SEC] ApiKeyGuard ON (x-api-key requerido)
+isp-api  | [Swagger] Docs en http://127.0.0.1:3000/v1/docs
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mVentasController {/v1/ventas}:[39m[38;5;3m +83ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas, POST} route[39m[38;5;3m +4ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas, GET} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas/:codigo, GET} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas/:codigo/evidencias, POST} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas/:codigo/asegurar-ins, POST} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ventas/:codigo/pagar, POST} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mHealthController {/v1/health}:[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/health, GET} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mCatalogosController {/v1/catalogos}:[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/catalogos/municipios, GET} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/catalogos/vias, GET} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/catalogos/sectores, GET} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mMotivosReagendaPublicControllerKebab {/v1/catalogos}:[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/catalogos/motivos-reagenda, GET} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mMotivosReagendaPublicControllerUnderscore {/v1/catalogos/motivos_reagenda}:[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/catalogos/motivos_reagenda/items, GET} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mMotivosReagendaAdminController {/v1/admin/catalogos/motivos_reagenda/items}:[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/admin/catalogos/motivos_reagenda/items, GET} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/admin/catalogos/motivos_reagenda/items, POST} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/admin/catalogos/motivos_reagenda/items/:id, PATCH} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/admin/catalogos/motivos_reagenda/items/:id, DELETE} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mMotivosAnulacionPublicControllerKebab {/v1/catalogos/motivos-anulacion}:[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/catalogos/motivos-anulacion, GET} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mMotivosAnulacionAdminController {/v1/admin/catalogos/motivos_anulacion/items}:[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/admin/catalogos/motivos_anulacion/items, GET} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/admin/catalogos/motivos_anulacion/items, POST} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/admin/catalogos/motivos_anulacion/items/:id, PATCH} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/admin/catalogos/motivos_anulacion/items/:id, DELETE} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAgendaController {/v1/agenda}:[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/agenda/ordenes/:codigo/asignar, POST} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/agenda/ordenes/:codigo/reagendar, POST} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/agenda/ordenes/:codigo/cancelar, POST} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/agenda/ordenes/:codigo/anular, POST} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mTecnicosController {/v1/tecnicos}:[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/tecnicos/:tecnicoId/ordenes/pendientes, GET} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/tecnicos/:tecnicoId/ordenes/:ordenId/iniciar, POST} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/tecnicos/:tecnicoId/ordenes/codigo/:codigo/iniciar, POST} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/tecnicos/:tecnicoId/ordenes/:ordenId/cerrar, POST} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/tecnicos/:tecnicoId/ordenes/codigo/:codigo/cerrar, POST} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mPdfController {/v1/pdf}:[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/pdf/probe, GET} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/pdf/probe-put, POST} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mInventarioController {/v1/inventario}:[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/inventario/tecnicos/:tecnicoId/stock, GET} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/inventario/tecnicos/:tecnicoId/agregar, POST} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/inventario/tecnicos/:tecnicoId/descontar, POST} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/inventario/tecnicos/:tecnicoId/ajustar, POST} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/inventario/stock, GET} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/inventario/kardex, GET} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/inventario/movimientos, POST} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mMaterialesController {/v1/materiales}:[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/materiales, GET} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mOrdenesController {/v1/ordenes}:[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes, GET} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/ordenes/:codigo/cerrar, PUT} route[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mMetricsController {/v1/metrics}:[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/metrics, GET} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mJobsController {/v1/jobs}:[39m[38;5;3m +1ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/jobs/simular-cortes, POST} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/v1/jobs/simular-reconexiones, POST} route[39m[38;5;3m +0ms[39m
+isp-api  | [32m[Nest] 7  - [39m10/02/2025, 10:06:02 PM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +8ms[39m
+isp-api  | API running on http://0.0.0.0:3000/v1
+isp-api  | [REQ] GET /v1/health rid=932bcd58-d362-4e64-8019-070b328dc394
+isp-api  | [RES] GET /v1/health -> 200 5ms rid=932bcd58-d362-4e64-8019-070b328dc394
+isp-api  | [REQ] GET /v1/inventario/kardex?api_key=superdev rid=f85cb1ee-1537-4a07-b274-3725b3f6221c
+isp-api  | [REQ] GET /v1/inventario/kardex?api_key=superdev rid=f85cb1ee-1537-4a07-b274-3725b3f6221c
+isp-api  | [RES] GET /v1/inventario/kardex?api_key=superdev -> 200 25ms rid=f85cb1ee-1537-4a07-b274-3725b3f6221c
+isp-api  | [RES] GET /v1/inventario/kardex?api_key=superdev -> 200 34.9ms rid=f85cb1ee-1537-4a07-b274-3725b3f6221c
+isp-api  | [REQ] GET /v1/ordenes?limit=1 rid=9b70a180-020d-4fa0-9998-2668a0f728ea
+isp-api  | [RES] GET /v1/ordenes?limit=1 -> 401 5.9ms rid=9b70a180-020d-4fa0-9998-2668a0f728ea
+isp-api  | [REQ] GET /v1/tecnicos rid=922800da-fa09-4ee0-9725-5f4db80f34ed
+isp-api  | [RES] GET /v1/tecnicos -> 404 2.2ms rid=922800da-fa09-4ee0-9725-5f4db80f34ed
+isp-api  | [REQ] GET /v1/health rid=ef4509a1-186c-41fc-b2f6-739c84f0eba8
+isp-api  | [RES] GET /v1/health -> 200 20ms rid=ef4509a1-186c-41fc-b2f6-739c84f0eba8
+isp-api  | [REQ] GET /v1/health rid=43bba589-617c-407a-a5ea-1129ee15af02
+isp-api  | [RES] GET /v1/health -> 200 2ms rid=43bba589-617c-407a-a5ea-1129ee15af02
+isp-api  | [REQ] GET /v1/ordenes?limit=1 rid=c6756c94-b5ce-47d2-8d62-83b506a0e99f
+isp-api  | [REQ] GET /v1/ordenes?limit=1 rid=c6756c94-b5ce-47d2-8d62-83b506a0e99f
+isp-api  | [RES] GET /v1/ordenes?limit=1 -> 200 29ms rid=c6756c94-b5ce-47d2-8d62-83b506a0e99f
+isp-api  | [RES] GET /v1/ordenes?limit=1 -> 200 32.4ms rid=c6756c94-b5ce-47d2-8d62-83b506a0e99f
+isp-api  | [REQ] GET /v1/tecnicos rid=ab8fd65b-9308-4e46-8d09-5bdd35d622e6
+isp-api  | [RES] GET /v1/tecnicos -> 404 2.3ms rid=ab8fd65b-9308-4e46-8d09-5bdd35d622e6
+isp-api  | [REQ] GET /v1/health rid=1e636bb4-e642-4531-a807-6cc151c3a4d2
+isp-api  | [RES] GET /v1/health -> 200 3ms rid=1e636bb4-e642-4531-a807-6cc151c3a4d2
+isp-api  | [REQ] GET /v1/health rid=952d7661-a881-42fc-8936-3a5e481910e3
+isp-api  | [RES] GET /v1/health -> 200 2ms rid=952d7661-a881-42fc-8936-3a5e481910e3
+isp-api  | [REQ] GET /v1/ordenes?limit=1 rid=ae541a2b-e961-4efd-a91f-2fe63e907883
+isp-api  | [REQ] GET /v1/ordenes?limit=1 rid=ae541a2b-e961-4efd-a91f-2fe63e907883
+isp-api  | [RES] GET /v1/ordenes?limit=1 -> 200 27ms rid=ae541a2b-e961-4efd-a91f-2fe63e907883
+isp-api  | [RES] GET /v1/ordenes?limit=1 -> 200 31.3ms rid=ae541a2b-e961-4efd-a91f-2fe63e907883
+isp-api  | [REQ] PUT /v1/ordenes/MAN-250929183814/cerrar rid=1de931c5-bcce-4243-9c63-6d9abf53e017
+isp-api  | [REQ] PUT /v1/ordenes/MAN-250929183814/cerrar rid=1de931c5-bcce-4243-9c63-6d9abf53e017
+isp-api  | [RES] PUT /v1/ordenes/MAN-250929183814/cerrar -> 200 1ms rid=1de931c5-bcce-4243-9c63-6d9abf53e017
+isp-api  | [RES] PUT /v1/ordenes/MAN-250929183814/cerrar -> 200 2.8ms rid=1de931c5-bcce-4243-9c63-6d9abf53e017
+isp-api  | [REQ] GET /v1/materiales rid=e5712388-95d5-4483-b8d5-018574046b1f
+isp-api  | [REQ] GET /v1/materiales rid=e5712388-95d5-4483-b8d5-018574046b1f
+isp-api  | [RES] GET /v1/materiales -> 200 19ms rid=e5712388-95d5-4483-b8d5-018574046b1f
+isp-api  | [RES] GET /v1/materiales -> 200 21.0ms rid=e5712388-95d5-4483-b8d5-018574046b1f
+isp-api  | [REQ] GET /v1/inventario/tecnicos/6/stock rid=fd1149dd-46df-47fa-849b-e17d5d16ca69
+isp-api  | [REQ] GET /v1/inventario/tecnicos/6/stock rid=fd1149dd-46df-47fa-849b-e17d5d16ca69
+isp-api  | [RES] GET /v1/inventario/tecnicos/6/stock -> 200 14ms rid=fd1149dd-46df-47fa-849b-e17d5d16ca69
+isp-api  | [RES] GET /v1/inventario/tecnicos/6/stock -> 200 15.6ms rid=fd1149dd-46df-47fa-849b-e17d5d16ca69
+isp-api  | [REQ] POST /v1/inventario/tecnicos/6/agregar rid=b118738a-53ac-47ed-819b-caf80e504e29
+isp-api  | [REQ] POST /v1/inventario/tecnicos/6/agregar rid=b118738a-53ac-47ed-819b-caf80e504e29
+isp-api  | [RES] POST /v1/inventario/tecnicos/6/agregar -> 201 31ms rid=b118738a-53ac-47ed-819b-caf80e504e29
+isp-api  | [RES] POST /v1/inventario/tecnicos/6/agregar -> 201 32.8ms rid=b118738a-53ac-47ed-819b-caf80e504e29
+isp-api  | [REQ] POST /v1/inventario/tecnicos/6/descontar rid=77b21a60-5a9a-487d-a15f-d2f71b3aaff3
+isp-api  | [REQ] POST /v1/inventario/tecnicos/6/descontar rid=77b21a60-5a9a-487d-a15f-d2f71b3aaff3
+isp-api  | [RES] POST /v1/inventario/tecnicos/6/descontar -> 201 13ms rid=77b21a60-5a9a-487d-a15f-d2f71b3aaff3
+isp-api  | [RES] POST /v1/inventario/tecnicos/6/descontar -> 201 13.8ms rid=77b21a60-5a9a-487d-a15f-d2f71b3aaff3
+isp-api  | [REQ] POST /v1/inventario/tecnicos/6/ajustar rid=1d396687-80cd-4365-a930-29cc6fcd70e8
+isp-api  | [REQ] POST /v1/inventario/tecnicos/6/ajustar rid=1d396687-80cd-4365-a930-29cc6fcd70e8
+isp-api  | [RES] POST /v1/inventario/tecnicos/6/ajustar -> 201 14ms rid=1d396687-80cd-4365-a930-29cc6fcd70e8
+isp-api  | [RES] POST /v1/inventario/tecnicos/6/ajustar -> 201 17.9ms rid=1d396687-80cd-4365-a930-29cc6fcd70e8
+isp-api  | [REQ] POST /v1/inventario/tecnicos/6/descontar rid=cb369df0-94ae-41f0-bb84-57b5fd437856
+isp-api  | [REQ] POST /v1/inventario/tecnicos/6/descontar rid=cb369df0-94ae-41f0-bb84-57b5fd437856
+isp-api  | [ERR] POST /v1/inventario/tecnicos/6/descontar -> 201 7ms rid=cb369df0-94ae-41f0-bb84-57b5fd437856 msg=saldo insuficiente
+isp-api  | [RES] POST /v1/inventario/tecnicos/6/descontar -> 409 8.9ms rid=cb369df0-94ae-41f0-bb84-57b5fd437856
+isp-api  | [REQ] GET /v1/health rid=d41c958f-4731-4b36-901a-6d0550fe87d8
+isp-api  | [RES] GET /v1/health -> 200 2ms rid=d41c958f-4731-4b36-901a-6d0550fe87d8
+isp-api  | [REQ] GET /v1/health rid=ff3f64de-bdc7-4535-92cd-687e84661a27
+isp-api  | [RES] GET /v1/health -> 200 2ms rid=ff3f64de-bdc7-4535-92cd-687e84661a27
+isp-api  | [REQ] GET /v1/ordenes?limit=1 rid=f725f02b-11ed-4733-835b-ba8ad3d6142f
+isp-api  | [REQ] GET /v1/ordenes?limit=1 rid=f725f02b-11ed-4733-835b-ba8ad3d6142f
+isp-api  | [RES] GET /v1/ordenes?limit=1 -> 200 24ms rid=f725f02b-11ed-4733-835b-ba8ad3d6142f
+isp-api  | [RES] GET /v1/ordenes?limit=1 -> 200 27.8ms rid=f725f02b-11ed-4733-835b-ba8ad3d6142f
+isp-api  | [REQ] PUT /v1/ordenes/MAN-250929183814/cerrar rid=0907821b-d37f-44cd-8ac4-6db9ebbcca0f
+isp-api  | [REQ] PUT /v1/ordenes/MAN-250929183814/cerrar rid=0907821b-d37f-44cd-8ac4-6db9ebbcca0f
+isp-api  | [RES] PUT /v1/ordenes/MAN-250929183814/cerrar -> 200 0ms rid=0907821b-d37f-44cd-8ac4-6db9ebbcca0f
+isp-api  | [RES] PUT /v1/ordenes/MAN-250929183814/cerrar -> 200 2.1ms rid=0907821b-d37f-44cd-8ac4-6db9ebbcca0f
+isp-api  | [REQ] PUT /v1/ordenes/MAN-250929183814/cerrar rid=c24aaeb3-d2df-45ed-b0d1-5a72af7cd1b5
+isp-api  | [REQ] PUT /v1/ordenes/MAN-250929183814/cerrar rid=c24aaeb3-d2df-45ed-b0d1-5a72af7cd1b5
+isp-api  | [RES] PUT /v1/ordenes/MAN-250929183814/cerrar -> 200 1ms rid=c24aaeb3-d2df-45ed-b0d1-5a72af7cd1b5
+isp-api  | [RES] PUT /v1/ordenes/MAN-250929183814/cerrar -> 200 1.6ms rid=c24aaeb3-d2df-45ed-b0d1-5a72af7cd1b5
+isp-api  | [REQ] GET /v1/materiales rid=4d7d11e3-e302-46ce-9979-2c615ef97e8b
+isp-api  | [REQ] GET /v1/materiales rid=4d7d11e3-e302-46ce-9979-2c615ef97e8b
+isp-api  | [RES] GET /v1/materiales -> 200 5ms rid=4d7d11e3-e302-46ce-9979-2c615ef97e8b
+isp-api  | [RES] GET /v1/materiales -> 200 6.7ms rid=4d7d11e3-e302-46ce-9979-2c615ef97e8b
+isp-api  | [REQ] GET /v1/inventario/tecnicos/6/stock rid=4d382a14-f659-4e47-9551-f83b05efbb65
+isp-api  | [REQ] GET /v1/inventario/tecnicos/6/stock rid=4d382a14-f659-4e47-9551-f83b05efbb65
+isp-api  | [RES] GET /v1/inventario/tecnicos/6/stock -> 200 11ms rid=4d382a14-f659-4e47-9551-f83b05efbb65
+isp-api  | [RES] GET /v1/inventario/tecnicos/6/stock -> 200 12.6ms rid=4d382a14-f659-4e47-9551-f83b05efbb65
+isp-api  | [REQ] POST /v1/inventario/tecnicos/6/agregar rid=3feb337c-1aa0-403c-a88b-8f4bffc944bf
+isp-api  | [REQ] POST /v1/inventario/tecnicos/6/agregar rid=3feb337c-1aa0-403c-a88b-8f4bffc944bf
+isp-api  | [RES] POST /v1/inventario/tecnicos/6/agregar -> 201 20ms rid=3feb337c-1aa0-403c-a88b-8f4bffc944bf
+isp-api  | [RES] POST /v1/inventario/tecnicos/6/agregar -> 201 21.3ms rid=3feb337c-1aa0-403c-a88b-8f4bffc944bf
+isp-api  | [REQ] POST /v1/inventario/tecnicos/6/descontar rid=6f4df0fc-0072-4518-ad37-16435729b497
+isp-api  | [REQ] POST /v1/inventario/tecnicos/6/descontar rid=6f4df0fc-0072-4518-ad37-16435729b497
+isp-api  | [RES] POST /v1/inventario/tecnicos/6/descontar -> 201 12ms rid=6f4df0fc-0072-4518-ad37-16435729b497
+isp-api  | [RES] POST /v1/inventario/tecnicos/6/descontar -> 201 13.5ms rid=6f4df0fc-0072-4518-ad37-16435729b497
+isp-api  | [REQ] POST /v1/inventario/tecnicos/6/ajustar rid=16845aba-e37f-4f22-a333-2b4313b2db33
+isp-api  | [REQ] POST /v1/inventario/tecnicos/6/ajustar rid=16845aba-e37f-4f22-a333-2b4313b2db33
+isp-api  | [RES] POST /v1/inventario/tecnicos/6/ajustar -> 201 12ms rid=16845aba-e37f-4f22-a333-2b4313b2db33
+isp-api  | [RES] POST /v1/inventario/tecnicos/6/ajustar -> 201 13.2ms rid=16845aba-e37f-4f22-a333-2b4313b2db33
+isp-api  | [REQ] POST /v1/inventario/tecnicos/6/descontar rid=ab2b0d15-1a20-4be4-8847-4bff51ee891d
+isp-api  | [REQ] POST /v1/inventario/tecnicos/6/descontar rid=ab2b0d15-1a20-4be4-8847-4bff51ee891d
+isp-api  | [ERR] POST /v1/inventario/tecnicos/6/descontar -> 201 7ms rid=ab2b0d15-1a20-4be4-8847-4bff51ee891d msg=saldo insuficiente
+isp-api  | [RES] POST /v1/inventario/tecnicos/6/descontar -> 409 8.2ms rid=ab2b0d15-1a20-4be4-8847-4bff51ee891d
+isp-api  | [REQ] GET /v1/health rid=4c5fd985-0434-4ef8-901d-6ca20e380499
+isp-api  | [RES] GET /v1/health -> 200 2ms rid=4c5fd985-0434-4ef8-901d-6ca20e380499
+isp-api  | [REQ] GET /v1/health rid=75aaeee7-8276-4f80-90f5-ad2d39680835
+isp-api  | [RES] GET /v1/health -> 200 2ms rid=75aaeee7-8276-4f80-90f5-ad2d39680835
+
+# logs db (últ. 200 líneas)
+isp-db  | 	  -- ¿Existe la base int-first con int8?
+isp-db  | 	  IF EXISTS (
+isp-db  | 	    SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+isp-db  | 	     WHERE n.nspname='public' AND p.proname='fn_mov_simple'
+isp-db  | 	       AND pg_get_function_identity_arguments(p.oid) = 'tipo text, material_id bigint, almacen_id uuid, cantidad numeric, nota text'
+isp-db  | 	  ) THEN
+isp-db  | 	    -- Crea/Actualiza wrapper uuid-first -> llama a int-first (int8)
+isp-db  | 	    CREATE OR REPLACE FUNCTION public.fn_mov_simple(tipo text, almacen_id uuid, material_id integer, cantidad numeric, nota text)
+isp-db  | 	    RETURNS void
+isp-db  | 	    LANGUAGE sql AS $f$
+isp-db  | 	      SELECT public.fn_mov_simple(tipo, material_id::bigint, almacen_id, cantidad, nota)
+isp-db  | 	    $f$;
+isp-db  | 	  END IF;
+isp-db  | 	
+isp-db  | 	  -- ¿Existe la base uuid-first?
+isp-db  | 	  IF EXISTS (
+isp-db  | 	    SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+isp-db  | 	     WHERE n.nspname='public' AND p.proname='fn_mov_simple'
+isp-db  | 	       AND pg_get_function_identity_arguments(p.oid) = 'tipo text, almacen_id uuid, material_id integer, cantidad numeric, nota text'
+isp-db  | 	  ) THEN
+isp-db  | 	    -- Crea/Actualiza wrapper int-first (int4) -> llama a uuid-first
+isp-db  | 	    CREATE OR REPLACE FUNCTION public.fn_mov_simple(tipo text, material_id integer, almacen_id uuid, cantidad numeric, nota text)
+isp-db  | 	    RETURNS void
+isp-db  | 	    LANGUAGE sql AS $f$
+isp-db  | 	      SELECT public.fn_mov_simple(tipo, almacen_id, material_id, cantidad, nota)
+isp-db  | 	    $f$;
+isp-db  | 	
+isp-db  | 	    -- Variante bigint por si alguien llama con int8
+isp-db  | 	    CREATE OR REPLACE FUNCTION public.fn_mov_simple(tipo text, material_id bigint, almacen_id uuid, cantidad numeric, nota text)
+isp-db  | 	    RETURNS void
+isp-db  | 	    LANGUAGE sql AS $f$
+isp-db  | 	      SELECT public.fn_mov_simple(tipo, almacen_id, material_id::integer, cantidad, nota)
+isp-db  | 	    $f$;
+isp-db  | 	  END IF;
+isp-db  | 	
+isp-db  | 	  -- Seguridad: si ninguna existe, avisar claramente.
+isp-db  | 	  IF NOT EXISTS (
+isp-db  | 	    SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+isp-db  | 	     WHERE n.nspname='public' AND p.proname='fn_mov_simple'
+isp-db  | 	  ) THEN
+isp-db  | 	    RAISE EXCEPTION 'No existe ninguna sobrecarga base de public.fn_mov_simple; corre la migración que la crea.';
+isp-db  | 	  END IF;
+isp-db  | 	END$$;
+isp-db  | 2025-10-02 16:11:05.954 UTC [12222] ERROR:  invalid input syntax for type bigint: "8f3fe984-9b71-47b6-a2ad-7264f3263864"
+isp-db  | 2025-10-02 16:11:05.954 UTC [12222] CONTEXT:  PL/pgSQL function fn_mov_simple(text,uuid,integer,numeric,text) line 16 at SQL statement
+isp-db  | 2025-10-02 16:11:05.954 UTC [12222] STATEMENT:  SELECT fn_mov_simple($1::text,$2::uuid,$3::int,$4::numeric,$5)
+isp-db  | 2025-10-02 16:11:05.957 UTC [12222] ERROR:  invalid input syntax for type bigint: "a566058c-0b93-4a98-9e04-4c233c1347d6"
+isp-db  | 2025-10-02 16:11:05.957 UTC [12222] CONTEXT:  PL/pgSQL function fn_mov_simple(text,uuid,integer,numeric,text) line 16 at SQL statement
+isp-db  | 	SQL function "fn_mov_simple" statement 1
+isp-db  | 2025-10-02 16:11:05.957 UTC [12222] STATEMENT:  SELECT fn_mov_simple($1::text,$2::int,$3::uuid,$4::numeric,$5)
+isp-db  | 2025-10-02 16:12:17.067 UTC [12337] ERROR:  invalid input syntax for type bigint: "cead657f-dc5e-4123-b4ba-7caa240824fa"
+isp-db  | 2025-10-02 16:12:17.067 UTC [12337] CONTEXT:  PL/pgSQL function fn_mov_simple(text,uuid,integer,numeric,text) line 16 at SQL statement
+isp-db  | 2025-10-02 16:12:17.067 UTC [12337] STATEMENT:  SELECT fn_mov_simple($1::text,$2::uuid,$3::int,$4::numeric,$5)
+isp-db  | 2025-10-02 16:12:17.070 UTC [12337] ERROR:  invalid input syntax for type bigint: "ad137885-3a5e-4f30-9456-922eff46c993"
+isp-db  | 2025-10-02 16:12:17.070 UTC [12337] CONTEXT:  PL/pgSQL function fn_mov_simple(text,uuid,integer,numeric,text) line 16 at SQL statement
+isp-db  | 	SQL function "fn_mov_simple" statement 1
+isp-db  | 2025-10-02 16:12:17.070 UTC [12337] STATEMENT:  SELECT fn_mov_simple($1::text,$2::int,$3::uuid,$4::numeric,$5)
+isp-db  | 2025-10-02 16:12:17.138 UTC [12337] ERROR:  invalid input syntax for type bigint: "e3fbb3fb-d3a2-44c7-be7d-a93eea3652cb"
+isp-db  | 2025-10-02 16:12:17.138 UTC [12337] CONTEXT:  PL/pgSQL function fn_mov_simple(text,uuid,integer,numeric,text) line 16 at SQL statement
+isp-db  | 2025-10-02 16:12:17.138 UTC [12337] STATEMENT:  SELECT fn_mov_simple($1::text,$2::uuid,$3::int,$4::numeric,$5)
+isp-db  | 2025-10-02 16:12:17.140 UTC [12337] ERROR:  invalid input syntax for type bigint: "46e00234-3e4d-4c95-a2c9-4f6c4c62ae60"
+isp-db  | 2025-10-02 16:12:17.140 UTC [12337] CONTEXT:  PL/pgSQL function fn_mov_simple(text,uuid,integer,numeric,text) line 16 at SQL statement
+isp-db  | 	SQL function "fn_mov_simple" statement 1
+isp-db  | 2025-10-02 16:12:17.140 UTC [12337] STATEMENT:  SELECT fn_mov_simple($1::text,$2::int,$3::uuid,$4::numeric,$5)
+isp-db  | 2025-10-02 16:20:07.320 UTC [13098] ERROR:  insert or update on table "stock_almacen" violates foreign key constraint "stock_almacen_almacen_id_fkey"
+isp-db  | 2025-10-02 16:20:07.320 UTC [13098] DETAIL:  Key (almacen_id)=(00000000-0000-0000-0000-000000000000) is not present in table "almacenes".
+isp-db  | 2025-10-02 16:20:07.320 UTC [13098] CONTEXT:  SQL statement "INSERT INTO public.stock_almacen (almacen_id, material_id, cantidad, updated_at)
+isp-db  | 	      VALUES (_almacen, _material, GREATEST(0, _delta), now())"
+isp-db  | 	PL/pgSQL function fn_stock_apply(uuid,integer,numeric) line 15 at SQL statement
+isp-db  | 	SQL statement "SELECT fn_stock_apply(_almacen, _material, _delta)"
+isp-db  | 	PL/pgSQL function fn_mov_simple(text,uuid,integer,numeric,text) line 14 at PERFORM
+isp-db  | 	SQL function "fn_mov_simple" statement 1
+isp-db  | 2025-10-02 16:20:07.320 UTC [13098] STATEMENT:  SELECT public.fn_mov_simple('ingreso', 1, '00000000-0000-0000-0000-000000000000'::uuid, 1, 'probe');
+isp-db  | 2025-10-02 16:21:01.632 UTC [13208] ERROR:  invalid input syntax for type bigint: "f9d7ebe0-f3e1-41cb-a536-810c5c5e8202"
+isp-db  | 2025-10-02 16:21:01.632 UTC [13208] CONTEXT:  PL/pgSQL function fn_mov_simple(text,uuid,integer,numeric,text) line 16 at SQL statement
+isp-db  | 	SQL function "fn_mov_simple" statement 1
+isp-db  | 	SQL statement "SELECT public.fn_mov_simple(p_tipo, p_material_id::int, p_almacen_id, p_cantidad, p_nota)"
+isp-db  | 	PL/pgSQL function fn_mov_simple_std(text,uuid,integer,numeric,text) line 5 at PERFORM
+isp-db  | 2025-10-02 16:21:01.632 UTC [13208] STATEMENT:  SELECT public.fn_mov_simple_std($1::text,$2::uuid,$3::int,$4::numeric,$5)
+isp-db  | 2025-10-02 16:21:01.711 UTC [13208] ERROR:  invalid input syntax for type bigint: "fdb156a9-417b-40b5-a0b9-065ada75fdc0"
+isp-db  | 2025-10-02 16:21:01.711 UTC [13208] CONTEXT:  PL/pgSQL function fn_mov_simple(text,uuid,integer,numeric,text) line 16 at SQL statement
+isp-db  | 	SQL function "fn_mov_simple" statement 1
+isp-db  | 	SQL statement "SELECT public.fn_mov_simple(p_tipo, p_material_id::int, p_almacen_id, p_cantidad, p_nota)"
+isp-db  | 	PL/pgSQL function fn_mov_simple_std(text,uuid,integer,numeric,text) line 5 at PERFORM
+isp-db  | 2025-10-02 16:21:01.711 UTC [13208] STATEMENT:  SELECT public.fn_mov_simple_std($1::text,$2::uuid,$3::int,$4::numeric,$5)
+isp-db  | 2025-10-02 16:37:06.506 UTC [14778] ERROR:  invalid input syntax for type bigint: "86a2ada4-0e35-445d-b7b7-1809748c831f"
+isp-db  | 2025-10-02 16:37:06.506 UTC [14778] CONTEXT:  PL/pgSQL function fn_mov_simple(text,uuid,integer,numeric,text) line 16 at SQL statement
+isp-db  | 	SQL function "fn_mov_simple" statement 1
+isp-db  | 	SQL statement "SELECT public.fn_mov_simple(p_tipo, p_material_id::int, p_almacen_id, p_cantidad, p_nota)"
+isp-db  | 	PL/pgSQL function fn_mov_simple_std(text,uuid,integer,numeric,text) line 5 at PERFORM
+isp-db  | 2025-10-02 16:37:06.506 UTC [14778] STATEMENT:  SELECT public.fn_mov_simple_std($1::text,$2::uuid,$3::int,$4::numeric,$5)
+isp-db  | 2025-10-02 16:37:06.582 UTC [14778] ERROR:  invalid input syntax for type bigint: "b472488f-44a2-442c-95c9-afa24a40cf5a"
+isp-db  | 2025-10-02 16:37:06.582 UTC [14778] CONTEXT:  PL/pgSQL function fn_mov_simple(text,uuid,integer,numeric,text) line 16 at SQL statement
+isp-db  | 	SQL function "fn_mov_simple" statement 1
+isp-db  | 	SQL statement "SELECT public.fn_mov_simple(p_tipo, p_material_id::int, p_almacen_id, p_cantidad, p_nota)"
+isp-db  | 	PL/pgSQL function fn_mov_simple_std(text,uuid,integer,numeric,text) line 5 at PERFORM
+isp-db  | 2025-10-02 16:37:06.582 UTC [14778] STATEMENT:  SELECT public.fn_mov_simple_std($1::text,$2::uuid,$3::int,$4::numeric,$5)
+isp-db  | 2025-10-02 16:39:54.562 UTC [15044] ERROR:  invalid input syntax for type bigint: "24582655-98dc-4a06-9a71-6814107ab367"
+isp-db  | 2025-10-02 16:39:54.562 UTC [15044] CONTEXT:  PL/pgSQL function fn_mov_simple(text,uuid,integer,numeric,text) line 16 at SQL statement
+isp-db  | 	SQL function "fn_mov_simple" statement 1
+isp-db  | 	SQL statement "SELECT public.fn_mov_simple(p_tipo, p_material_id::int, p_almacen_id, p_cantidad, p_nota)"
+isp-db  | 	PL/pgSQL function fn_mov_simple_std(text,uuid,integer,numeric,text) line 5 at PERFORM
+isp-db  | 2025-10-02 16:39:54.562 UTC [15044] STATEMENT:  SELECT public.fn_mov_simple_std($1::text,$2::uuid,$3::int,$4::numeric,$5)
+isp-db  | 2025-10-02 16:39:54.644 UTC [15044] ERROR:  invalid input syntax for type bigint: "5715838a-6a54-4ce3-be50-a3bb1e9b7e98"
+isp-db  | 2025-10-02 16:39:54.644 UTC [15044] CONTEXT:  PL/pgSQL function fn_mov_simple(text,uuid,integer,numeric,text) line 16 at SQL statement
+isp-db  | 	SQL function "fn_mov_simple" statement 1
+isp-db  | 	SQL statement "SELECT public.fn_mov_simple(p_tipo, p_material_id::int, p_almacen_id, p_cantidad, p_nota)"
+isp-db  | 	PL/pgSQL function fn_mov_simple_std(text,uuid,integer,numeric,text) line 5 at PERFORM
+isp-db  | 2025-10-02 16:39:54.644 UTC [15044] STATEMENT:  SELECT public.fn_mov_simple_std($1::text,$2::uuid,$3::int,$4::numeric,$5)
+isp-db  | 2025-10-02 16:43:20.751 UTC [15404] ERROR:  invalid input syntax for type uuid: "<ALM_ID>" at character 47
+isp-db  | 2025-10-02 16:43:20.751 UTC [15404] STATEMENT:  
+isp-db  | 	  SELECT public.fn_mov_simple_std('ingreso', '<ALM_ID>'::uuid, 1, 5, 'probe');
+isp-db  | 	
+isp-db  | 2025-10-02 16:43:29.111 UTC [15419] ERROR:  invalid input syntax for type uuid: "<ALM_ID>" at character 47
+isp-db  | 2025-10-02 16:43:29.111 UTC [15419] STATEMENT:  
+isp-db  | 	  SELECT public.fn_mov_simple_std('egreso',  '<ALM_ID>'::uuid, 1, 3, 'probe');
+isp-db  | 	  SELECT public.fn_mov_simple_std('ajuste',  '<ALM_ID>'::uuid, 1, 2, 'set=2');
+isp-db  | 	
+isp-db  | 2025-10-02 16:43:46.330 UTC [15473] ERROR:  syntax error at or near "\" at character 4
+isp-db  | 2025-10-02 16:43:46.330 UTC [15473] STATEMENT:  
+isp-db  | 	  \d+ public.stock_almacen;
+isp-db  | 	  SELECT COUNT(*) FROM materiales;
+isp-db  | 	
+isp-db  | 2025-10-02 16:45:20.154 UTC [15629] ERROR:  invalid input syntax for type bigint: "30b9f4eb-5269-4ae3-8fe2-a498d3f744b2"
+isp-db  | 2025-10-02 16:45:20.154 UTC [15629] CONTEXT:  PL/pgSQL function fn_mov_simple(text,uuid,integer,numeric,text) line 16 at SQL statement
+isp-db  | 	SQL function "fn_mov_simple" statement 1
+isp-db  | 	SQL statement "SELECT public.fn_mov_simple(p_tipo, p_material_id::int, p_almacen_id, p_cantidad, p_nota)"
+isp-db  | 	PL/pgSQL function fn_mov_simple_std(text,uuid,integer,numeric,text) line 5 at PERFORM
+isp-db  | 2025-10-02 16:45:20.154 UTC [15629] STATEMENT:  SELECT public.fn_mov_simple_std('ingreso','bdf0d98a-f0ee-4f42-a761-11be1a352e61'::uuid, 1, 5, 'probe');
+isp-db  | 2025-10-02 16:45:20.433 UTC [15636] ERROR:  invalid input syntax for type bigint: "74446d9b-665a-48e1-a949-17b36a5bae2a"
+isp-db  | 2025-10-02 16:45:20.433 UTC [15636] CONTEXT:  PL/pgSQL function fn_mov_simple(text,uuid,integer,numeric,text) line 16 at SQL statement
+isp-db  | 	SQL function "fn_mov_simple" statement 1
+isp-db  | 	SQL statement "SELECT public.fn_mov_simple(p_tipo, p_material_id::int, p_almacen_id, p_cantidad, p_nota)"
+isp-db  | 	PL/pgSQL function fn_mov_simple_std(text,uuid,integer,numeric,text) line 5 at PERFORM
+isp-db  | 2025-10-02 16:45:20.433 UTC [15636] STATEMENT:  SELECT public.fn_mov_simple_std('egreso','bdf0d98a-f0ee-4f42-a761-11be1a352e61'::uuid, 1, 3, 'probe');
+isp-db  | 2025-10-02 16:45:20.651 UTC [15643] ERROR:  invalid input syntax for type bigint: "491fe038-769f-41f9-b357-bc2a679a9911"
+isp-db  | 2025-10-02 16:45:20.651 UTC [15643] CONTEXT:  PL/pgSQL function fn_mov_simple(text,uuid,integer,numeric,text) line 16 at SQL statement
+isp-db  | 	SQL function "fn_mov_simple" statement 1
+isp-db  | 	SQL statement "SELECT public.fn_mov_simple(p_tipo, p_material_id::int, p_almacen_id, p_cantidad, p_nota)"
+isp-db  | 	PL/pgSQL function fn_mov_simple_std(text,uuid,integer,numeric,text) line 5 at PERFORM
+isp-db  | 2025-10-02 16:45:20.651 UTC [15643] STATEMENT:  SELECT public.fn_mov_simple_std('ajuste','bdf0d98a-f0ee-4f42-a761-11be1a352e61'::uuid, 1, 2, 'set=2');
+isp-db  | 2025-10-02 16:45:46.775 UTC [15713] ERROR:  invalid input syntax for type bigint: "8ea8c0d9-0df3-41c5-9e83-1ca1be89d94e"
+isp-db  | 2025-10-02 16:45:46.775 UTC [15713] CONTEXT:  PL/pgSQL function fn_mov_simple(text,uuid,integer,numeric,text) line 16 at SQL statement
+isp-db  | 	SQL function "fn_mov_simple" statement 1
+isp-db  | 	SQL statement "SELECT public.fn_mov_simple(p_tipo, p_material_id::int, p_almacen_id, p_cantidad, p_nota)"
+isp-db  | 	PL/pgSQL function fn_mov_simple_std(text,uuid,integer,numeric,text) line 5 at PERFORM
+isp-db  | 2025-10-02 16:45:46.775 UTC [15713] STATEMENT:  SELECT public.fn_mov_simple_std($1::text,$2::uuid,$3::int,$4::numeric,$5)
+isp-db  | 2025-10-02 16:45:46.853 UTC [15713] ERROR:  invalid input syntax for type bigint: "46bf2023-16f5-4dc7-86d1-9cd5f3e1c431"
+isp-db  | 2025-10-02 16:45:46.853 UTC [15713] CONTEXT:  PL/pgSQL function fn_mov_simple(text,uuid,integer,numeric,text) line 16 at SQL statement
+isp-db  | 	SQL function "fn_mov_simple" statement 1
+isp-db  | 	SQL statement "SELECT public.fn_mov_simple(p_tipo, p_material_id::int, p_almacen_id, p_cantidad, p_nota)"
+isp-db  | 	PL/pgSQL function fn_mov_simple_std(text,uuid,integer,numeric,text) line 5 at PERFORM
+isp-db  | 2025-10-02 16:45:46.853 UTC [15713] STATEMENT:  SELECT public.fn_mov_simple_std($1::text,$2::uuid,$3::int,$4::numeric,$5)
+isp-db  | 2025-10-02 16:50:28.039 UTC [16129] ERROR:  Cantidad debe ser > 0
+isp-db  | 2025-10-02 16:50:28.039 UTC [16129] CONTEXT:  PL/pgSQL function fn_mov_simple(text,uuid,integer,numeric,text) line 5 at RAISE
+isp-db  | 	SQL function "fn_mov_simple" statement 1
+isp-db  | 	SQL statement "SELECT public.fn_mov_simple(p_tipo, p_material_id::int, p_almacen_id, p_cantidad, p_nota)"
+isp-db  | 	PL/pgSQL function fn_mov_simple_std(text,uuid,integer,numeric,text) line 5 at PERFORM
+isp-db  | 2025-10-02 16:50:28.039 UTC [16129] STATEMENT:  SELECT public.fn_mov_simple_std('ajuste', (SELECT alm_id FROM t_alm), 1, 0, 'reset a 0');
+isp-db  | 2025-10-02 17:05:26.318 UTC [17659] ERROR:  cannot drop columns from view
+isp-db  | 2025-10-02 17:05:26.318 UTC [17659] STATEMENT:  CREATE OR REPLACE VIEW public.v_kardex_det AS
+isp-db  | 	SELECT
+isp-db  | 	  mv.id,
+isp-db  | 	  mv.fecha,
+isp-db  | 	  mv.tipo,
+isp-db  | 	  mv.material_id,
+isp-db  | 	  m.codigo  AS material_codigo,
+isp-db  | 	  m.nombre  AS material_nombre,
+isp-db  | 	  COALESCE(mv.from_almacen_id, mv.to_almacen_id) AS almacen_id,
+isp-db  | 	  a.codigo  AS almacen_codigo,
+isp-db  | 	  a.nombre  AS almacen_nombre,
+isp-db  | 	  mv.from_almacen_id,
+isp-db  | 	  a_from.codigo AS from_almacen_codigo,
+isp-db  | 	  mv.to_almacen_id,
+isp-db  | 	  a_to.codigo   AS to_almacen_codigo,
+isp-db  | 	  mv.cantidad,
+isp-db  | 	  CASE
+isp-db  | 	    WHEN mv.tipo='egreso' THEN -mv.cantidad
+isp-db  | 	    ELSE  mv.cantidad
+isp-db  | 	  END AS delta,
+isp-db  | 	  mv.nota
+isp-db  | 	FROM public.movimientos mv
+isp-db  | 	LEFT JOIN public.materiales m ON m.id = mv.material_id
+isp-db  | 	LEFT JOIN public.almacenes a ON a.id = COALESCE(mv.from_almacen_id, mv.to_almacen_id)
+isp-db  | 	LEFT JOIN public.almacenes a_from ON a_from.id = mv.from_almacen_id
+isp-db  | 	LEFT JOIN public.almacenes a_to   ON a_to.id   = mv.to_almacen_id;
+isp-db  | 2025-10-02 17:43:46.363 UTC [21428] ERROR:  syntax error at end of input at character 249
+isp-db  | 2025-10-02 17:43:46.363 UTC [21428] STATEMENT:  CREATE FUNCTION public.fn_mov_simple(
+isp-db  | 	  _tipo     text,
+isp-db  | 	  _almacen  uuid,
+isp-db  | 	  _material integer,
+isp-db  | 	  _cantidad numeric,
+isp-db  | 	  _nota     text DEFAULT NULL
+isp-db  | 	)
+isp-db  | 	RETURNS bigint
+isp-db  | 	LANGUAGE plpgsql
+isp-db  | 	AS $$ 
+isp-db  | 	DECLARE _id bigint; _delta numeric;
+isp-db  | 	-- (… cuerpo antiguo …) 
+isp-db  | 	$$;
+
+# logs minio (últ. 200 líneas)
+isp-minio  | MinIO Object Storage Server
+isp-minio  | Copyright: 2015-2025 MinIO, Inc.
+isp-minio  | License: GNU AGPLv3 - https://www.gnu.org/licenses/agpl-3.0.html
+isp-minio  | Version: RELEASE.2025-07-23T15-54-02Z (go1.24.5 linux/arm64)
+isp-minio  | 
+isp-minio  | API: http://172.19.0.2:9000  http://127.0.0.1:9000 
+isp-minio  | WebUI: http://172.19.0.2:9001 http://127.0.0.1:9001  
+isp-minio  | 
+isp-minio  | Docs: https://docs.min.io
+isp-minio  | WARN: Detected default credentials 'minioadmin:minioadmin', we recommend that you change these values with 'MINIO_ROOT_USER' and 'MINIO_ROOT_PASSWORD' environment variables
+isp-minio  | INFO: 
+isp-minio  |  You are running an older version of MinIO released 1 month before the latest release 
+isp-minio  |  Update: Run `mc admin update ALIAS` 
+isp-minio  | 
+isp-minio  | 

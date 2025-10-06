@@ -1,72 +1,70 @@
+# Makefile (desde backend/)
 SHELL := /bin/bash
 
-# ===== Defaults =====
+DC := docker compose
 API_BASE ?= http://localhost:3000
 KEY ?= superdev
 
-DB_HOST ?= 127.0.0.1
-DB_PORT ?= 5432
-DB_USER ?= ispuser
-DB_NAME ?= ispdb
-DB_PASS ?= isppass
+# PS: puedes exportar variables adicionales como TECH_ID, MAT_ID, etc.
+export API_BASE
+export KEY
 
-SQL_FILE ?= script/bootstrap_db_v2.sql
-MIGRATION_FILE_ORDENES ?= script/migration_20251001_ventas_ordenes.sql
-MIGRATION_FILE_EVIDENCIAS ?= script/migration_20251001_ventas_evidencias.sql
-SEED_MIN ?= 0
+.PHONY: help
+help:
+	@echo "Targets:"
+	@echo "  up                - levanta stack"
+	@echo "  down              - baja stack"
+	@echo "  build             - build de imágenes"
+	@echo "  logs              - logs del stack"
+	@echo "  db-migrate        - aplica migración de hardening"
+	@echo "  smoke             - pack básicos (script/smoke.sh)"
+	@echo "  smoke-all         - orquesta todos los smokes"
+	@echo "  smoke-repair      - smoke_inventory con autorreparación (doble confirmación)"
+	@echo "  smoke-clean       - limpia kardex de pruebas de saldo insuficiente"
+	@echo "  ci-smoke          - secuencia de CI (build+up+migrate+smoke_all)"
 
-.PHONY: up down bootstrap smoke-min smoke-all dev-local logs smoke-agenda smoke-traslado ci smoke-ins-equipos
+.PHONY: up down build logs
+build:
+	$(DC) -f docker-compose.yml -f docker-compose.override.yml build
 
-up:
-	@docker compose up -d
+up: build
+	$(DC) -f docker-compose.yml -f docker-compose.override.yml up -d
 
 down:
-	@docker compose down
-
-bootstrap:
-	@echo "🔧 Parámetros:"; \
-	echo "  DB_HOST=$(DB_HOST)"; \
-	echo "  DB_PORT=$(DB_PORT)"; \
-	echo "  DB_USER=$(DB_USER)"; \
-	echo "  DB_NAME=$(DB_NAME)"; \
-	echo "  SQL_FILE=$(SQL_FILE)"; \
-	echo "  MIGRATION_FILE_ORDENES=$(MIGRATION_FILE_ORDENES)"; \
-	echo "  MIGRATION_FILE_EVIDENCIAS=$(MIGRATION_FILE_EVIDENCIAS)"; \
-	echo "  SEED_MIN=$(SEED_MIN)"; \
-	API_BASE=$(API_BASE) KEY=$(KEY) DB_HOST=$(DB_HOST) DB_PORT=$(DB_PORT) DB_USER=$(DB_USER) DB_NAME=$(DB_NAME) DB_PASS="$(DB_PASS)" \
-	bash script/bootstrap.sh
-
-# Smokes mínimas (rápidas)
-smoke-min:
-	@API_BASE=$(API_BASE) KEY=$(KEY) ./script/smoke_inventario_min.sh && \
-	API_BASE=$(API_BASE) KEY=$(KEY) ./script/smoke_kardex_min.sh && \
-	API_BASE=$(API_BASE) KEY=$(KEY) ./script/smoke_tecnicos_min.sh
-
-# Smokes extendidas
-smoke-all:
-	@API_BASE=$(API_BASE) KEY=$(KEY) ./script/smoke.sh && \
-	API_BASE=$(API_BASE) KEY=$(KEY) ./script/smoke_agenda.sh && \
-	API_BASE=$(API_BASE) KEY=$(KEY) bash script/smoke_ins_equipos_cierre.sh && \
-	API_BASE=$(API_BASE) KEY=$(KEY) ./script/smoke_traslado_min.sh
-
-# Agenda verbose contra API
-smoke-agenda:
-	@API_BASE=$(API_BASE) KEY=$(KEY) bash script/smoke_agenda_verbose.sh
-
-# Traslado (vía central, tolerante por defecto; usa STRICT_CENTRAL_BALANCE=1 para fallar duro)
-smoke-traslado:
-	@API_BASE=$(API_BASE) KEY=$(KEY) ./script/smoke_traslado_min.sh
-
-# INS equipos (asignar/retirar/mantener)
-smoke-ins-equipos:
-	@API_BASE=$(API_BASE) KEY=$(KEY) bash script/smoke_ins_equipos_cierre.sh
-
-# Dev local de la API fuera de Docker (puerto 3001)
-dev-local:
-	@PORT=3001 npm run start:dev
+	$(DC) -f docker-compose.yml -f docker-compose.override.yml down -v
 
 logs:
-	@docker compose logs -f api db minio
+	$(DC) -f docker-compose.yml -f docker-compose.override.yml logs --tail=200
 
-# CI local: bootstrap + smokes mínimas
-ci: bootstrap smoke-min
+# --- DB ---
+.PHONY: db-migrate
+db-migrate:
+	$(DC) -f docker-compose.yml -f docker-compose.override.yml exec -T db \
+	  psql -U ispuser -d ispdb -f - < db/migrations/20251006_inventory_hardening.sql
+
+# --- Smokes ---
+.PHONY: smoke
+smoke:
+	bash script/smoke.sh
+
+.PHONY: smoke-all
+smoke-all:
+	bash script/smoke_all.sh
+
+.PHONY: smoke-repair
+smoke-repair:
+	API_BASE=$(API_BASE) API_KEY_HEADER="x-api-key: $(KEY)" \
+	AUTO_REPAIR_STOCK=true AUTO_REPAIR_PREVIEW=true AUTO_REPAIR_CONFIRM=true \
+	CLEAN=true DEBUG=false \
+	bash script/smoke_inventory.sh
+
+.PHONY: smoke-clean
+smoke-clean:
+	API_BASE=$(API_BASE) API_KEY_HEADER="x-api-key: $(KEY)" \
+	CLEAN=true PSQL_TIMEOUT=0s \
+	bash script/smoke_inventory.sh
+
+# --- CI helper ---
+.PHONY: ci-smoke
+ci-smoke: up db-migrate
+	bash script/smoke_all.sh

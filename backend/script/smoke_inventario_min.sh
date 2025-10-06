@@ -1,91 +1,86 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-API="${API_BASE:-http://127.0.0.1:3000}/v1"
+# Config
+API_BASE="${API_BASE:-http://127.0.0.1:3000}"
+API="${API_BASE%/}/v1"
 API_KEY="${KEY:-superdev}"
+TECNICO_ID="${TECNICO_ID:-6}"
+MAT_ID="${MAT_ID:-3}"
+BODY='{"materialId":3,"cantidad":1}'
 
 say() { echo -e "$@"; }
 
-psqlc() {
-  # ejecuta en el contenedor db, sin pedir contraseña (usa .pgpass dentro o auth local)
-  docker compose exec -T db psql --no-password -w -U ispuser -d ispdb -v ON_ERROR_STOP=1 -c "$1"
+# Helpers
+api_get() {
+  curl -fsSL -H "x-api-key: ${API_KEY}" "$1"
+}
+api_post_json() {
+  local url="$1"
+  local data="$2"
+  curl -sS -w '\n%{http_code}' -X POST "$url" \
+    -H "x-api-key: ${API_KEY}" \
+    -H "content-type: application/json" \
+    --data "$data"
+}
+get_stock_for_mat() {
+  # Acepta material_id y materialId; si no está, 0
+  api_get "$API/inventario/tecnicos/${TECNICO_ID}/stock" \
+    | jq -r --argjson mid "$MAT_ID" '
+        [ .[]
+          | select((.material_id == $mid) or (.materialId == $mid))
+          | .cantidad
+        ][0] // 0
+      '
 }
 
-fallback_sql_delta() {
-  local tecnico_id="$1"; local material_id="$2"; local delta="$3"
-  docker compose exec -T db psql --no-password -w -U ispuser -d ispdb -v ON_ERROR_STOP=1 <<SQL
-WITH a AS (
-  SELECT id AS almacen_id
-  FROM almacenes
-  WHERE tipo = 'tecnico' AND tecnico_id = ${tecnico_id}
-  LIMIT 1
-)
-INSERT INTO stock_almacen (almacen_id, material_id, cantidad)
-SELECT a.almacen_id, ${material_id}, GREATEST(0, ${delta})
-FROM a
-ON CONFLICT (almacen_id, material_id)
-DO UPDATE SET cantidad = GREATEST(0, stock_almacen.cantidad + ${delta});
+# Smoke
+say "=== 🧪 Smoke Inventario (mínimo, vía API) ==="
 
-INSERT INTO inv_tecnico (tecnico_id, material_id, cantidad)
-VALUES (${tecnico_id}, ${material_id}, GREATEST(0, ${delta}))
-ON CONFLICT (tecnico_id, material_id)
-DO UPDATE SET cantidad = GREATEST(0, inv_tecnico.cantidad + ${delta});
-SQL
-}
-
-get_stock_mat3() {
-  curl -s -H "x-api-key: ${API_KEY}" "$API/inventario/tecnicos/6/stock" \
-    | jq '[.[] | select(.materialId==3) | .cantidad] | (.[0] // 0)'
-}
-
-say "=== 🧪 Smoke Inventario (mínimo con fallback) ==="
-
-say "⏳ Esperando API..."
+say "⏳ Esperando API en ${API_BASE}…"
 for i in {1..60}; do
-  if curl -sf -H "x-api-key: ${API_KEY}" "$API/health" >/dev/null; then break; fi
+  if curl -sf -H "x-api-key: ${API_KEY}" "${API}/health" >/dev/null; then
+    break
+  fi
   sleep 1
 done
-curl -s -H "x-api-key: ${API_KEY}" "$API/health" | jq -r '.status?' || true
+api_get "${API}/health" | jq -r '(.ok // .status // "unknown") | if . == true then "ok" elif . == false then "fail" else . end' || true
 
-say "🔎 Stock técnico 6 (antes)"
-BEFORE="$(get_stock_mat3)"; say "  materialId=3 => ${BEFORE}"
+say "🔎 Stock técnico ${TECNICO_ID} (antes)"
+before="$(get_stock_for_mat)"; say "  materialId=${MAT_ID} => ${before}"
 
-say "➕ Agregar 1 unidad (material 3) vía API"
-ADD_RES="$(curl -s -w '\n%{http_code}' -X POST "$API/inventario/tecnicos/6/agregar" \
-  -H "x-api-key: ${API_KEY}" -H "content-type: application/json" \
-  --data '{"materialId":3,"cantidad":1}')"
-ADD_BODY="$(echo "$ADD_RES" | head -n -1)"
-ADD_CODE="$(echo "$ADD_RES" | tail -n 1)"
-if [[ "$ADD_CODE" != "200" && "$ADD_CODE" != "201" && "$ADD_CODE" != "204" ]]; then
-  say "⚠️  API agregar falló (HTTP $ADD_CODE). Aplico fallback SQL +1."
-  fallback_sql_delta 6 3 +1
-else
-  echo "$ADD_BODY" | jq . || true
+say "➕ Agregar 1 (mat ${MAT_ID})"
+add_res="$(api_post_json "$API/inventario/tecnicos/${TECNICO_ID}/agregar" "$BODY")"
+add_body="$(echo "$add_res" | head -n -1)"
+add_code="$(echo "$add_res" | tail -n 1)"
+if [[ "$add_code" != "200" && "$add_code" != "201" && "$add_code" != "204" ]]; then
+  say "❌ agregar falló (HTTP $add_code). Respuesta:"
+  echo "$add_body" | jq . || echo "$add_body"
+  exit 1
 fi
+echo "$add_body" | jq . || true
 
-say "🔎 Stock técnico 6 (después de agregar)"
-AFTER_ADD="$(get_stock_mat3)"; say "  materialId=3 => ${AFTER_ADD}"
+say "🔎 Stock (después de agregar)"
+after_add="$(get_stock_for_mat)"; say "  => ${after_add}"
 
-say "➖ Descontar 1 unidad (material 3) vía API"
-DESC_RES="$(curl -s -w '\n%{http_code}' -X POST "$API/inventario/tecnicos/6/descontar" \
-  -H "x-api-key: ${API_KEY}" -H "content-type: application/json" \
-  --data '{"materialId":3,"cantidad":1}')"
-DESC_BODY="$(echo "$DESC_RES" | head -n -1)"
-DESC_CODE="$(echo "$DESC_RES" | tail -n 1)"
-if [[ "$DESC_CODE" != "200" && "$DESC_CODE" != "201" && "$DESC_CODE" != "204" ]]; then
-  say "⚠️  API descontar falló (HTTP $DESC_CODE). Aplico fallback SQL -1."
-  fallback_sql_delta 6 3 -1
-else
-  echo "$DESC_BODY" | jq . || true
+say "➖ Descontar 1 (mat ${MAT_ID})"
+desc_res="$(api_post_json "$API/inventario/tecnicos/${TECNICO_ID}/descontar" "$BODY")"
+desc_body="$(echo "$desc_res" | head -n -1)"
+desc_code="$(echo "$desc_res" | tail -n 1)"
+if [[ "$desc_code" != "200" && "$desc_code" != "201" && "$desc_code" != "204" ]]; then
+  say "❌ descontar falló (HTTP $desc_code). Respuesta:"
+  echo "$desc_body" | jq . || echo "$desc_body"
+  exit 1
 fi
+echo "$desc_body" | jq . || true
 
-say "🔎 Stock técnico 6 (final)"
-FINAL="$(get_stock_mat3)"; say "  materialId=3 => ${FINAL}"
+say "🔎 Stock (después de descontar)"
+after_desc="$(get_stock_for_mat)"; say "  => ${after_desc}"
 
-if [[ "$FINAL" -eq "$BEFORE" ]]; then
-  say "🎉 Smoke Inventario mínimo OK"
+if [[ "$after_desc" == "$before" ]]; then
+  say "🎉 OK: stock volvió a su valor original (${before})."
   exit 0
 else
-  say "❌ Esperaba $BEFORE, obtuve $FINAL"
-  exit 1
+  say "⚠️  Stock final (${after_desc}) difiere del inicial (${before})."
+  exit 2
 fi

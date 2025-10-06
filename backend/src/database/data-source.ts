@@ -2,6 +2,8 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 
+const isProd = process.env.NODE_ENV === 'production';
+
 const dataSource = new DataSource({
   type: 'postgres',
   host: process.env.DB_HOST || 'db',
@@ -11,16 +13,23 @@ const dataSource = new DataSource({
   database: process.env.DB_NAME || 'ispdb',
   ssl: false,
 
-  // IMPORTANTE: en entornos con datos reales, mantener false
+  // Nunca sincronizar en producción; usamos migraciones.
   synchronize: false,
+  migrationsRun: false,
 
-  // Como ejecutaremos el CLI con ts-node/register,
-  // podemos usar globs .ts
-  entities: [process.env.NODE_ENV === 'development' ? 'src/**/*.entity.ts' : 'dist/**/*.entity.js'],
-  migrations: [process.env.NODE_ENV === 'development' ? 'src/**/migrations/*.ts' : 'dist/database/migrations/*.js'],
+  // Entities: src en dev, dist en prod
+  entities: isProd ? ['dist/**/*.entity.js'] : ['src/**/*.entity.ts'],
+
+  // Migrations: apuntar SOLO a /database/migrations
+  migrations: isProd
+    ? ['dist/database/migrations/*.js']
+    : ['src/database/migrations/*.ts'],
+
+  // Tabla donde TypeORM lleva el registro
   migrationsTableName: 'typeorm_migrations',
+
+  // Logging sólo de errores (ajustable)
   logging: ['error'],
 });
 
 export default dataSource;
-
