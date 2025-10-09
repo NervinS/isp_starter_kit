@@ -1,0 +1,26 @@
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import { RequestMethod } from '@nestjs/common';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+
+  // Prefijo global /v1 (dejamos GET /health sin prefijo)
+  app.setGlobalPrefix('v1', {
+    exclude: [{ path: 'health', method: RequestMethod.GET }],
+  });
+
+  // Compatibilidad: aceptar rutas sin /v1 y redirigirlas con 307 (mantiene método/ cuerpo)
+  const noV1 = new RegExp('^/(inventario|materiales|tecnicos|ordenes|agenda|pdf|jobs|metrics)(/|$)');
+  (app as any).use(noV1, (req: any, res: any) => {
+    const target = req.originalUrl.startsWith('/v1/') ? req.originalUrl : '/v1' + req.originalUrl;
+    res.redirect(307, target);
+  });
+
+  const port = Number(process.env.PORT || 3000);
+  const host = String(process.env.HOST || '0.0.0.0');
+  await app.listen(port, host);
+  // eslint-disable-next-line no-console
+  console.log(`API listening on http://${host}:${port}`);
+}
+bootstrap();

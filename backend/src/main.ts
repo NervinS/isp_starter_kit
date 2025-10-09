@@ -1,71 +1,38 @@
-import 'reflect-metadata';
+// src/main.ts
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
-import { useContainer } from 'class-validator';
-import { ReqIdLoggerInterceptor } from './common/interceptors/reqid-logger.interceptor';
-import { ApiKeyGuard } from './common/guards/api-key.guard'; // <-- NUEVO
+import { RequestMethod } from '@nestjs/common';
+import type { Request, Response, NextFunction } from 'express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: true });
+  const app = await NestFactory.create(AppModule);
 
-  useContainer(app.select(AppModule), { fallbackOnErrors: true });
+  // Prefijo global /v1; dejamos GET /health sin prefijo para sondas/smokes
+  app.setGlobalPrefix('v1', {
+    exclude: [{ path: 'health', method: RequestMethod.GET }],
+  });
 
-  app.setGlobalPrefix('v1');
-
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      transform: true,
-      forbidNonWhitelisted: true,
-      transformOptions: { enableImplicitConversion: true },
-    }),
-  );
-
-  // <-- Activa guard global (si no hay API_KEY, no bloquea)
-  app.useGlobalGuards(new ApiKeyGuard());
-  if (process.env.API_KEY) {
-    console.log('[SEC] ApiKeyGuard ON (x-api-key requerido)');
-  } else {
-    console.log('[SEC] ApiKeyGuard OFF (sin API_KEY definido)');
-  }
- 
-  // Interceptor global de request-id + logs
-  app.useGlobalInterceptors(new ReqIdLoggerInterceptor()); // <- NUEVO
-
-  // Helmet opcional
-  try {
-    const helmetMod: any = await import('helmet');
-    const helmet = (helmetMod && (helmetMod.default || helmetMod)) as any;
-    if (helmet) app.use(helmet());
-  } catch {
-    console.warn('[helmet] no instalado — continuo sin helmet');
-  }
-
-  // Swagger sólo si está ON (y sin ruta manual de JSON)
-  try {
-    if (process.env.SWAGGER_ON !== '0') {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const swagger = require('@nestjs/swagger') as typeof import('@nestjs/swagger');
-      const builder = new swagger.DocumentBuilder()
-        .setTitle('ISP Starter Kit API')
-        .setDescription('Endpoints del ISP (FTTH) — Admin/Técnico/Jobs')
-        .setVersion('1.0.0')
-        .addBearerAuth()
-        .build();
-
-      const document = swagger.SwaggerModule.createDocument(app, builder);
-      swagger.SwaggerModule.setup('/v1/docs', app, document);
-      console.log('[Swagger] Docs en http://127.0.0.1:3000/v1/docs');
+  // *** Compatibilidad sin /v1: REWRITE (no redirige) ***
+  const noV1 = /^\/(inventario|materiales|tecnicos|ordenes|agenda|pdf|jobs|metrics)(\/|$)/;
+  (app as any).use((req: Request, _res: Response, next: NextFunction) => {
+    if (!req.originalUrl.startsWith('/v1/') && noV1.test(req.originalUrl)) {
+      const rewritten = '/v1' + req.url;
+      // reescribe para router interno de Nest/Express
+      (req as any).url = rewritten;
+      (req as any).originalUrl = rewritten;
     }
-  } catch (err) {
-    console.warn('[Swagger] no habilitado:', err?.message || err);
-  }
+    next();
+  });
 
-  const host = process.env.HOST || '0.0.0.0';
-  const port = parseInt(process.env.PORT || '3000', 10);
+  // Healthcheck simple SIN prefijo (/health)
+  const http = app.getHttpAdapter().getInstance();
+  http.get('/health', (_req: Request, res: Response) => {
+    res.status(200).json({ ok: true });
+  });
+
+  const port = Number(process.env.PORT || 3000);
+  const host = String(process.env.HOST || '0.0.0.0');
   await app.listen(port, host);
-  console.log(`API running on http://${host}:${port}/v1`);
+  console.log(`API listening on http://${host}:${port}`);
 }
-
 bootstrap();

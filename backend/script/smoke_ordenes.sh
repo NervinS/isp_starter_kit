@@ -1,55 +1,103 @@
 #!/usr/bin/env bash
-set -Eeuo pipefail
-echo "=== 🚦 Smoke Órdenes ==="
-cd "$(dirname "$0")/.." && echo "📁 CWD: $PWD"
+# script/smoke_ordenes.sh
+# Smoke de órdenes: GET -> evidencias -> cerrar (idempotente) -> GET final
+set -euo pipefail
 
-API="http://127.0.0.1:3000/v1"
-psqlq='docker compose -f docker-compose.yml exec -T db psql -qAtX -U ispuser -d ispdb -c'
+API_BASE="${API_BASE:-http://localhost:3000}"
+API="${API_BASE%/}/v1"
+KEY="${KEY:-superdev}"
 
-# Levantar
-docker compose -f docker-compose.yml up -d db api >/dev/null
+say() { echo -e "$@"; }
 
-# Espera robusta (hasta 60s) para que no "reset by peer" si la API reinicia
-echo "⏳ API..."
-for i in {1..60}; do
-  if curl -fsS "$API/health" >/dev/null; then break; fi
-  sleep 1
-done
-curl -fsS "$API/health" >/dev/null || { echo "❌ API no respondió /v1/health"; exit 1; }
+curl_json() {
+  local method="$1"; shift
+  local url="$1"; shift
+  local data="${1-}"; shift || true
 
-USR_ID="$($psqlq "SELECT id FROM usuarios LIMIT 1;")"
-[ -n "$USR_ID" ] || { echo "❌ sin usuarios"; exit 1; }
-
-req(){ local m="$1" u="$2" d="${3-}" o
-  if [[ -n "${d}" ]]; then o="$(curl -sS -X "$m" "$u" -H 'Content-Type: application/json' -d "$d")"
-  else o="$(curl -sS -X "$m" "$u")"; fi
-  if echo "$o" | jq -e '.statusCode? // empty' >/dev/null; then echo "$o" | jq .; exit 1; fi
-  echo "$o"
+  if [[ -n "${data}" ]]; then
+    curl -sfS -H "x-api-key: ${KEY}" -H "content-type: application/json" \
+      -X "${method}" -d "${data}" "${url}"
+  else
+    curl -sfS -H "x-api-key: ${KEY}" "${url}"
+  fi
 }
 
-echo -e "\n== CORTE =="
-out="$(req POST "$API/ordenes" "{\"usuarioId\":\"$USR_ID\",\"tipo\":\"COR\"}")"
-echo "$out" | jq .
-cod="$(echo "$out" | jq -r '.orden.codigo // .orden[0].codigo')"
-det="$(req GET "$API/ordenes/$cod")"
-estado="$(echo "$det" | jq -r '.orden.estado')"
-echo "estado=$estado"
-[[ "$estado" == "cerrada" ]] || { echo "❌ COR no cerrada"; exit 1; }
+jq_ok() {
+  # evalúa un filtro jq que debe devolver algo “truthy”, o falla
+  local filter="$1"
+  if ! jq -e "${filter}" >/dev/null; then
+    return 1
+  fi
+}
 
-echo -e "\n== MANTENIMIENTO (crear + cerrar) =="
-out="$(req POST "$API/ordenes" "{\"usuarioId\":\"$USR_ID\",\"tipo\":\"MAN\"}")"
-cod="$(echo "$out" | jq -r '.orden.codigo // .orden[0].codigo')"
-echo "COD=$cod"
+say "=== 🧪 smoke_ordenes ==="
+say "API=${API}"
 
-close="$(req POST "$API/ordenes/$cod/cerrar" '{
-  "diagnostico":"Trabajo ok",
-  "servicio":{"ponSn":"PON123","planMbps":200,"tv":false,"estandarWifi":"wifi6","roseta":true,"marquilla":"APTO-301"},
-  "materiales":[{"materialCodigo":"DROP","cantidad":10},{"materialCodigo":"CONECT_FO","cantidad":2}],
-  "evidencias":[{"tipo":"foto","url":"http://127.0.0.1:9000/evidencias/f1.jpg"},{"tipo":"firma","url":"http://127.0.0.1:9000/evidencias/sign.png"}]
-}')"
-echo "$close" | jq .
-est="$(echo "$close" | jq -r '.orden.estado')"
-echo "estado=$est"
-[[ "$est" == "cerrada" ]] || { echo "❌ MAN no cerrada"; exit 1; }
+# 1) Elegir una orden candidata (no anulada, no cerrada)
+list_json="$(curl_json GET "${API}/ordenes")"
+# Preferimos estados operables
+COD="$(echo "${list_json}" | jq -r '
+  ( [.[] | select(.estado != "anulada" and .estado != "cerrada"
+                  and (.estado == "agendada" or .estado == "programada" or .estado == "iniciada"))]
+    + [.[] | select(.estado != "anulada" and .estado != "cerrada")] )
+  | .[0].codigo // empty
+')"
 
-echo -e "\n✅ Smoke Órdenes OK"
+if [[ -z "${COD}" || "${COD}" == "null" ]]; then
+  echo "❌ No hay órdenes candidatas para smoke (todas están anuladas/cerradas)."
+  echo "   Sube algún fixture o crea una orden operable antes de correr este smoke."
+  exit 1
+fi
+
+say "→ Usando orden ${COD}"
+
+# 2) GET /ordenes/:codigo
+curl_json GET "${API}/ordenes/${COD}" | jq_ok ".codigo == \"${COD}\"" || {
+  echo "❌ GET /ordenes/${COD} no devolvió la orden esperada"
+  exit 1
+}
+
+# 3) POST evidencias (acepta camel o snake; aquí usamos snake)
+evid_payload="$(jq -n --arg f "evidencias/ordenes/SMOKE/firma.png" \
+                    --arg p "evidencias/ordenes/SMOKE/foto1.jpg" \
+                    '{firma_key:$f, foto1_key:$p}')"
+
+post_ev_json="$(curl_json POST "${API}/ordenes/${COD}/evidencias" "${evid_payload}")"
+echo "${post_ev_json}" | jq_ok '.ok == true' || { echo "❌ evidencias -> ok != true"; exit 1; }
+echo "${post_ev_json}" | jq_ok ".codigo == \"${COD}\"" || { echo "❌ evidencias -> codigo mismatch"; exit 1; }
+echo "${post_ev_json}" | jq_ok '.firmaKey and (.evidencias.foto1Key // .evidencias["foto1_key"])' || {
+  echo "❌ evidencias -> faltan claves esperadas"; exit 1;
+}
+
+# 4) PUT cerrar (con Idempotency-Key)
+IDEM="smoke-${COD}-$(date +%s%3N)"
+cierre_payload='{"comentarios":"cierre smoke","materiales":[],"equipos":{"asignar":[],"retirar":[]}}'
+
+put_close_json="$(curl -sfS -H "x-api-key: ${KEY}" -H "content-type: application/json" \
+  -H "Idempotency-Key: ${IDEM}" -X PUT -d "${cierre_payload}" "${API}/ordenes/${COD}/cerrar")"
+
+# Primer intento: ok true, y si no era cerrada antes, debe venir estado=cerrada.
+echo "${put_close_json}" | jq_ok '.ok == true' || { echo "❌ cerrar -> ok != true"; exit 1; }
+
+# Si el backend marca el primer intento con _idempotent false/ausente, validamos estado=cerrada
+if ! echo "${put_close_json}" | jq -e '._idempotent == true' >/dev/null 2>&1; then
+  echo "${put_close_json}" | jq_ok '.estado == "cerrada" and (.cerradaAt != null)' || {
+    echo "❌ cerrar -> estado != cerrada o faltó cerradaAt"; exit 1;
+  }
+fi
+
+# 5) Reintento idempotente
+put_close_json2="$(curl -sfS -H "x-api-key: ${KEY}" -H "content-type: application/json" \
+  -H "Idempotency-Key: ${IDEM}" -X PUT -d "${cierre_payload}" "${API}/ordenes/${COD}/cerrar")"
+
+echo "${put_close_json2}" | jq_ok '.ok == true' || { echo "❌ cerrar (retry) -> ok != true"; exit 1; }
+echo "${put_close_json2}" | jq_ok '._idempotent == true' || {
+  echo "❌ cerrar (retry) -> no vino _idempotent=true"; exit 1;
+}
+
+# 6) GET final para confirmar estado
+curl_json GET "${API}/ordenes/${COD}" | jq_ok '.estado == "cerrada"' || {
+  echo "❌ GET final -> la orden no quedó cerrada"; exit 1;
+}
+
+say "✅ smoke_ordenes OK"

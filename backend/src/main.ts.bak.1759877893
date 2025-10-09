@@ -1,0 +1,15 @@
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+
+  const port = Number(process.env.PORT || 3000);
+  const host = String(process.env.HOST || '0.0.0.0');
+
+  await app.listen(port, host);
+  // opcional: log
+  // eslint-disable-next-line no-console
+  console.log(`API listening on http://${host}:${port}`);
+}
+bootstrap();
