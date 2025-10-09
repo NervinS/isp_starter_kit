@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+API_BASE="${API_BASE:-http://localhost:3000}"
+KEY="${KEY:-superdev}"
+DB_USER="${DB_USER:-ispuser}"
+DB_NAME="${DB_NAME:-ispdb}"
+
+MAT_ID="${MAT_ID:-3}"
+TECNICO_ID="${TECNICO_ID:-6}"
+
+CURL_CONNECT_TIMEOUT="${CURL_CONNECT_TIMEOUT:-1}"
+CURL_MAX_TIME="${CURL_MAX_TIME:-2}"
+
+say() { echo -e "$@"; }
+
+# Readiness /health
+say "⏳ Esperando API en ${API_BASE}…"
+ready="false"
+for i in {1..60}; do
+  code="$(curl -s -o /dev/null -w '%{http_code}' --connect-timeout "${CURL_CONNECT_TIMEOUT}" --max-time "${CURL_MAX_TIME}" "${API_BASE%/}/health" || true)"
+  if [[ "$code" == "200" ]]; then ready="true"; break; fi
+  sleep 1
+done
+[[ "$ready" == "true" ]] || { say "❌ API no respondió /health"; exit 1; }
+
+# Helper: psql dentro del contenedor
+psqlc() {
+  docker compose exec -T db psql -U "${DB_USER}" -d "${DB_NAME}" -v ON_ERROR_STOP=1 -At -c "$1"
+}
+
+# Helper: stock del técnico por API (normaliza "4.00"→4)
+get_stock_tecnico_mat() {
+  curl -s --connect-timeout "${CURL_CONNECT_TIMEOUT}" --max-time "${CURL_MAX_TIME}" \
+    -H "x-api-key: ${KEY}" "${API_BASE%/}/v1/inventario/tecnicos/${TECNICO_ID}/stock" \
+    | jq -r --arg mid "${MAT_ID}" '
+        [ .[]
+          | ( (.material_id // .materialId) as $rawId
+              | ($rawId | tostring | tonumber? // -1) ) as $id
+          | select($id == ($mid|tonumber))
+          | (.cantidad | tostring | tonumber? // 0 | floor)
+        ][0] // 0
+      ' || echo "0"
+}
+
+say "➡️ Smoke traslado dinámico (elige origen con saldo, ida y vuelta)"
+
+# 1) Resolver IDs
+CENTRAL_ID="$(psqlc "SELECT id FROM public.almacenes WHERE codigo='CENTRAL' LIMIT 1;")"
+PRINCIPAL_ID="$(psqlc "SELECT id FROM public.almacenes WHERE codigo='PRINCIPAL' LIMIT 1;")"
+TEC6_ID="$(psqlc "SELECT id FROM public.almacenes WHERE tipo='tecnico' AND tecnico_id=${TECNICO_ID} LIMIT 1;")"
+
+# 2) Elegir origen con saldo (prioriza CENTRAL) — convierte "2.00" -> 2 antes de comparar
+ORIGEN_ID=""
+for cand in "${CENTRAL_ID}" "${PRINCIPAL_ID}"; do
+  [[ -z "$cand" ]] && continue
+  raw_qty="$(psqlc "SELECT COALESCE((SELECT cantidad FROM public.stock_almacen WHERE almacen_id='${cand}' AND material_id=${MAT_ID}),0);")"
+  qty_floor="${raw_qty%.*}"; [[ -z "${qty_floor}" ]] && qty_floor="0"
+  if [[ "${qty_floor}" -ge 1 ]]; then ORIGEN_ID="${cand}"; break; fi
+done
+
+if [[ -z "${ORIGEN_ID}" ]]; then
+  say "ℹ️ No hay saldo ni en CENTRAL ni en PRINCIPAL para mat=${MAT_ID}. Pre-cargando +1 en CENTRAL (ajuste)…"
+  psqlc "INSERT INTO public.movimientos (tipo, material_id, cantidad, to_almacen_id, fecha, nota)
+         VALUES ('ajuste', ${MAT_ID}, 1, '${CENTRAL_ID}', now(), 'preload smoke traslado');" >/dev/null
+  ORIGEN_ID="${CENTRAL_ID}"
+fi
+
+say "IDs: ORIGEN=${ORIGEN_ID}  DESTINO(tec${TECNICO_ID})=${TEC6_ID}"
+
+# 3) Medir stock técnico antes
+s0="$(get_stock_tecnico_mat)"
+say "🔎 Stock TEC-${TECNICO_ID} (antes) => ${s0}"
+
+# 4) Traslado ida (origen -> TEC)
+say "➡️ Ida: ${ORIGEN_ID} -> ${TEC6_ID}"
+psqlc "SELECT public.fn_mov_traslado('${ORIGEN_ID}', '${TEC6_ID}', ${MAT_ID}, 1, 'smoke traslado ida');" >/dev/null
+
+s1="$(get_stock_tecnico_mat)"
+say "🔎 Stock TEC-${TECNICO_ID} (después ida) => ${s1}"
+
+# 5) Traslado vuelta (TEC -> origen)
+say "⬅️ Vuelta: ${TEC6_ID} -> ${ORIGEN_ID}"
+psqlc "SELECT public.fn_mov_traslado('${TEC6_ID}', '${ORIGEN_ID}', ${MAT_ID}, 1, 'smoke traslado vuelta');" >/dev/null
+
+s2="$(get_stock_tecnico_mat)"
+say "🔎 Stock TEC-${TECNICO_ID} (después vuelta) => ${s2}"
+
+if [[ "${s0}" -eq "${s2}" ]]; then
+  say "🎉 OK: stock técnico volvió al valor inicial (${s0})."
+else
+  say "❌ Stock técnico no volvió al valor inicial (antes=${s0}, final=${s2})."
+  exit 1
+fi

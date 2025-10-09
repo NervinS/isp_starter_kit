@@ -1,0 +1,19 @@
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import { RequestMethod } from '@nestjs/common';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+
+  // Prefijo global /v1, pero conservamos /health sin prefijo para los smokes
+  app.setGlobalPrefix('v1', {
+    exclude: [{ path: 'health', method: RequestMethod.GET }],
+  });
+
+  const port = Number(process.env.PORT || 3000);
+  const host = String(process.env.HOST || '0.0.0.0');
+  await app.listen(port, host);
+  // eslint-disable-next-line no-console
+  console.log(`API listening on http://${host}:${port}`);
+}
+bootstrap();

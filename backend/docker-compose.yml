@@ -1,23 +1,22 @@
+name: backend
+
 services:
   db:
-    image: postgres:14-alpine
+    image: postgres:16-alpine
     container_name: isp-db
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-ispuser}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-isppass}   # solo en el primer init del volumen
-      POSTGRES_DB: ${POSTGRES_DB:-ispdb}
-      PGDATA: /var/lib/postgresql/data/pgdata
-      MAIN_WAREHOUSE_CODE: PRINCIPAL
+      POSTGRES_DB: ispdb
+      POSTGRES_USER: ispuser
+      POSTGRES_PASSWORD: isppass
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
     ports:
       - "5432:5432"
     volumes:
-      - db_data:/var/lib/postgresql/data
-      # - ../db/init:/docker-entrypoint-initdb.d:ro       # opcional (solo clúster NUEVO)
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ispuser} -d ${POSTGRES_DB:-ispdb} -h 127.0.0.1 || exit 1"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
+      - pg-data:/var/lib/postgresql/data
     restart: unless-stopped
 
   minio:
@@ -25,62 +24,120 @@ services:
     container_name: isp-minio
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      MINIO_ROOT_USER: "minioadmin"
+      MINIO_ROOT_PASSWORD: "minioadmin"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:9000/minio/health/ready"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
     ports:
       - "9000:9000"
       - "9001:9001"
     volumes:
-      - minio_data:/data
+      - minio-data:/data
     restart: unless-stopped
 
+  # Inicializa MinIO y deja bucket 'evidencias' con lectura pública (download anónimo)
+  minio-init:
+    image: alpine:3.20
+    container_name: isp-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: "minioadmin"
+      MINIO_ROOT_PASSWORD: "minioadmin"
+    entrypoint: ["/bin/sh", "-lc"]
+    command: |
+      set -e
+      apk add --no-cache curl ca-certificates
+      ARCH="$(uname -m)"; case "$ARCH" in \
+        x86_64)  MARCH=amd64 ;; \
+        aarch64) MARCH=arm64 ;; \
+        armv7l)  MARCH=arm ;; \
+        *) echo "Arquitectura no soportada: $ARCH" >&2; exit 1 ;; \
+      esac
+      curl -fsSL "https://dl.min.io/client/mc/release/linux-${MARCH}/mc" -o /usr/local/bin/mc
+      chmod +x /usr/local/bin/mc
+      mc --version
+      mc alias set local http://minio:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"
+      mc mb --ignore-existing local/evidencias
+      mc anonymous set download local/evidencias
+      mc ls local/evidencias || true
+    restart: "no"
+
+  # API (Nest) tal cual, pero con PUBLIC_BASE apuntando a tu host 192.168.1.140
   api:
+    container_name: isp-api
     build:
       context: .
       dockerfile: Dockerfile
-    # si publicas imagen, reemplaza lo anterior por:
-    # image: backend-api:v0.1.1
-    container_name: isp-api
+      target: runtime
+    image: backend-api
     depends_on:
       db:
         condition: service_healthy
       minio:
-        condition: service_started
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
     environment:
-      NODE_ENV: ${NODE_ENV:-production}
-      HOST: ${HOST:-0.0.0.0}
-      PORT: ${PORT:-3000}
+      # DB
+      DATABASE_URL: "postgresql://ispuser:isppass@db:5432/ispdb"
 
-      # 🔗 Base de datos — SIEMPRE por servicio 'db' dentro de Docker
-      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-ispuser}:${POSTGRES_PASSWORD:-isppass}@db:5432/${POSTGRES_DB:-ispdb}}
+      # MinIO / S3
+      MINIO_ROOT_USER: "minioadmin"
+      MINIO_ROOT_PASSWORD: "minioadmin"
+      MINIO_ENDPOINT: "minio"
+      MINIO_PORT: "9000"
+      MINIO_USE_SSL: "false"
+      MINIO_BUCKET: "evidencias"
+      # OJO: base pública hacia tu IP del host (para acceso externo y smoke)
+      MINIO_PUBLIC_BASE: "http://192.168.1.140:9000/evidencias/"
 
-      # 🔐 API Key (header x-api-key o query ?api_key=)
-      API_KEY: ${API_KEY:-superdev}
+      # PDF
+      PDF_FORCE_PUBLIC_URL: "true"
 
-      # 🔐 JWT (usa .env/secret en CI/CD para prod)
-      JWT_SECRET: ${JWT_SECRET:-devsecretchangeme_local}
-
-      # 📦 MinIO (interno)
-      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-minio}
-      MINIO_PORT: ${MINIO_PORT:-9000}
-      MINIO_USE_SSL: ${MINIO_USE_SSL:-false}
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
-      MINIO_BUCKET: ${MINIO_BUCKET:-evidencias}
-
-      # 🌐 MinIO público (URLs firmadas/estáticas)
-      MINIO_PUBLIC_BASE: ${MINIO_PUBLIC_BASE:-http://127.0.0.1:9000/evidencias/}
-      PDF_FORCE_PUBLIC_URL: ${PDF_FORCE_PUBLIC_URL:-true}
-
-      # 📖 Swagger ON por defecto (desactiva con SWAGGER_ON=0)
-      SWAGGER_ON: ${SWAGGER_ON:-1}
-
-      # 🧪 smokes locales
-      SMOKE_BYPASS_TECH_GUARD: ${SMOKE_BYPASS_TECH_GUARD:-1}
+      # API
+      API_KEY: "superdev"
+      NODE_ENV: "development"
+      # PORT: "3000"
     ports:
       - "3000:3000"
     restart: unless-stopped
 
+  # 🔹 Nuevo: runner de migraciones directo desde TypeScript (evita el problema de dist/)
+  migrator:
+    container_name: isp-migrator
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: deps   # usa el stage con dev deps (ts-node, etc.)
+    depends_on:
+      db:
+        condition: service_healthy
+    working_dir: /app
+    # Montamos código fuente para que cargue TODAS las migraciones TS
+    volumes:
+      - ./src:/app/src:ro
+      - ./package.json:/app/package.json:ro
+      - ./package-lock.json:/app/package-lock.json:ro
+      - ./tsconfig.json:/app/tsconfig.json:ro
+      - ./tsconfig.build.json:/app/tsconfig.build.json:ro
+    environment:
+      # misma DB que la API
+      DATABASE_URL: "postgresql://ispuser:isppass@db:5432/ispdb"
+      NODE_ENV: "development"
+    # Ejecuta migraciones desde TS (data-source TS)
+    command: >
+      sh -lc '
+        set -e
+        npx ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js
+        -d src/database/data-source.ts migration:run
+      '
+    restart: "no"
+
 volumes:
-  db_data:
-  minio_data:
+  pg-data:
+  minio-data:
