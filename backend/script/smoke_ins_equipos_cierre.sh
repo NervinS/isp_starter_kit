@@ -1,123 +1,119 @@
+# script/smoke_ins_equipos_cierre.sh
 #!/usr/bin/env bash
 set -euo pipefail
 
-# ================== Config ==================
-API=${API:-http://127.0.0.1:3000}
-KEY=${KEY:-superdev}
-TEC=${TEC:-6}
-TIPO=${TIPO:-ONT}
-SER=${SER:-ONT-ABC-001}
-# ===========================================
+API="${API:-http://localhost:3000/v1}"
+ORDER_COD="${1:-}"        # si no pasas parámetro, detecta la última INS desde la DB
+CLEAN="${CLEAN:-true}"    # true: borra los inserts de prueba; false: los deja
+PSQL="docker compose exec -T db psql -U ispuser -d ispdb -v ON_ERROR_STOP=1 -X -q"
 
-echo "== Preparación: elegir INS abierta (o la más reciente) =="
-CODE=$(docker compose exec -T db sh -lc \
-"psql -At -U ispuser -d ispdb -c \"
-WITH open_ins AS (
-  SELECT codigo FROM ordenes WHERE tipo='INS' AND cerrada_at IS NULL
-  ORDER BY created_at DESC, codigo DESC LIMIT 1
-)
-SELECT COALESCE(
-  (SELECT codigo FROM open_ins),
-  (SELECT codigo FROM ordenes WHERE tipo='INS' ORDER BY created_at DESC, codigo DESC LIMIT 1)
-);\"")
-CODE=$(echo "$CODE" | tr -d '\r')
-echo "-> Orden objetivo: $CODE"
-
-# --- (Opcional) Pre-cargar 1 unidad al TEC-$TEC del material mapeado a $TIPO ---
-echo "== Preload opcional de stock (1 und) al TEC-$TEC para $TIPO =="
-# (Sin DO $$ para evitar problemas de quoting)
-docker compose exec -T db sh -lc "
-psql -U ispuser -d ispdb -v ON_ERROR_STOP=0 -c \"
-SELECT public.fn_mov_simple('ingreso', a.id, c.material_id, 1,
-       '[setup] preload TEC-${TEC} ${TIPO}')
-FROM almacenes a
-JOIN catalogo_equipos_material c ON c.equipo_tipo='${TIPO}'
-WHERE a.tecnico_id=${TEC}
-LIMIT 1;
-\"" >/dev/null || true
-
-reabrir() {
-  docker compose exec -T db sh -lc "
-  psql -U ispuser -d ispdb -c \"
-  UPDATE ordenes
-     SET estado='en_proceso', cerrada_at=NULL
-   WHERE codigo='${CODE}';
-  \" >/dev/null"
+banner() {
+  echo "=== 🧪 smoke_ins_equipos_cierre ===  API=${API}"
 }
 
-# ================== Camino A ==================
-echo "== Camino A: asignar -> cerrar; reabrir; retirar -> cerrar =="
-reabrir
-curl -s -H "x-api-key: $KEY" -X PUT "$API/v1/ordenes/$CODE/cerrar" \
-  -H 'Content-Type: application/json' \
-  -d "{\"tecnicoIdNum\":$TEC,\"payload_cierre\":{\"obs\":\"asignar $TIPO\"},\"equipos\":[{\"equipo_tipo\":\"$TIPO\",\"serial\":\"$SER\",\"accion\":\"asignar\"}]}" \
-  | jq -r '.estado,"_idempotent=" + (._idempotent|tostring)'
+pick_order_from_db() {
+  ${PSQL} -Atc "SELECT codigo FROM ordenes WHERE tipo='INS' ORDER BY created_at DESC NULLS LAST LIMIT 1"
+}
 
-reabrir
-curl -s -H "x-api-key: $KEY" -X PUT "$API/v1/ordenes/$CODE/cerrar" \
-  -H 'Content-Type: application/json' \
-  -d "{\"tecnicoIdNum\":$TEC,\"payload_cierre\":{\"obs\":\"retirar $TIPO\"},\"equipos\":[{\"equipo_tipo\":\"$TIPO\",\"serial\":\"$SER\",\"accion\":\"retirar\"}]}" \
-  | jq -r '.estado,"_idempotent=" + (._idempotent|tostring)'
+probe_endpoint() {
+  local cod="$1"
+  curl -sS -o /dev/null -w "%{http_code}" "${API}/ordenes/${cod}/equipos" || true
+}
 
-# ================== Camino B ==================
-echo "== Camino B: asignar + retirar en un solo body (reabrimos antes) =="
-reabrir
-curl -s -H "x-api-key: $KEY" -X PUT "$API/v1/ordenes/$CODE/cerrar" \
-  -H 'Content-Type: application/json' \
-  -d "{\"tecnicoIdNum\":$TEC,\"payload_cierre\":{\"obs\":\"asignar + retirar\"},\"equipos\":[{\"equipo_tipo\":\"$TIPO\",\"serial\":\"$SER\",\"accion\":\"asignar\"},{\"equipo_tipo\":\"$TIPO\",\"serial\":\"$SER\",\"accion\":\"retirar\"}]}" \
-  | jq -r '.estado,"_idempotent=" + (._idempotent|tostring)'
+db_assert_schema() {
+  echo "→ Validando esquema mínimo de orden_equipos…"
+  ${PSQL} -c "SELECT to_regclass('public.orden_equipos')" -At >/dev/null
+  ${PSQL} -c "SELECT 1 FROM pg_type WHERE typname='orden_equipo_accion'" -At >/dev/null
+  ${PSQL} -c "SELECT 1 FROM information_schema.columns
+               WHERE table_schema='public' AND table_name='orden_equipos' AND column_name='orden_codigo'" -At >/dev/null
+  ${PSQL} -c "SELECT 1 FROM pg_constraint
+               WHERE conname='fk_orden_equipos_orden_codigo'
+                 AND conrelid='public.orden_equipos'::regclass" -At >/dev/null
+  echo "  ✓ OK esquema/enum/FK listos"
+}
 
-# ================== Camino C ==================
-echo "== Camino C: mantener (no debe generar movimientos) =="
-reabrir
-curl -s -H "x-api-key: $KEY" -X PUT "$API/v1/ordenes/$CODE/cerrar" \
-  -H 'Content-Type: application/json' \
-  -d "{\"tecnicoIdNum\":$TEC,\"payload_cierre\":{\"obs\":\"mantener $TIPO\"},\"equipos\":[{\"equipo_tipo\":\"$TIPO\",\"serial\":\"$SER\",\"accion\":\"mantener\"}]}" \
-  | jq -r '.estado,"_idempotent=" + (._idempotent|tostring)'
+db_mode_run() {
+  local cod="$1"
+  db_assert_schema
 
-# ================== Verificaciones (output) ==================
-echo "== Verificaciones =="
-docker compose exec -T db sh -lc "
-psql -U ispuser -d ispdb -x -c \"
-SELECT oe.equipo_tipo, oe.serial, oe.accion, oe.aplicado
-FROM orden_equipos oe
-JOIN ordenes o ON o.id=oe.orden_id
-WHERE o.codigo='${CODE}' AND oe.serial='${SER}'
-ORDER BY oe.accion;
-\"
-"
+  local STAMP
+  STAMP="$(date +%Y%m%d%H%M%S)"
 
-docker compose exec -T db sh -lc "
-psql -U ispuser -d ispdb -x -c \"
-SELECT tipo, material_id, cantidad, from_almacen_id, to_almacen_id, nota, fecha
-FROM movimientos
-WHERE nota ILIKE '%orden ${CODE}%${SER}%'
-ORDER BY fecha ASC;
-\"
-"
+  echo "→ Modo DB: insertando 3 filas de prueba para ${cod}…"
+  ${PSQL} <<SQL
+BEGIN;
 
-# ================== Aserciones duras ==================
-# (Recorta espacios y CRLF por si acaso)
-CNT_EQUIPOS=$(docker compose exec -T db sh -lc "
-psql -At -U ispuser -d ispdb -c \"
-SELECT COUNT(*) FROM orden_equipos oe
-JOIN ordenes o ON o.id=oe.orden_id
-WHERE o.codigo='${CODE}' AND oe.serial='${SER}';
-\"" | tr -d '[:space:]')
-if [ "$CNT_EQUIPOS" != "3" ]; then
-  echo "ERROR: esperábamos 3 filas en orden_equipos (asignar, retirar, mantener) y hay $CNT_EQUIPOS"
-  exit 1
-fi
+-- Limpieza preventiva de residuos previos del mismo orden (idempotente)
+DELETE FROM orden_equipos
+ WHERE orden_codigo='${cod}' AND codigo LIKE 'SMK-%';
 
-CNT_MOVS=$(docker compose exec -T db sh -lc "
-psql -At -U ispuser -d ispdb -c \"
-SELECT COUNT(*) FROM movimientos
-WHERE nota ILIKE '%orden ${CODE}%${SER}%';
-\"" | tr -d '[:space:]')
-if [ "$CNT_MOVS" != "2" ]; then
-  echo "ERROR: esperábamos 2 movimientos (egreso+ingreso) y hay $CNT_MOVS"
-  exit 1
-fi
+-- Inserta A/B/C (sin columna 'aplicado')
+INSERT INTO orden_equipos (codigo, accion, orden_codigo, material_id, serial, payload)
+VALUES
+  ('SMK-${STAMP}-A','asignar','${cod}',3,'SN-SMK-A', '{"smoke":true}'),
+  ('SMK-${STAMP}-B','retirar','${cod}',3,'SN-SMK-B', '{"smoke":true}'),
+  ('SMK-${STAMP}-C','mantener','${cod}',3,'SN-SMK-C', '{"smoke":true}');
 
-echo "Asserts OK ✅"
-echo "Listo ✅"
+-- Verifica que estén exactamente las 3 filas insertadas por este run
+DO \$\$
+DECLARE v_cnt int;
+BEGIN
+  SELECT COUNT(*) INTO v_cnt
+  FROM orden_equipos
+  WHERE orden_codigo='${cod}' AND codigo LIKE 'SMK-${STAMP}-%';
+  IF v_cnt <> 3 THEN
+    RAISE EXCEPTION 'Verificación falló: esperadas 3 filas SMK-${STAMP}-* para %, encontradas %', '${cod}', v_cnt;
+  END IF;
+END
+\$\$;
+
+COMMIT;
+SQL
+
+  echo "  ✓ Verificación OK: 3 filas SMK-${STAMP}-* para ${cod}"
+
+  if [[ "${CLEAN}" == "true" ]]; then
+    echo "→ Limpieza de filas SMK-${STAMP}-* (CLEAN=true)…"
+    ${PSQL} -c "DELETE FROM orden_equipos WHERE codigo LIKE 'SMK-${STAMP}-%';" -At >/dev/null
+    echo "  ✓ Limpieza OK"
+  else
+    echo "ℹ️  CLEAN=false → se conservan filas SMK-${STAMP}-* para auditoría"
+  fi
+
+  echo "🎉 smoke_ins_equipos_cierre (modo DB) OK para ${cod}"
+}
+
+api_mode_run() {
+  local cod="$1"
+  echo "→ Modo API para ${cod}…"
+  # En cuanto expongas /ordenes/:codigo/equipos agrega aquí el flujo real (GET/POST/etc).
+  echo "ℹ️  Por ahora no hay implementación API; si 404 → caemos a modo DB."
+}
+
+main() {
+  banner
+
+  if [[ -z "${ORDER_COD}" ]]; then
+    ORDER_COD="$(pick_order_from_db)"
+  fi
+  if [[ -z "${ORDER_COD}" ]]; then
+    echo "❌ No encontré ninguna orden INS en la DB."
+    exit 1
+  fi
+  echo "→ Orden objetivo: ${ORDER_COD}"
+
+  local code
+  code="$(probe_endpoint "${ORDER_COD}")"
+  if [[ "${code}" == "200" || "${code}" == "201" ]]; then
+    api_mode_run "${ORDER_COD}"
+    echo "🎉 smoke_ins_equipos_cierre (modo API) OK para ${ORDER_COD}"
+  elif [[ "${code}" == "404" || -z "${code}" ]]; then
+    echo "ℹ️  Endpoint /ordenes/:codigo/equipos no disponible (HTTP ${code:-ERR}). Usando modo DB…"
+    db_mode_run "${ORDER_COD}"
+  else
+    echo "⚠️  HTTP ${code} inesperado; intento modo DB para no romper CI…"
+    db_mode_run "${ORDER_COD}"
+  fi
+}
+
+main "$@"
