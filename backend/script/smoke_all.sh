@@ -36,6 +36,11 @@ fi
 
 # Lista base (en el orden que pediste)
 ALL_SCRIPTS=(
+  # nuevos f1
+  "smoke_materiales_disponibles.sh"
+  "smoke_equipos_disponibles.sh"
+  "smoke_equipos_asignar.sh"
+  "smoke_inventario_idem.sh"
   "smoke_inventario_min.sh"
   "smoke_kardex_min.sh"
   "smoke_tecnicos_min.sh"
