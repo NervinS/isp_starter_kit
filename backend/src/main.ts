@@ -1,7 +1,7 @@
 // src/main.ts
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { RequestMethod } from '@nestjs/common';
+import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import type { Request, Response, NextFunction } from 'express';
 
 async function bootstrap() {
@@ -11,6 +11,16 @@ async function bootstrap() {
   app.setGlobalPrefix('v1', {
     exclude: [{ path: 'health', method: RequestMethod.GET }],
   });
+
+  // Validación global de DTOs (contratos robustos)
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,                 // elimina campos extra
+      forbidNonWhitelisted: true,      // 400 si envían campos no permitidos
+      transform: true,                 // convierte tipos (body/query/params)
+      transformOptions: { enableImplicitConversion: true }, // ej: string->number
+    }),
+  );
 
   // --- Compatibilidad sin /v1: REWRITE (no redirige) ---
   // Añadimos 'equipos' a la lista de rutas legacy sin prefijo
