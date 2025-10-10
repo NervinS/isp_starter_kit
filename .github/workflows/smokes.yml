@@ -12,17 +12,16 @@ on:
 jobs:
   smokes:
     runs-on: ubuntu-24.04
+    timeout-minutes: 45
     defaults:
       run:
         working-directory: backend
 
     env:
+      # Vars que usan los smokes / API
       API: http://localhost:3000/v1
       KEY: superdev
       DOCS_ENABLED: 0
-      # Creds por defecto para MinIO (evita warnings)
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
 
     steps:
       - uses: actions/checkout@v4
@@ -31,8 +30,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
-          cache-dependency-path: backend/package-lock.json
 
       - name: Install deps
         run: npm ci
@@ -67,33 +64,61 @@ jobs:
           set -euo pipefail
 
           have_script() { npm run | awk '{print $1}' | grep -xq "$1" ; }
-          try_run() {
-            echo "→ $*"
-            if eval "$@"; then
-              echo "✓ OK: $*"
-              echo "$*" > ../.last_migration_cmd
-              exit 0
-            fi
-          }
+          try_run() { echo "→ $*"; if eval "$@"; then echo "✓ OK: $*"; echo "$*" > ../.last_migration_cmd; exit 0; fi; }
 
           echo "🧭 Scripts disponibles:"
           npm run || true
 
-          # Prefer npm scripts si existen
+          # 1) NPM scripts preferidos
           if have_script db:migrate;        then try_run npm run db:migrate;        fi
           if have_script migrate;           then try_run npm run migrate;           fi
-          if have_script prisma:migrate;    then try_run npm run prisma:migrate;    fi
           if have_script typeorm:migrate;   then try_run npm run typeorm:migrate;   fi
+          if have_script prisma:migrate;    then try_run npm run prisma:migrate;    fi
           if have_script knex:migrate;      then try_run npm run knex:migrate;      fi
           if have_script sequelize:migrate; then try_run npm run sequelize:migrate; fi
 
-          # Variantes comunes por CLI
-          try_run npx prisma migrate deploy
-          try_run npx typeorm migration:run
-          try_run npx knex migrate:latest
-          try_run npx sequelize-cli db:migrate
+          # 2) Prisma si hay schema
+          if [ -f prisma/schema.prisma ] || [ -f schema.prisma ]; then
+            try_run npx prisma migrate deploy
+          fi
 
-          echo "❌ No encontré comando de migraciones que funcione." >&2
+          # 3) TypeORM (autodetectar dataSource y pasar -d)
+          ds_candidates=(
+            "src/data-source.ts"
+            "src/datasource.ts"
+            "src/database/data-source.ts"
+            "apps/api/src/data-source.ts"
+            "apps/backend/src/data-source.ts"
+            "dist/data-source.js"
+            "dist/database/data-source.js"
+            "ormconfig.ts"
+            "ormconfig.js"
+            "ormconfig.json"
+          )
+          found_ds=""
+          for p in "${ds_candidates[@]}"; do
+            if [ -f "$p" ]; then found_ds="$p"; break; fi
+          done
+          if [ -n "$found_ds" ]; then
+            echo "🔎 Detecté TypeORM dataSource en: $found_ds"
+            try_run npx typeorm migration:run -d "$found_ds"
+            try_run npx ts-node --transpile-only ./node_modules/typeorm/cli.js migration:run -d "$found_ds"
+            try_run node --loader ts-node/esm ./node_modules/typeorm/cli.js migration:run -d "$found_ds"
+            try_run node ./node_modules/typeorm/cli.js migration:run -d "$found_ds"
+          fi
+
+          # 4) Knex (si está)
+          if [ -f knexfile.ts ] || [ -f knexfile.js ]; then
+            try_run npx knex migrate:latest
+          fi
+
+          # 5) Sequelize (si está)
+          if [ -d "migrations" ] && [ -f "node_modules/.bin/sequelize-cli" ]; then
+            try_run npx sequelize-cli db:migrate
+          fi
+
+          echo "❌ No encontré comando de migraciones que funcione."
+          echo "   Pista: TypeORM requiere -d <ruta-al-data-source>."
           exit 1
 
       - name: Seed DB (auto-detect)
@@ -102,26 +127,25 @@ jobs:
           set -euo pipefail
 
           have_script() { npm run | awk '{print $1}' | grep -xq "$1" ; }
-          try_run() {
-            echo "→ $*"
-            if eval "$@"; then
-              echo "✓ OK: $*"
-              echo "$*" > ../.last_seed_cmd
-              exit 0
-            fi
-          }
+          try_run() { echo "→ $*"; if eval "$@"; then echo "✓ OK: $*"; echo "$*" > ../.last_seed_cmd; exit 0; fi; }
 
-          # Prefer npm scripts si existen
+          # Scripts comunes
           if have_script db:seed;        then try_run npm run db:seed;        fi
           if have_script seed;           then try_run npm run seed;           fi
           if have_script prisma:seed;    then try_run npm run prisma:seed;    fi
           if have_script knex:seed;      then try_run npm run knex:seed;      fi
           if have_script sequelize:seed; then try_run npm run sequelize:seed; fi
 
-          # Variantes comunes por CLI
-          try_run npx prisma db seed
-          try_run npx knex seed:run
-          try_run npx sequelize-cli db:seed:all
+          # CLIs comunes
+          if [ -f prisma/schema.prisma ] || [ -f schema.prisma ]; then
+            try_run npx prisma db seed
+          fi
+          if [ -f knexfile.ts ] || [ -f knexfile.js ]; then
+            try_run npx knex seed:run
+          fi
+          if [ -f "node_modules/.bin/sequelize-cli" ]; then
+            try_run npx sequelize-cli db:seed:all
+          fi
 
           echo "⚠️  No encontré comando de seed. Continuo sin seed."
 
@@ -131,8 +155,15 @@ jobs:
           DOCS_ENABLED: 0
         run: |
           set -euxo pipefail
-          docker compose pull api || true
-          docker compose up -d api
+          # Detectar servicio que contenga "api"
+          API_SVC="$(docker compose config --services | grep -E '^api$|api' | head -n1 || true)"
+          if [ -n "$API_SVC" ]; then
+            docker compose pull "$API_SVC" || true
+            docker compose up -d "$API_SVC"
+          else
+            echo "⚠️ No encontré servicio 'api' en docker compose; skipping lift de API."
+            exit 0
+          fi
 
           echo "⏳ Esperando API /health…"
           for i in {1..30}; do
@@ -155,28 +186,26 @@ jobs:
           set -euxo pipefail
           ./script/smoke_all.sh || true
 
-      # ── RECOLECCIÓN DE LOGS (siempre), todo bajo backend/logs ────────────────
+      # ── RECOLECCIÓN DE LOGS (siempre) ──────────────────────────────────────────
       - name: Capturar logs de Docker y API (siempre)
         if: always()
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p backend/logs
-          # compose (arranque, errores…)
-          docker compose logs --no-color > backend/logs/compose-logs.txt 2>&1 || true
+          mkdir -p logs backend/logs
 
-          # api (stacktraces/500): usar container id real del servicio "api"
-          API_CID="$(docker compose ps -q api || true)"
-          if [ -n "${API_CID:-}" ]; then
-            docker logs "$API_CID" > backend/logs/api.log 2>&1 || true
+          # Compose (arranque/errores)
+          docker compose logs --no-color > logs/compose-logs.txt 2>&1 || true
+          cp -f logs/compose-logs.txt backend/logs/compose-logs.txt 2>/dev/null || true
+
+          # API: detectar contenedor con "api"
+          API_CTN="$(docker ps --format '{{.Names}}' | grep -E 'api' | head -n1 || true)"
+          if [ -n "$API_CTN" ]; then
+            docker logs "$API_CTN" > logs/api.log 2>&1 || true
+            cp -f logs/api.log backend/logs/api.log 2>/dev/null || true
           else
-            echo "(no api container)" > backend/logs/api.log
-          fi
-
-          # copiar últimos smokes si existen
-          if compgen -G "logs/smoke_all.*/*" > /dev/null; then
-            mkdir -p backend/logs
-            cp -r logs/smoke_all.*/* backend/logs/ 2>/dev/null || true
+            echo "(no se detectó contenedor API)" > logs/api.log
+            cp -f logs/api.log backend/logs/api.log 2>/dev/null || true
           fi
 
       - name: Subir artifacts (único, nombre único por intento)
@@ -185,7 +214,8 @@ jobs:
         with:
           name: smoke-logs-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
+            backend/logs/smoke_all.*/**
             backend/logs/**
-            backend/logs/*
-            backend/logs
+            logs/compose-logs.txt
+            logs/api.log
           if-no-files-found: ignore
