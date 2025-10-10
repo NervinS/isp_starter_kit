@@ -2,6 +2,10 @@
 set -euo pipefail
 
 API="${API:-http://localhost:3000}"
+# Normaliza API para evitar doble /v1 al concatenar más adelante.
+# Si viene "http://.../v1" lo dejamos como "http://..."
+API="${API%/}"
+API="${API%/v1}"
 V1="$API/v1"
 
 banner() {
