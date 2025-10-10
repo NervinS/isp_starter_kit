@@ -2,72 +2,107 @@ name: Backend Smokes
 
 on:
   push:
-    branches: [ feat/**, main ]
+    branches:
+      - main
+      - feat/**
   pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   smokes:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    services:
-      db:
-        image: postgres:15
-        env:
-          POSTGRES_USER: ispuser
-          POSTGRES_PASSWORD: ispuser
-          POSTGRES_DB: ispdb
-        ports: ['5432:5432']
-        options: >-
-          --health-cmd="pg_isready -U ispuser -d ispdb"
-          --health-interval=5s --health-timeout=5s --health-retries=10
-      minio:
-        image: minio/minio:RELEASE.2024-06-13T22-53-53Z
-        env:
-          MINIO_ROOT_USER: minio
-          MINIO_ROOT_PASSWORD: minio123
-        ports: ['9000:9000', '9001:9001']
-        options: >-
-          --health-cmd="curl -s http://localhost:9000/minio/health/live || exit 1"
-          --health-interval=5s --health-timeout=5s --health-retries=20
-        command: server /data --console-address ":9001"
+    timeout-minutes: 20
+
+    env:
+      # API de la app dentro del runner
+      API: http://localhost:3000/v1
+      KEY: superdev
+      # Evita exponer swagger en CI
+      DOCS_ENABLED: "0"
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install system tools
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y jq
 
       - name: Install deps
         working-directory: backend
         run: npm ci
 
-      - name: Build
+      - name: Build backend
         working-directory: backend
         run: npm run build
 
-      - name: Boot API (Docker Compose)
+      - name: Boot stack (db + minio + init + api)
         working-directory: backend
         run: |
-          docker compose up -d db minio
-          # espera servicios
-          sleep 10
-          docker compose up -d api
-          # sanity check
-          curl -sfS http://localhost:3000/health
+          # Levanta DB, Minio y el init (buckets), luego API
+          docker compose up -d --build db minio
+          # Espera básicos
+          echo "⏳ Esperando Postgres y Minio…"
+          for i in {1..30}; do
+            pgup=$(docker compose exec -T db bash -lc "pg_isready -U ispuser -d ispdb" >/dev/null 2>&1 && echo ok || true)
+            miup=$(curl -sS http://localhost:9000/minio/health/live >/dev/null 2>&1 && echo ok || true)
+            [[ "$pgup" == "ok" && "$miup" == "ok" ]] && break
+            sleep 1
+          done
+          docker compose up -d --build api
 
-      - name: Run focused smokes (rápidos)
+          # Readiness /health con reintentos
+          echo "⏳ Esperando API /health…"
+          for i in {1..30}; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/health || true)
+            [[ "$code" == "200" ]] && break
+            sleep 1
+          done
+          test "$code" = "200"
+
+      # En PRs / branches de feature corre subset rápido
+      - name: Run focused smokes (PR/feature)
+        if: github.ref != 'refs/heads/main'
         working-directory: backend
         env:
-          API_BASE: http://localhost:3000
-          API_KEY: superdev
+          API: ${{ env.API }}
+          KEY: ${{ env.KEY }}
         run: |
-          ONLY="smoke_equipos_ciclo.sh,smoke_materiales_ciclo.sh,smoke_kardex_material.sh" ./script/smoke_all.sh
+          ONLY="smoke_equipos_ciclo.sh,smoke_materiales_ciclo.sh,smoke_kardex_material.sh,smoke_inventory.sh" ./script/smoke_all.sh
+
+      # En main corre el suite completo
+      - name: Run full smoke suite (main)
+        if: github.ref == 'refs/heads/main'
+        working-directory: backend
+        env:
+          API: ${{ env.API }}
+          KEY: ${{ env.KEY }}
+        run: |
+          ./script/smoke_all.sh
 
       - name: Archive smoke logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: smoke-logs
+          name: smoke-logs-${{ github.run_id }}
           path: backend/logs/**
+
+      - name: Docker Compose logs (on failure)
+        if: failure()
+        working-directory: backend
+        run: |
+          echo "===== docker compose ps ====="
+          docker compose ps
+          echo "===== docker compose logs (tail) ====="
+          docker compose logs --tail=200

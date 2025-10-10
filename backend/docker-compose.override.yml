@@ -1,38 +1,5 @@
 services:
   api:
-    # Expone el puerto de la API al host (si ya lo expones en otro lado, puedes remover esta línea)
-    ports:
-      - "3000:3000"
-
     environment:
-      # === AUTH (API KEY SIMPLE) ===
-      # Header:  x-api-key: <API_KEY>
-      # Query:   ?api_key=<API_KEY>
-      API_KEY: "superdev"
-
-      # === SWAGGER ===
-      # 1 = habilita /v1/docs (útil en DEV)
-      SWAGGER_ON: "1"
-
-      # === HOST/PORT (opcionales; no rompen si ya están en Dockerfile) ===
-      HOST: "0.0.0.0"
-      PORT: "3000"
-
-      # === MINIO / PDFs ===
-      MINIO_ENDPOINT: "minio"            # host del servicio minio dentro del compose
-      MINIO_PORT: "9000"
-      MINIO_USE_SSL: "false"
-      MINIO_ROOT_USER: "minioadmin"      # credenciales DEV por defecto
-      MINIO_ROOT_PASSWORD: "minioadmin"
-      MINIO_BUCKET: "evidencias"         # <— bucket ÚNICO que usaremos
-
-      # Base pública para construir las URLs de descarga (IMPORTANTE: termina en "/"
-      # y ya incluye el bucket en la ruta)
-      MINIO_PUBLIC_BASE: "http://127.0.0.1:9000/evidencias/"
-
-      # Fuerza a la API a usar MINIO_PUBLIC_BASE aunque también suba la ruta interna
-      PDF_FORCE_PUBLIC_URL: "true"
-
-      # === DB / otros (si los manejas aquí) ===
-      # Si ya tienes DATABASE_URL en el compose base o en variables externas, déjalo comentado
-      # DATABASE_URL: "postgresql://ispuser:isp123@db:5432/ispdb"
+      DOCS_ENABLED: "1"
+      JOBS_FAKE: "1"

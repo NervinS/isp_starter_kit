@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { InventarioService } from './inventario.service';
 import { InventarioController } from './inventario.controller';
+import { KardexMaterialController } from './kardex-material.controller';
 
 // Si tienes entidades específicas, impórtalas aquí:
 // import { AlgoEntity } from './entities/algo.entity';
@@ -11,7 +12,10 @@ import { InventarioController } from './inventario.controller';
   imports: [
     TypeOrmModule.forFeature([]),
   ],
-  controllers: [InventarioController],   // 👈 solo este
+  controllers: [
+    InventarioController,      // existente
+    KardexMaterialController,  // ⬅️ nuevo (read-only)
+  ],
   providers: [InventarioService],
   exports: [InventarioService],
 })
