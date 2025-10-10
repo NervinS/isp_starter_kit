@@ -18,7 +18,7 @@ jobs:
         working-directory: backend
 
     env:
-      # Vars que usan los smokes / API
+      # Vars usadas por smokes / API
       API: http://localhost:3000/v1
       KEY: superdev
       DOCS_ENABLED: 0
@@ -58,13 +58,29 @@ jobs:
           done
           curl -fsS http://localhost:9000/minio/health/live
 
+      # ⚠️ Las migraciones se ejecutan en el host, no dentro de la red de Docker.
+      # Muchos repos apuntan a HOST=db en .env/TypeORM; desde el runner eso no resuelve.
+      # Forzamos el host a 127.0.0.1 para evitar EAI_AGAIN: db.
       - name: Run DB migrations (auto-detect)
         shell: bash
+        env:
+          DB_HOST: 127.0.0.1
+          DATABASE_HOST: 127.0.0.1
+          TYPEORM_HOST: 127.0.0.1
+          KNEX_HOST: 127.0.0.1
+          PGHOST: 127.0.0.1
         run: |
           set -euo pipefail
 
           have_script() { npm run | awk '{print $1}' | grep -xq "$1" ; }
-          try_run() { echo "→ $*"; if eval "$@"; then echo "✓ OK: $*"; echo "$*" > ../.last_migration_cmd; exit 0; fi; }
+          try_run() { 
+            echo "→ $*"
+            if eval "$@"; then 
+              echo "✓ OK: $*"
+              echo "$*" > ../.last_migration_cmd
+              exit 0
+            fi
+          }
 
           echo "🧭 Scripts disponibles:"
           npm run || true
@@ -82,15 +98,14 @@ jobs:
             try_run npx prisma migrate deploy
           fi
 
-          # 3) TypeORM (autodetectar dataSource y pasar -d)
+          # 3) TypeORM autodetectando dataSource (-d obligatorio)
           ds_candidates=(
+            "src/database/data-source.ts"
             "src/data-source.ts"
             "src/datasource.ts"
-            "src/database/data-source.ts"
-            "apps/api/src/data-source.ts"
-            "apps/backend/src/data-source.ts"
-            "dist/data-source.js"
+            "src/database/data-source.js"
             "dist/database/data-source.js"
+            "dist/data-source.js"
             "ormconfig.ts"
             "ormconfig.js"
             "ormconfig.json"
@@ -100,29 +115,35 @@ jobs:
             if [ -f "$p" ]; then found_ds="$p"; break; fi
           done
           if [ -n "$found_ds" ]; then
-            echo "🔎 Detecté TypeORM dataSource en: $found_ds"
+            echo "🔎 TypeORM dataSource: $found_ds"
             try_run npx typeorm migration:run -d "$found_ds"
             try_run npx ts-node --transpile-only ./node_modules/typeorm/cli.js migration:run -d "$found_ds"
             try_run node --loader ts-node/esm ./node_modules/typeorm/cli.js migration:run -d "$found_ds"
             try_run node ./node_modules/typeorm/cli.js migration:run -d "$found_ds"
           fi
 
-          # 4) Knex (si está)
+          # 4) Knex
           if [ -f knexfile.ts ] || [ -f knexfile.js ]; then
             try_run npx knex migrate:latest
           fi
 
-          # 5) Sequelize (si está)
+          # 5) Sequelize
           if [ -d "migrations" ] && [ -f "node_modules/.bin/sequelize-cli" ]; then
             try_run npx sequelize-cli db:migrate
           fi
 
           echo "❌ No encontré comando de migraciones que funcione."
-          echo "   Pista: TypeORM requiere -d <ruta-al-data-source>."
+          echo "   Pista: si usas TypeORM, revisa -d <ruta-al-data-source>."
           exit 1
 
       - name: Seed DB (auto-detect)
         shell: bash
+        env:
+          DB_HOST: 127.0.0.1
+          DATABASE_HOST: 127.0.0.1
+          TYPEORM_HOST: 127.0.0.1
+          KNEX_HOST: 127.0.0.1
+          PGHOST: 127.0.0.1
         run: |
           set -euo pipefail
 
