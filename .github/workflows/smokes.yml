@@ -100,9 +100,9 @@ jobs:
 
           # 2) TypeORM en TS con runner TSX (más estable que ts-node con ESM)
           if [ -f src/database/data-source.ts ]; then
-            try_run npx tsx ./node_modules/typeorm/cli.js migration:run -d src/database/data-source.ts
+            try_run npx tsx -r reflect-metadata ./node_modules/typeorm/cli.js migration:run -d src/database/data-source.ts
             # alternativas por si el cli estuviera en otra ruta
-            try_run npx tsx node_modules/typeorm/cli.js migration:run -d src/database/data-source.ts
+            try_run npx tsx -r reflect-metadata node_modules/typeorm/cli.js migration:run -d src/database/data-source.ts
           fi
 
           # 3) Otras herramientas comunes (por si no es TypeORM)
