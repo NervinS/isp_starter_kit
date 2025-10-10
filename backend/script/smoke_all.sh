@@ -12,9 +12,15 @@
 #   SKIP="a,b,c"         -> salta estos (coma separados)
 #   LOG_DIR              -> directorio de logs (default: logs/smoke_all.<timestamp>)
 #   VERBOSE=1            -> eco de comandos (set -x)
+#
+# Notas de orden:
+# - Primero consultas "read-only" (disponibles).
+# - Luego bloque de equipos completo.
+# - **smoke_inventory.sh** se ejecuta inmediatamente después del bloque de equipos para
+#   que no lo contaminen los smokes de materiales/inventario.
+# - Después vienen los smokes de materiales/kardex/técnicos y finalmente agenda/ventas/pdf/jobs/metrics.
 
 set -euo pipefail
-
 [[ "${VERBOSE:-0}" == "1" ]] && set -x
 
 # --- Config ---
@@ -26,30 +32,58 @@ mkdir -p "${LOG_DIR}"
 
 # Falla rápido por defecto; se puede desactivar
 CONTINUE_ON_FAIL="${CONTINUE_ON_FAIL:-0}"
-# --- ENV para agenda (idempotente) ---
+
+# --- ENV comunes ---
 API="${API:-http://localhost:3000/v1}"
 export API
 if [[ -z "${REAGENDA_URL_TEMPLATE:-}" ]]; then
   export REAGENDA_URL_TEMPLATE="$API/agenda/ordenes/%s/reagendar"
 fi
 
-
-# Lista base (en el orden que pediste)
+# --- Lista de scripts en orden óptimo ---
 ALL_SCRIPTS=(
+  # Lecturas rápidas / baseline
+  "smoke_materiales_disponibles.sh"
+  "smoke_equipos_disponibles.sh"
+
+  # Bloque de equipos
+  "smoke_equipos_reservas.sh"
+  "smoke_equipos_asignar.sh"
+  "smoke_equipos_devolver.sh"
+  "smoke_equipos_stock.sh"
+  "smoke_equipos_ciclo.sh"
+  "smoke_equipos_historial.sh"
+
+  # Aislar inventory aquí (usa sus propias sondas y no debe verse afectado)
+  "smoke_inventory.sh"
+
+  # Inventario / materiales (pueden alterar saldos)
+  "smoke_materiales_ciclo.sh"
+  "smoke_inventario_traslado.sh"
   "smoke_inventario_min.sh"
+  "smoke_inventario_idem.sh"
+
+  # Kardex / validaciones
   "smoke_kardex_min.sh"
+  "smoke_kardex_material.sh"
+
+  # Técnicos
   "smoke_tecnicos_min.sh"
+
+  # Agenda / órdenes / ventas (flujo comercial)
   "smoke_ordenes.sh"
   "smoke_agenda.sh"
   "smoke_agenda_verbose.sh"
-  "smoke_inventario_traslado.sh"
-  "smoke_inventory.sh"
-  "run_smokes_and_logs.sh"
-  "smoke_ins_equipos_cierre.sh"
-  "smoke_pdf.sh"
-  "smoke_jobs.sh"
-  "smoke_metrics.sh"
   "smoke_ventas_ins.sh"
+  "smoke_ins_equipos_cierre.sh"
+
+  # Utilitarios / soporte
+  "smoke_jobs.sh"
+  "smoke_pdf.sh"
+  "smoke_metrics.sh"
+
+  # Wrapper final (si aplica)
+  "run_smokes_and_logs.sh"
 )
 
 # Filtrado opcional via ONLY / SKIP
@@ -77,9 +111,9 @@ should_run() {
 }
 
 # --- Helpers de salida bonita ---
-b() { printf "\033[1m%s\033[0m\n" "$*"; }
-green() { printf "\033[32m%s\033[0m\n" "$*"; }
-red() { printf "\033[31m%s\033[0m\n" "$*"; }
+b()      { printf "\033[1m%s\033[0m\n" "$*"; }
+green()  { printf "\033[32m%s\033[0m\n" "$*"; }
+red()    { printf "\033[31m%s\033[0m\n" "$*"; }
 yellow() { printf "\033[33m%s\033[0m\n" "$*"; }
 
 # --- Verificaciones mínimas ---
