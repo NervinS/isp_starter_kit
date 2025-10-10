@@ -43,6 +43,7 @@ ALL_SCRIPTS=(
   "smoke_equipos_devolver.sh"
   "smoke_equipos_stock.sh"
   "smoke_equipos_ciclo.sh"
+  "smoke_equipos_historial.sh"
   "smoke_materiales_ciclo.sh"
   "smoke_inventario_idem.sh"
   "smoke_inventario_min.sh"
