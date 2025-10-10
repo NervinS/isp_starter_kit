@@ -39,6 +39,7 @@ ALL_SCRIPTS=(
   # nuevos f1
   "smoke_materiales_disponibles.sh"
   "smoke_equipos_disponibles.sh"
+  "smoke_equipos_reservas.sh"
   "smoke_equipos_asignar.sh"
   "smoke_equipos_devolver.sh"
   "smoke_equipos_stock.sh"
