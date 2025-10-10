@@ -6,11 +6,13 @@ import { Material } from './material.entity';
 import { MaterialesService } from './materiales.service';
 import { MaterialesController } from './materiales.controller';
 
+// Controller nuevo para /v1/materiales/disponibles
+// (lo crearás en src/controllers/materiales.disponibles.controller.ts)
+import { MaterialesDisponiblesController } from '../../controllers/materiales.disponibles.controller';
+
 @Module({
   imports: [TypeOrmModule.forFeature([Material])],
-  controllers: [MaterialesController],
+  controllers: [MaterialesController, MaterialesDisponiblesController],
   providers: [MaterialesService],
-  // Exportamos el service (y el TypeOrmModule) para que otros módulos puedan usar el repo si hace falta.
-  exports: [MaterialesService, TypeOrmModule],
 })
 export class MaterialesModule {}
