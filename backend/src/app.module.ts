@@ -12,7 +12,8 @@ import { TecnicosModule } from './modules/tecnicos/tecnicos.module';
 import { MaterialesModule } from './modules/materiales/materiales.module';
 import { InventarioModule } from './modules/inventario/inventario.module';
 import { OrdenesModule } from './modules/ordenes/ordenes.module';
-import { JobsModule } from './modules/jobs/jobs.module'; // ⬅️ NUEVO
+import { JobsModule } from './modules/jobs/jobs.module'; // ⬅️ ya existente
+import { EquiposModule } from './modules/equipos/equipos.module'; // ⬅️ NUEVO
 
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
@@ -68,7 +69,8 @@ function maskDbUrl(url?: string) {
     InventarioModule,
     OrdenesModule,
     MetricsModule,
-    JobsModule, // ⬅️ NUEVO
+    JobsModule,
+    EquiposModule, // ⬅️ NUEVO
   ],
 })
 export class AppModule implements NestModule {
