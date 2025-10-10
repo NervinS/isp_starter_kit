@@ -12,14 +12,11 @@ on:
 jobs:
   smokes:
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
     defaults:
       run:
         working-directory: backend
 
     env:
-      # Vars usadas por smokes / API
-
       API: http://localhost:3000/v1
       KEY: superdev
       DOCS_ENABLED: 0
@@ -46,7 +43,7 @@ jobs:
           docker compose up -d db minio
 
           echo "⏳ Esperando Postgres…"
-          for i in {1..30}; do
+          for i in {1..40}; do
             docker compose exec -T db pg_isready -U ispuser -d ispdb && break || true
             sleep 2
           done
@@ -59,6 +56,7 @@ jobs:
           done
           curl -fsS http://localhost:9000/minio/health/live
 
+      # ---- FIX DNS para herramientas que usan "db" fuera de Docker ----
       - name: Map host 'db' -> localhost (fix EAI_AGAIN)
         shell: bash
         run: |
@@ -66,34 +64,22 @@ jobs:
           echo "127.0.0.1 db" | sudo tee -a /etc/hosts
           getent hosts db
 
-      # ⚠️ Las migraciones se ejecutan en el host, no dentro de la red de Docker.
-      # Muchos repos apuntan a HOST=db en .env/TypeORM; desde el runner eso no resuelve.
-      # Forzamos el host a 127.0.0.1 para evitar EAI_AGAIN: db.
-      - name: Run DB migrations (auto-detect)
+      - name: Run DB migrations (auto-detect, TypeORM-first)
         shell: bash
-        env:
-          DB_HOST: 127.0.0.1
-          DATABASE_HOST: 127.0.0.1
-          TYPEORM_HOST: 127.0.0.1
-          KNEX_HOST: 127.0.0.1
-          PGHOST: 127.0.0.1
         run: |
           set -euo pipefail
 
           have_script() { npm run | awk '{print $1}' | grep -xq "$1" ; }
-          try_run() { 
+          try_run() {
             echo "→ $*"
-            if eval "$@"; then 
+            if eval "$@"; then
               echo "✓ OK: $*"
               echo "$*" > ../.last_migration_cmd
               exit 0
             fi
           }
 
-          echo "🧭 Scripts disponibles:"
-          npm run || true
-
-          # 1) NPM scripts preferidos
+          # Prefer npm scripts si existen
           if have_script db:migrate;        then try_run npm run db:migrate;        fi
           if have_script migrate;           then try_run npm run migrate;           fi
           if have_script typeorm:migrate;   then try_run npm run typeorm:migrate;   fi
@@ -101,80 +87,83 @@ jobs:
           if have_script knex:migrate;      then try_run npm run knex:migrate;      fi
           if have_script sequelize:migrate; then try_run npm run sequelize:migrate; fi
 
-          # 2) Prisma si hay schema
-          if [ -f prisma/schema.prisma ] || [ -f schema.prisma ]; then
-            try_run npx prisma migrate deploy
-          fi
-
-          # 3) TypeORM autodetectando dataSource (-d obligatorio)
-          ds_candidates=(
-            "src/database/data-source.ts"
-            "src/data-source.ts"
-            "src/datasource.ts"
-            "src/database/data-source.js"
-            "dist/database/data-source.js"
-            "dist/data-source.js"
-            "ormconfig.ts"
-            "ormconfig.js"
-            "ormconfig.json"
-          )
-          found_ds=""
-          for p in "${ds_candidates[@]}"; do
-            if [ -f "$p" ]; then found_ds="$p"; break; fi
+          # --- TypeORM variantes robustas ---
+          # 1) Usar el data-source compilado primero
+          for DS in \
+            dist/database/data-source.js \
+            dist/src/database/data-source.js \
+            dist/database/data-source.cjs \
+            dist/src/database/data-source.cjs
+          do
+            [ -f "$DS" ] && try_run npx typeorm migration:run -d "$DS"
           done
-          if [ -n "$found_ds" ]; then
-            echo "🔎 TypeORM dataSource: $found_ds"
-            try_run npx typeorm migration:run -d "$found_ds"
-            try_run npx ts-node --transpile-only ./node_modules/typeorm/cli.js migration:run -d "$found_ds"
-            try_run node --loader ts-node/esm ./node_modules/typeorm/cli.js migration:run -d "$found_ds"
-            try_run node ./node_modules/typeorm/cli.js migration:run -d "$found_ds"
+
+          # 2) Correr con ts-node (commonjs + paths) sobre el .ts
+          if [ -f src/database/data-source.ts ]; then
+            try_run npx ts-node -O '{"module":"commonjs"}' \
+              -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:run \
+              -d src/database/data-source.ts
+
+            try_run node --require ts-node/register --require tsconfig-paths/register \
+              ./node_modules/typeorm/cli.js migration:run \
+              -d src/database/data-source.ts
+
+            # Como último recurso, loader ESM
+            try_run node --loader ts-node/esm ./node_modules/typeorm/cli.js \
+              migration:run -d src/database/data-source.ts
           fi
 
-          # 4) Knex
-          if [ -f knexfile.ts ] || [ -f knexfile.js ]; then
-            try_run npx knex migrate:latest
-          fi
+          # --- Otros ORMs comunes (por si el repo no usa TypeORM) ---
+          try_run npx prisma migrate deploy
+          try_run npx knex migrate:latest
+          try_run npx sequelize-cli db:migrate
 
-          # 5) Sequelize
-          if [ -d "migrations" ] && [ -f "node_modules/.bin/sequelize-cli" ]; then
-            try_run npx sequelize-cli db:migrate
-          fi
-
-          echo "❌ No encontré comando de migraciones que funcione."
-          echo "   Pista: si usas TypeORM, revisa -d <ruta-al-data-source>."
+          echo "❌ No encontré comando de migraciones que funcione." >&2
           exit 1
 
-      - name: Seed DB (auto-detect)
+      - name: Seed DB (auto-detect, robusto)
         shell: bash
-        env:
-          DB_HOST: 127.0.0.1
-          DATABASE_HOST: 127.0.0.1
-          TYPEORM_HOST: 127.0.0.1
-          KNEX_HOST: 127.0.0.1
-          PGHOST: 127.0.0.1
         run: |
           set -euo pipefail
 
           have_script() { npm run | awk '{print $1}' | grep -xq "$1" ; }
-          try_run() { echo "→ $*"; if eval "$@"; then echo "✓ OK: $*"; echo "$*" > ../.last_seed_cmd; exit 0; fi; }
+          try_run() {
+            echo "→ $*"
+            if eval "$@"; then
+              echo "✓ OK: $*"
+              echo "$*" > ../.last_seed_cmd
+              exit 0
+            fi
+          }
 
-          # Scripts comunes
+          # Prefer npm scripts
           if have_script db:seed;        then try_run npm run db:seed;        fi
           if have_script seed;           then try_run npm run seed;           fi
+          if have_script typeorm:seed;   then try_run npm run typeorm:seed;   fi
           if have_script prisma:seed;    then try_run npm run prisma:seed;    fi
           if have_script knex:seed;      then try_run npm run knex:seed;      fi
           if have_script sequelize:seed; then try_run npm run sequelize:seed; fi
 
-          # CLIs comunes
-          if [ -f prisma/schema.prisma ] || [ -f schema.prisma ]; then
-            try_run npx prisma db seed
-          fi
-          if [ -f knexfile.ts ] || [ -f knexfile.js ]; then
-            try_run npx knex seed:run
-          fi
-          if [ -f "node_modules/.bin/sequelize-cli" ]; then
-            try_run npx sequelize-cli db:seed:all
-          fi
+          # TypeORM: JS compilado
+          for S in \
+            dist/database/seed.js \
+            dist/src/database/seed.js
+          do
+            [ -f "$S" ] && try_run node "$S"
+          done
+
+          # TypeORM: TS con ts-node
+          for S in \
+            src/database/seed.ts \
+            src/seed.ts
+          do
+            [ -f "$S" ] && try_run npx ts-node -O '{"module":"commonjs"}' -r tsconfig-paths/register "$S"
+          done
+
+          # Prisma / Knex / Sequelize (CLI)
+          try_run npx prisma db seed
+          try_run npx knex seed:run
+          try_run npx sequelize-cli db:seed:all
 
           echo "⚠️  No encontré comando de seed. Continuo sin seed."
 
@@ -184,18 +173,11 @@ jobs:
           DOCS_ENABLED: 0
         run: |
           set -euxo pipefail
-          # Detectar servicio que contenga "api"
-          API_SVC="$(docker compose config --services | grep -E '^api$|api' | head -n1 || true)"
-          if [ -n "$API_SVC" ]; then
-            docker compose pull "$API_SVC" || true
-            docker compose up -d "$API_SVC"
-          else
-            echo "⚠️ No encontré servicio 'api' en docker compose; skipping lift de API."
-            exit 0
-          fi
+          docker compose pull api || true
+          docker compose up -d api
 
           echo "⏳ Esperando API /health…"
-          for i in {1..30}; do
+          for i in {1..40}; do
             curl -fsS http://localhost:3000/health && break || true
             sleep 2
           done
@@ -215,36 +197,36 @@ jobs:
           set -euxo pipefail
           ./script/smoke_all.sh || true
 
-      # ── RECOLECCIÓN DE LOGS (siempre) ──────────────────────────────────────────
+      # ── LOGS SIEMPRE ──────────────────────────────────────────────────────────
       - name: Capturar logs de Docker y API (siempre)
         if: always()
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p logs backend/logs
-
-          # Compose (arranque/errores)
+          # compose (arranque, errores)
           docker compose logs --no-color > logs/compose-logs.txt 2>&1 || true
-          cp -f logs/compose-logs.txt backend/logs/compose-logs.txt 2>/dev/null || true
 
-          # API: detectar contenedor con "api"
-          API_CTN="$(docker ps --format '{{.Names}}' | grep -E 'api' | head -n1 || true)"
-          if [ -n "$API_CTN" ]; then
-            docker logs "$API_CTN" > logs/api.log 2>&1 || true
-            cp -f logs/api.log backend/logs/api.log 2>/dev/null || true
+          # api (si está corriendo)
+          CID=$(docker compose ps -q api || true)
+          if [ -n "$CID" ]; then
+            docker logs "$CID" > logs/api.log 2>&1 || true
           else
             echo "(no se detectó contenedor API)" > logs/api.log
-            cp -f logs/api.log backend/logs/api.log 2>/dev/null || true
           fi
 
-      - name: Subir artifacts (único, nombre único por intento)
+          # Copiar también a backend/logs para compatibilidad con scripts previos
+          cp -f logs/compose-logs.txt backend/logs/compose-logs.txt 2>/dev/null || true
+          cp -f logs/api.log          backend/logs/api.log          2>/dev/null || true
+
+      - name: Subir artifacts (smoke-logs, único por intento)
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: smoke-logs-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
-            backend/logs/smoke_all.*/**
             backend/logs/**
+            backend/logs/*
             logs/compose-logs.txt
             logs/api.log
           if-no-files-found: ignore
