@@ -12,7 +12,7 @@ export class Usuario {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ length: 20 })
+  @Column({ type: 'varchar', length: 20 })
   codigo: string;
 
   @Column()
