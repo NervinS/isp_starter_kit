@@ -13,7 +13,7 @@ export class Usuario {
   id: string;
 
   @Column({ type: 'varchar', length: 20 })
-  codigo: string;
+  codigo!: string;
 
   @Column()
   tipo_cliente: string;
