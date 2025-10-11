@@ -1,13 +1,13 @@
-// src/modules/ventas/ventas.entity.ts
+// backend/src/modules/ventas/ventas.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity({ name: 'ventas' })
 export class Venta {
-  // PK UUID (generada por la DB)
+  // PK
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  // Código externo/legible de la venta
+  // Código de la venta (ej. "VTA-0001")
   @Column({ type: 'varchar', length: 20 })
   codigo!: string;
 
@@ -21,7 +21,7 @@ export class Venta {
   @Column({ type: 'varchar', length: 30 })
   documento!: string;
 
-  // Referencia al usuario (FK lógica)
+  // Relación/foránea hacia usuario (por ahora como UUID plano)
   @Column({ type: 'uuid' })
   usuario_id!: string;
 
@@ -29,25 +29,25 @@ export class Venta {
   @Column({ type: 'varchar', length: 20, default: 'creada' })
   estado!: string;
 
-  // Plan textual (si luego normalizas, cambia a FK)
+  // Plan textual (si luego normalizas, cámbialo a FK)
   @Column({ type: 'varchar', length: 120 })
   plan!: string;
 
-  // Totales: usar string en TS para evitar pérdidas con DECIMAL
+  // Totales
   @Column({ type: 'numeric', precision: 12, scale: 2, default: 0 })
-  mensual_total!: string;
+  mensual_total!: string; // TypeORM devuelve numeric como string
 
   @Column({ type: 'numeric', precision: 12, scale: 2, default: 0 })
-  total!: string;
+  total!: string; // idem
 
-  // Ubicaciones de PDFs en MinIO (opcionales)
-  @Column({ type: 'varchar', nullable: true })
+  // Ubicaciones en MinIO de PDFs generados
+  @Column({ type: 'varchar', length: 255, nullable: true })
   recibo_pdf_key!: string | null;
 
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   contrato_pdf_key!: string | null;
 
-  // Marca de creación
+  // Timestamps
   @Column({ type: 'timestamptz', default: () => 'now()' })
   created_at!: Date;
 }
