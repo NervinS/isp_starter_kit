@@ -17,6 +17,13 @@ jobs:
       API: http://localhost:3000/v1
       KEY: superdev
       DOCS_ENABLED: 0
+      # Credenciales DB para CLIs fuera de Docker (typeorm/prisma/knex/etc.)
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_USERNAME: ispuser
+      DB_PASSWORD: isp123
+      DB_DATABASE: ispdb
+      DATABASE_URL: postgresql://ispuser:isp123@db:5432/ispdb
 
     steps:
       - uses: actions/checkout@v4
@@ -70,13 +77,6 @@ jobs:
         env:
           TS_NODE_TRANSPILE_ONLY: "1"
           TS_NODE_COMPILER_OPTIONS: '{"module":"commonjs"}'
-          # Credenciales para CLIs fuera de Docker
-          DB_HOST: db
-          DB_PORT: "5432"
-          DB_USERNAME: ispuser
-          DB_PASSWORD: isp123
-          DB_DATABASE: ispdb
-          DATABASE_URL: postgresql://ispuser:isp123@db:5432/ispdb
         run: |
           set -euo pipefail
 
@@ -90,7 +90,7 @@ jobs:
             fi
           }
 
-          # 0) Si el repo ya define scripts, respétalos
+          # 0) Scripts del repo
           if have_script db:migrate;        then try_run npm run db:migrate;        fi
           if have_script migrate;           then try_run npm run migrate;           fi
           if have_script typeorm:migrate;   then try_run npm run typeorm:migrate;   fi
@@ -105,13 +105,13 @@ jobs:
             [ -f "$DS" ] && try_run npx typeorm migration:run -d "$DS"
           done
 
-          # 2) TypeORM en TS con runner TSX (más estable que ts-node con ESM)
+          # 2) TypeORM en TS con TSX
           if [ -f src/database/data-source.ts ]; then
             try_run npx tsx -r reflect-metadata ./node_modules/typeorm/cli.js migration:run -d src/database/data-source.ts
             try_run npx tsx -r reflect-metadata node_modules/typeorm/cli.js   migration:run -d src/database/data-source.ts
           fi
 
-          # 3) Otras herramientas comunes (por si no es TypeORM)
+          # 3) Alternativas comunes
           try_run npx prisma migrate deploy
           try_run npx knex migrate:latest
           try_run npx sequelize-cli db:migrate
@@ -125,13 +125,6 @@ jobs:
         env:
           TS_NODE_TRANSPILE_ONLY: "1"
           TS_NODE_COMPILER_OPTIONS: '{"module":"commonjs"}'
-          # Credenciales para CLIs fuera de Docker
-          DB_HOST: db
-          DB_PORT: "5432"
-          DB_USERNAME: ispuser
-          DB_PASSWORD: isp123
-          DB_DATABASE: ispdb
-          DATABASE_URL: postgresql://ispuser:isp123@db:5432/ispdb
         run: |
           set -euo pipefail
 
@@ -172,12 +165,34 @@ jobs:
 
       # ── Seed CI específico (idempotente) ─────────────────────────────────────
       - name: Seed CI (desde archivo del repo)
+        shell: bash
         run: |
+          set -euxo pipefail
           docker compose exec -T db sh -lc 'cat > /tmp/seed_ci.sql' < backend/script/seed_ci.sql
           docker compose exec -T db psql -U ispuser -d ispdb -f /tmp/seed_ci.sql
           # sanity check (no rompe el job si falla)
           docker compose exec -T db psql -U ispuser -d ispdb -c \
             "SELECT codigo,tipo,estado FROM ordenes WHERE codigo='INS-CI-0001';" || true
+
+      # ── Detectar servicio API ────────────────────────────────────────────────
+      - name: Detect API service name
+        id: detect_api
+        shell: bash
+        run: |
+          set -euo pipefail
+          SVC="$(docker compose config --services | grep -E '^(api|server|app|web)$' | head -n1 || true)"
+          if [ -z "${SVC}" ]; then
+            # intento por puerto publicado 3000
+            SVC="$(docker compose config | awk '
+              /services:/ {in_s=1; next}
+              in_s && /^[[:space:]]+[a-zA-Z0-9_-]+:/ {gsub(":","",$1); svc=$1}
+              /ports:/ {in_p=1}
+              in_p && /3000:3000/ {print svc; exit}
+              /^[[:space:]]*[a-zA-Z0-9_-]+:/ && $1 !~ /ports:/ {in_p=0}
+            ')"
+          fi
+          echo "api_service=${SVC:-api}" >> "$GITHUB_OUTPUT"
+          echo "→ api_service=${SVC:-api}"
 
       # ── API & smokes ─────────────────────────────────────────────────────────
       - name: Boot API (docker compose)
@@ -186,15 +201,18 @@ jobs:
           DOCS_ENABLED: 0
         run: |
           set -euxo pipefail
-          docker compose pull api || true
-          docker compose up -d api
+          SVC="${{ steps.detect_api.outputs.api_service }}"
+          docker compose pull "$SVC" || true
+          docker compose up -d "$SVC"
 
-          echo "⏳ Esperando API /health…"
-          for i in {1..40}; do
-            curl -fsS http://localhost:3000/health && break || true
+          echo "⏳ Esperando API /health… (hasta 3 min)"
+          for i in {1..90}; do
+            if curl -fsS http://localhost:3000/health >/dev/null 2>&1; then
+              echo "API OK"
+              break
+            fi
             sleep 2
-          done
-          curl -fsS http://localhost:3000/health || true
+          done || true
 
       - name: Run focused smokes (rápidos)
         shell: bash
@@ -210,6 +228,34 @@ jobs:
           set -euxo pipefail
           ./script/smoke_all.sh || true
 
+      # ── Diagnóstico post-API ────────────────────────────────────────────────
+      - name: Diagnóstico post-API
+        if: always()
+        shell: bash
+        run: |
+          set -euxo pipefail
+          echo "── docker compose ps"
+          docker compose ps || true
+          echo "── docker compose config (servicios)"
+          docker compose config --services || true
+          echo "── docker compose images"
+          docker compose images || true
+
+          SVC="${{ steps.detect_api.outputs.api_service }}"
+          CID="$(docker compose ps -q "$SVC" || true)"
+          if [ -n "$CID" ]; then
+            echo "── Logs recientes de API"
+            docker logs --since 10m "$CID" || true
+
+            echo "── Health desde dentro del contenedor"
+            docker compose exec -T "$SVC" sh -lc 'wget -qO- http://localhost:3000/health || curl -fsS http://localhost:3000/health || true' || true
+
+            echo "── Puertos expuestos"
+            docker inspect "$CID" --format='{{json .NetworkSettings.Ports}}' | jq . || true
+          else
+            echo "⚠️  (no se detectó contenedor API: $SVC)"
+          fi
+
       # ── LOGS & ARTIFACTS ─────────────────────────────────────────────────────
       - name: Capturar logs de Docker y API (siempre)
         if: always()
@@ -218,18 +264,16 @@ jobs:
           set -euo pipefail
           mkdir -p logs backend/logs
 
-          # compose
           docker compose logs --no-color > logs/compose-logs.txt 2>&1 || true
 
-          # api
-          CID="$(docker compose ps -q api || true)"
+          SVC="${{ steps.detect_api.outputs.api_service }}"
+          CID="$(docker compose ps -q "$SVC" || true)"
           if [ -n "$CID" ]; then
             docker logs "$CID" > logs/api.log 2>&1 || true
           else
             echo "(no se detectó contenedor API)" > logs/api.log
           fi
 
-          # copiar a backend/logs por compatibilidad
           cp -f logs/compose-logs.txt backend/logs/compose-logs.txt 2>/dev/null || true
           cp -f logs/api.log          backend/logs/api.log          2>/dev/null || true
 
