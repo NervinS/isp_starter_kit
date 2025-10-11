@@ -15,7 +15,7 @@ export class Usuario {
   @Column({ type: 'varchar', length: 20 })
   codigo!: string;
 
-  @Column()
+  @Column({ type: 'varchar', length: 20 })
   tipo_cliente: string;
 
   @Column({ length: 120 })
