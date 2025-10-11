@@ -70,6 +70,13 @@ jobs:
         env:
           TS_NODE_TRANSPILE_ONLY: "1"
           TS_NODE_COMPILER_OPTIONS: '{"module":"commonjs"}'
+          # Credenciales para CLIs fuera de Docker
+          DB_HOST: db
+          DB_PORT: "5432"
+          DB_USERNAME: ispuser
+          DB_PASSWORD: isp123
+          DB_DATABASE: ispdb
+          DATABASE_URL: postgresql://ispuser:isp123@db:5432/ispdb
         run: |
           set -euo pipefail
 
@@ -101,8 +108,7 @@ jobs:
           # 2) TypeORM en TS con runner TSX (más estable que ts-node con ESM)
           if [ -f src/database/data-source.ts ]; then
             try_run npx tsx -r reflect-metadata ./node_modules/typeorm/cli.js migration:run -d src/database/data-source.ts
-            # alternativas por si el cli estuviera en otra ruta
-            try_run npx tsx -r reflect-metadata node_modules/typeorm/cli.js migration:run -d src/database/data-source.ts
+            try_run npx tsx -r reflect-metadata node_modules/typeorm/cli.js   migration:run -d src/database/data-source.ts
           fi
 
           # 3) Otras herramientas comunes (por si no es TypeORM)
@@ -113,12 +119,19 @@ jobs:
           echo "❌ No encontré comando de migraciones que funcione." >&2
           exit 1
 
-      # ── Seed ──────────────────────────────────────────────────────────────────
+      # ── Seed genérico ─────────────────────────────────────────────────────────
       - name: Seed DB (auto-detect, robusto)
         shell: bash
         env:
           TS_NODE_TRANSPILE_ONLY: "1"
           TS_NODE_COMPILER_OPTIONS: '{"module":"commonjs"}'
+          # Credenciales para CLIs fuera de Docker
+          DB_HOST: db
+          DB_PORT: "5432"
+          DB_USERNAME: ispuser
+          DB_PASSWORD: isp123
+          DB_DATABASE: ispdb
+          DATABASE_URL: postgresql://ispuser:isp123@db:5432/ispdb
         run: |
           set -euo pipefail
 
@@ -156,6 +169,15 @@ jobs:
           try_run npx sequelize-cli db:seed:all
 
           echo "⚠️  No encontré comando de seed. Continuo sin seed."
+
+      # ── Seed CI específico (idempotente) ─────────────────────────────────────
+      - name: Seed CI (desde archivo del repo)
+        run: |
+          docker compose exec -T db sh -lc 'cat > /tmp/seed_ci.sql' < backend/script/seed_ci.sql
+          docker compose exec -T db psql -U ispuser -d ispdb -f /tmp/seed_ci.sql
+          # sanity check (no rompe el job si falla)
+          docker compose exec -T db psql -U ispuser -d ispdb -c \
+            "SELECT codigo,tipo,estado FROM ordenes WHERE codigo='INS-CI-0001';" || true
 
       # ── API & smokes ─────────────────────────────────────────────────────────
       - name: Boot API (docker compose)
@@ -222,9 +244,3 @@ jobs:
             logs/compose-logs.txt
             logs/api.log
           if-no-files-found: ignore
-
-      # ── Seed CI (idempotente) ────────────────────────────────────────────────
-      - name: Seed CI (desde archivo del repo)
-        run: |
-          docker compose exec -T db sh -lc 'cat > /tmp/seed_ci.sql' < backend/script/seed_ci.sql
-          docker compose exec -T db psql -U ispuser -d ispdb -f /tmp/seed_ci.sql
