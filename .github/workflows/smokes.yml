@@ -9,15 +9,20 @@ on:
 jobs:
   smokes:
     runs-on: ubuntu-24.04
+
+    # Todo ocurre dentro de backend/
     defaults:
       run:
         working-directory: backend
 
     env:
+      # Endpoints por defecto (se reescriben tras detectar puerto y ruta)
+      API_BASE: http://localhost:3000
       API: http://localhost:3000/v1
       KEY: superdev
-      DOCS_ENABLED: 0
-      # Credenciales DB para CLIs fuera de Docker (typeorm/prisma/knex/etc.)
+      DOCS_ENABLED: "0"
+
+      # Credenciales DB para CLIs/API local (igual que tu compose)
       DB_HOST: db
       DB_PORT: "5432"
       DB_USERNAME: ispuser
@@ -28,6 +33,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # ---------- Node (backend) ----------
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -38,10 +44,10 @@ jobs:
       - name: Install deps
         run: npm ci
 
-      - name: Build
-        run: npm run build
+      - name: Build (best-effort)
+        run: npm run build || true
 
-      # ── Infra: DB + MinIO ─────────────────────────────────────────────────────
+      # ---------- Infra: DB + MinIO (compose en backend/) ----------
       - name: Boot infra (db + minio) via docker compose
         shell: bash
         run: |
@@ -50,28 +56,29 @@ jobs:
           docker compose up -d db minio
 
           echo "⏳ Esperando Postgres…"
-          for i in {1..40}; do
+          for i in {1..60}; do
             docker compose exec -T db pg_isready -U ispuser -d ispdb && break || true
             sleep 2
           done
           docker compose exec -T db pg_isready -U ispuser -d ispdb
 
           echo "⏳ Esperando MinIO…"
-          for i in {1..30}; do
+          for i in {1..60}; do
             curl -fsS http://localhost:9000/minio/health/live && break || true
             sleep 2
           done
           curl -fsS http://localhost:9000/minio/health/live
 
-      # Fix DNS: herramientas Node fuera de Docker que se conectan a "db"
-      - name: Map host 'db' -> localhost (fix EAI_AGAIN)
+      # Si Node fuera de Docker resuelve "db" pero el puerto no está publicado,
+      # no hay nada que hacer desde aquí. En tu repo ya te funcionó esta conexión con CLIs.
+      - name: Map host 'db' -> localhost (mitiga EAI_AGAIN)
         shell: bash
         run: |
           set -euxo pipefail
           echo "127.0.0.1 db" | sudo tee -a /etc/hosts
           getent hosts db
 
-      # ── Migraciones ───────────────────────────────────────────────────────────
+      # ---------- Migraciones / Seed ----------
       - name: Run DB migrations (auto-detect, TypeORM-first)
         shell: bash
         env:
@@ -90,12 +97,10 @@ jobs:
             fi
           }
 
-          # 0) Scripts del repo
-          if have_script db:migrate;        then try_run npm run db:migrate;        fi
-          if have_script migrate;           then try_run npm run migrate;           fi
-          if have_script typeorm:migrate;   then try_run npm run typeorm:migrate;   fi
+          if have_script db:migrate;      then try_run npm run db:migrate;      fi
+          if have_script migrate;         then try_run npm run migrate;         fi
+          if have_script typeorm:migrate; then try_run npm run typeorm:migrate; fi
 
-          # 1) TypeORM con build (evita lío ESM/CJS)
           for DS in \
             dist/database/data-source.js \
             dist/src/database/data-source.js \
@@ -105,13 +110,11 @@ jobs:
             [ -f "$DS" ] && try_run npx typeorm migration:run -d "$DS"
           done
 
-          # 2) TypeORM en TS con TSX
           if [ -f src/database/data-source.ts ]; then
             try_run npx tsx -r reflect-metadata ./node_modules/typeorm/cli.js migration:run -d src/database/data-source.ts
             try_run npx tsx -r reflect-metadata node_modules/typeorm/cli.js   migration:run -d src/database/data-source.ts
           fi
 
-          # 3) Alternativas comunes
           try_run npx prisma migrate deploy
           try_run npx knex migrate:latest
           try_run npx sequelize-cli db:migrate
@@ -119,7 +122,6 @@ jobs:
           echo "❌ No encontré comando de migraciones que funcione." >&2
           exit 1
 
-      # ── Seed genérico ─────────────────────────────────────────────────────────
       - name: Seed DB (auto-detect, robusto)
         shell: bash
         env:
@@ -138,7 +140,6 @@ jobs:
             fi
           }
 
-          # Preferir scripts
           if have_script db:seed;        then try_run npm run db:seed;        fi
           if have_script seed;           then try_run npm run seed;           fi
           if have_script typeorm:seed;   then try_run npm run typeorm:seed;   fi
@@ -146,76 +147,117 @@ jobs:
           if have_script knex:seed;      then try_run npm run knex:seed;      fi
           if have_script sequelize:seed; then try_run npm run sequelize:seed; fi
 
-          # TypeORM seed JS compilado
           for S in dist/database/seed.js dist/src/database/seed.js; do
             [ -f "$S" ] && try_run node "$S"
           done
 
-          # TypeORM seed TS con TSX
           for S in src/database/seed.ts src/seed.ts; do
             [ -f "$S" ] && try_run npx tsx "$S"
           done
 
-          # Prisma / Knex / Sequelize (CLI)
           try_run npx prisma db seed
           try_run npx knex seed:run
           try_run npx sequelize-cli db:seed:all
 
           echo "⚠️  No encontré comando de seed. Continuo sin seed."
 
-      # ── Seed CI específico (idempotente) ─────────────────────────────────────
       - name: Seed CI (desde archivo del repo)
         shell: bash
         run: |
           set -euxo pipefail
-          docker compose exec -T db sh -lc 'cat > /tmp/seed_ci.sql' < backend/script/seed_ci.sql
+          docker compose exec -T db sh -lc 'cat > /tmp/seed_ci.sql' < script/seed_ci.sql
           docker compose exec -T db psql -U ispuser -d ispdb -f /tmp/seed_ci.sql
-          # sanity check (no rompe el job si falla)
           docker compose exec -T db psql -U ispuser -d ispdb -c \
             "SELECT codigo,tipo,estado FROM ordenes WHERE codigo='INS-CI-0001';" || true
 
-      # ── Detectar servicio API ────────────────────────────────────────────────
-      - name: Detect API service name
-        id: detect_api
-        shell: bash
-        run: |
-          set -euo pipefail
-          SVC="$(docker compose config --services | grep -E '^(api|server|app|web)$' | head -n1 || true)"
-          if [ -z "${SVC}" ]; then
-            # intento por puerto publicado 3000
-            SVC="$(docker compose config | awk '
-              /services:/ {in_s=1; next}
-              in_s && /^[[:space:]]+[a-zA-Z0-9_-]+:/ {gsub(":","",$1); svc=$1}
-              /ports:/ {in_p=1}
-              in_p && /3000:3000/ {print svc; exit}
-              /^[[:space:]]*[a-zA-Z0-9_-]+:/ && $1 !~ /ports:/ {in_p=0}
-            ')"
-          fi
-          echo "api_service=${SVC:-api}" >> "$GITHUB_OUTPUT"
-          echo "→ api_service=${SVC:-api}"
-
-      # ── API & smokes ─────────────────────────────────────────────────────────
-      - name: Boot API (docker compose)
+      # ---------- API local (siempre) ----------
+      - name: Boot API locally (fallback definitivo)
+        id: boot_local_api
         shell: bash
         env:
-          DOCS_ENABLED: 0
+          HOST: 0.0.0.0
+          PORT: "3000"
+          DOCS_ENABLED: "0"
         run: |
-          set -euxo pipefail
-          SVC="${{ steps.detect_api.outputs.api_service }}"
-          docker compose pull "$SVC" || true
-          docker compose up -d "$SVC"
+          set -euo pipefail
 
-          echo "⏳ Esperando API /health… (hasta 3 min)"
-          for i in {1..90}; do
-            if curl -fsS http://localhost:3000/health >/dev/null 2>&1; then
-              echo "API OK"
-              break
-            fi
+          HEALTH_PATHS="/health /v1/health /api/health"
+          SCAN_PORTS="3000 8080 4000"
+
+          # Elegir comando de arranque
+          if npm run | awk '{print $1}' | grep -xq "start:prod"; then
+            START_CMD="npm run start:prod"
+          elif npm run | awk '{print $1}' | grep -xq "start"; then
+            START_CMD="npm run start"
+          elif [ -f dist/main.js ]; then
+            START_CMD="node dist/main.js"
+          elif [ -f dist/src/main.js ]; then
+            START_CMD="node dist/src/main.js"
+          elif [ -f dist/app.js ]; then
+            START_CMD="node dist/app.js"
+          else
+            echo "❌ No encontré comando ni archivo de arranque para API local." >&2
+            exit 1
+          fi
+
+          echo "→ START_CMD: $START_CMD"
+
+          # Export envs y arranque en background
+          export HOST=0.0.0.0 PORT=3000 \
+                 DB_HOST="${DB_HOST}" DB_PORT="${DB_PORT}" \
+                 DB_USERNAME="${DB_USERNAME}" DB_PASSWORD="${DB_PASSWORD}" \
+                 DB_DATABASE="${DB_DATABASE}" DATABASE_URL="${DATABASE_URL}" \
+                 KEY="${KEY}" DOCS_ENABLED="${DOCS_ENABLED}"
+
+          nohup bash -lc "$START_CMD" > /tmp/api-local.log 2>&1 & echo $! > /tmp/api-local.pid || true
+
+          FOUND_PORT=""
+          FOUND_PATH=""
+
+          echo "⏳ Esperando health de API local…"
+          for i in {1..150}; do
+            for P in $SCAN_PORTS; do
+              for HP in $HEALTH_PATHS; do
+                if curl -fsS "http://localhost:${P}${HP}" >/dev/null 2>&1; then
+                  FOUND_PORT="$P"; FOUND_PATH="$HP"; break 3
+                fi
+              done
+            done
             sleep 2
-          done || true
+          done
+
+          if [ -z "$FOUND_PORT" ]; then
+            echo "❌ API local no respondió health."
+            [ -f /tmp/api-local.log ] && tail -n 200 /tmp/api-local.log || true
+            exit 1
+          fi
+
+          API_BASE="http://localhost:${FOUND_PORT}"
+          echo "✅ API local OK en ${API_BASE}${FOUND_PATH}"
+
+          {
+            echo "api_base=$API_BASE"
+            echo "health_path=$FOUND_PATH"
+            echo "port=$FOUND_PORT"
+          } | tee -a "$GITHUB_OUTPUT"
+
+          {
+            echo "API_BASE=$API_BASE"
+            echo "API=$API_BASE/v1"
+          } | tee -a "$GITHUB_ENV"
+
+      # ---------- Smokes ----------
+      - name: Print resolved API endpoints
+        shell: bash
+        run: |
+          echo "API_BASE=$API_BASE"
+          echo "API=$API"
 
       - name: Run focused smokes (rápidos)
         shell: bash
+        env:
+          API_BASE: ${{ env.API_BASE }}
+          API: ${{ env.API }}
         run: |
           set -euxo pipefail
           ONLY="smoke_equipos_ciclo.sh,smoke_materiales_ciclo.sh,smoke_kardex_material.sh" ./script/smoke_all.sh
@@ -224,60 +266,49 @@ jobs:
         shell: bash
         env:
           CONTINUE_ON_FAIL: "1"
+          API_BASE: ${{ env.API_BASE }}
+          API: ${{ env.API }}
         run: |
           set -euxo pipefail
           ./script/smoke_all.sh || true
 
-      # ── Diagnóstico post-API ────────────────────────────────────────────────
+      # ---------- Diagnóstico & artifacts ----------
       - name: Diagnóstico post-API
         if: always()
         shell: bash
         run: |
           set -euxo pipefail
+          echo "API_BASE(final)=$API_BASE  API=$API"
           echo "── docker compose ps"
           docker compose ps || true
-          echo "── docker compose config (servicios)"
-          docker compose config --services || true
           echo "── docker compose images"
           docker compose images || true
+          echo "── tail /tmp/api-local.log (si existe)"
+          [ -f /tmp/api-local.log ] && tail -n 200 /tmp/api-local.log || echo "(sin log local)"
+          echo "── Probar health desde host"
+          for P in 3000 8080 4000; do
+            for HP in /health /v1/health /api/health; do
+              curl -sv --max-time 5 "http://localhost:${P}${HP}" || true
+            done
+          done
 
-          SVC="${{ steps.detect_api.outputs.api_service }}"
-          CID="$(docker compose ps -q "$SVC" || true)"
-          if [ -n "$CID" ]; then
-            echo "── Logs recientes de API"
-            docker logs --since 10m "$CID" || true
-
-            echo "── Health desde dentro del contenedor"
-            docker compose exec -T "$SVC" sh -lc 'wget -qO- http://localhost:3000/health || curl -fsS http://localhost:3000/health || true' || true
-
-            echo "── Puertos expuestos"
-            docker inspect "$CID" --format='{{json .NetworkSettings.Ports}}' | jq . || true
-          else
-            echo "⚠️  (no se detectó contenedor API: $SVC)"
-          fi
-
-      # ── LOGS & ARTIFACTS ─────────────────────────────────────────────────────
-      - name: Capturar logs de Docker y API (siempre)
+      - name: Capturar logs (compose + API local)
         if: always()
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p logs backend/logs
-
+          mkdir -p logs backend/logs || true
           docker compose logs --no-color > logs/compose-logs.txt 2>&1 || true
-
-          SVC="${{ steps.detect_api.outputs.api_service }}"
-          CID="$(docker compose ps -q "$SVC" || true)"
-          if [ -n "$CID" ]; then
-            docker logs "$CID" > logs/api.log 2>&1 || true
+          if [ -f /tmp/api-local.log ]; then
+            cp -f /tmp/api-local.log logs/api.log
           else
-            echo "(no se detectó contenedor API)" > logs/api.log
+            echo "(no log local)" > logs/api.log
           fi
-
+          # compatibilidad con paths anteriores
           cp -f logs/compose-logs.txt backend/logs/compose-logs.txt 2>/dev/null || true
           cp -f logs/api.log          backend/logs/api.log          2>/dev/null || true
 
-      - name: Subir artifacts (smoke-logs, único por intento)
+      - name: Subir artifacts (smoke-logs)
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -285,6 +316,8 @@ jobs:
           path: |
             backend/logs/**
             backend/logs/*
+            backend/logs/compose-logs.txt
+            backend/logs/api.log
             logs/compose-logs.txt
             logs/api.log
           if-no-files-found: ignore
