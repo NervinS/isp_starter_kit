@@ -1,2 +1,25 @@
+# deps & builds
+node_modules/
+backend/node_modules/
+backend/dist/
+coverage/
+
+# logs & diagnostics
+*.log
+logs/
+backend/logs/
+project_diagnostics_*/
+backend/project_diagnostics_*/
+smoke-logs.zip
+*.tar.gz
+
+# env
+.env
+backend/.env
+
+# OS/editor
+.DS_Store
+
+# local security scan artifacts (keep local only)
 .gitleaks.baseline.json
 .git/gitleaks.sarif
