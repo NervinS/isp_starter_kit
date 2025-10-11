@@ -1,0 +1,47 @@
+#!/bin/sh
+set -eu
+
+has_gitleaks() {
+  command -v gitleaks >/dev/null 2>&1 && gitleaks version >/dev/null 2>&1
+}
+
+build_ranges() {
+  ranges=""
+  # lee: <local_ref> <local_sha> <remote_ref> <remote_sha>
+  while read local_ref local_sha remote_ref remote_sha; do
+    case "${remote_sha:-}" in
+      ""|0000000000000000000000000000000000000000) ranges="$local_sha $ranges" ;;
+      *) ranges="$ranges ${remote_sha}..${local_sha}" ;;
+    esac
+  done
+  printf "%s" "$ranges"
+}
+
+run_scan() {
+  ranges="$1"
+  base=""
+  [ -f .gitleaks.baseline.json ] && base="--baseline-path .gitleaks.baseline.json"
+
+  if [ -n "$ranges" ]; then
+    echo "🔎 Gitleaks escaneando rango: $ranges"
+    gitleaks detect --no-banner --redact --report-format sarif --report-path .git/gitleaks.sarif \
+      --log-opts "$ranges" $base
+  else
+    echo "🔎 Gitleaks escaneando rango: --all (fallback)"
+    gitleaks detect --no-banner --redact --report-format sarif --report-path .git/gitleaks.sarif \
+      --log-opts "--all" $base
+  fi
+}
+
+if has_gitleaks; then
+  ranges="$(build_ranges)"
+  if run_scan "$ranges"; then
+    exit 0
+  else
+    echo "❌ Gitleaks encontró secretos. Aborta push."
+    exit 1
+  fi
+else
+  echo "⚠️  gitleaks no está disponible; omito escaneo local."
+  exit 0
+fi
