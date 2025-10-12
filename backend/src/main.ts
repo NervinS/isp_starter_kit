@@ -22,6 +22,12 @@ async function bootstrap() {
     }),
   );
 
+  // Exponer header personalizado para que el front (browser) pueda leerlo
+  app.enableCors({
+    origin: true,
+    exposedHeaders: ['Idempotency-Replayed'],
+  });
+
   // --- Compatibilidad sin /v1: REWRITE (no redirige) ---
   // Añadimos 'equipos' a la lista de rutas legacy sin prefijo
   const noV1 = /^\/(inventario|materiales|tecnicos|ordenes|agenda|pdf|jobs|metrics|equipos)(\/|$)/;
