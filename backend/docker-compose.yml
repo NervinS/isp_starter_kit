@@ -38,7 +38,6 @@ services:
       - minio-data:/data
     restart: unless-stopped
 
-  # Inicializa MinIO y deja bucket 'evidencias' con lectura pública (download anónimo)
   minio-init:
     image: alpine:3.20
     container_name: isp-minio-init
@@ -67,7 +66,6 @@ services:
       mc ls local/evidencias || true
     restart: "no"
 
-  # API (Nest) tal cual, pero con PUBLIC_BASE apuntando a tu host 192.168.1.140
   api:
     container_name: isp-api
     build:
@@ -83,42 +81,34 @@ services:
       minio-init:
         condition: service_completed_successfully
     environment:
-      # DB
       DATABASE_URL: "postgresql://ispuser:isppass@db:5432/ispdb"
 
-      # MinIO / S3
       MINIO_ROOT_USER: "minioadmin"
       MINIO_ROOT_PASSWORD: "minioadmin"
       MINIO_ENDPOINT: "minio"
       MINIO_PORT: "9000"
       MINIO_USE_SSL: "false"
       MINIO_BUCKET: "evidencias"
-      # OJO: base pública hacia tu IP del host (para acceso externo y smoke)
       MINIO_PUBLIC_BASE: "http://192.168.1.140:9000/evidencias/"
 
-      # PDF
       PDF_FORCE_PUBLIC_URL: "true"
 
-      # API
       API_KEY: "superdev"
       NODE_ENV: "development"
-      # PORT: "3000"
     ports:
       - "3000:3000"
     restart: unless-stopped
 
-  # 🔹 Nuevo: runner de migraciones directo desde TypeScript (evita el problema de dist/)
   migrator:
     container_name: isp-migrator
     build:
       context: .
       dockerfile: Dockerfile
-      target: deps   # usa el stage con dev deps (ts-node, etc.)
+      target: deps
     depends_on:
       db:
         condition: service_healthy
     working_dir: /app
-    # Montamos código fuente para que cargue TODAS las migraciones TS
     volumes:
       - ./src:/app/src:ro
       - ./package.json:/app/package.json:ro
@@ -126,10 +116,8 @@ services:
       - ./tsconfig.json:/app/tsconfig.json:ro
       - ./tsconfig.build.json:/app/tsconfig.build.json:ro
     environment:
-      # misma DB que la API
       DATABASE_URL: "postgresql://ispuser:isppass@db:5432/ispdb"
       NODE_ENV: "development"
-    # Ejecuta migraciones desde TS (data-source TS)
     command: >
       sh -lc '
         set -e

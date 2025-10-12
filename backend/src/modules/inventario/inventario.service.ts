@@ -61,11 +61,6 @@ export class InventarioService {
 
   // ----------------- Stock (consultas) -----------------
 
-  /**
-   * Overload para aceptar:
-   *  - (codigo: string, materialId?: number)
-   *  - ({ almacenCodigo, materialId })
-   */
   async getStockPorAlmacenCodigo(
     codigoOrObj: string | { almacenCodigo: string; materialId?: number },
     materialIdMaybe?: number,
@@ -101,11 +96,6 @@ export class InventarioService {
     return this.dataSource.query(sql, params);
   }
 
-  /**
-   * Overload para aceptar:
-   *  - (materialId?: number)
-   *  - ({ materialId?: number })
-   */
   async getStockGlobal(material?: number | { materialId?: number }) {
     const materialId = typeof material === 'number' ? material : material?.materialId;
 
@@ -134,9 +124,6 @@ export class InventarioService {
     return this.dataSource.query(sql, params);
   }
 
-  /**
-   * Stock del técnico: se basa en almacén con código TEC-{tecnicoId}
-   */
   async getStockTecnico(tecnicoId: number | string) {
     const tId = this.toNum(tecnicoId);
     if (!tId) throw new Error('tecnicoId inválido');
@@ -207,90 +194,71 @@ export class InventarioService {
     RETURNING cantidad
   `;
 
-  // ----------------- Idempotencia: helpers -----------------
+  // ----------------- Idempotencia (tabla auxiliar) -----------------
+  /**
+   * Tabla requerida:
+   *   CREATE TABLE IF NOT EXISTS public.inventario_mov_idem(
+   *     idem_key TEXT PRIMARY KEY,
+   *     egreso_id UUID NULL,
+   *     ingreso_id UUID NULL,
+   *     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+   *   );
+   */
+  private async idemTryClaim(qr: QueryRunner, key: string) {
+    const ins = (await qr.query(
+      `INSERT INTO public.inventario_mov_idem(idem_key) VALUES ($1)
+       ON CONFLICT (idem_key) DO NOTHING
+       RETURNING idem_key`,
+      [key],
+    )) as any[];
+    if (ins?.[0]?.idem_key) {
+      // Reclamo exitoso: nadie lo había usado
+      return { claimed: true as const, record: null };
+    }
+    // Ya existía: devolver lo que haya
+    const row = (await qr.query(
+      `SELECT egreso_id, ingreso_id FROM public.inventario_mov_idem WHERE idem_key = $1`,
+      [key],
+    )) as any[];
+    return { claimed: false as const, record: row?.[0] ?? null };
+  }
 
-  private async insertMovimientoIdemFirst(
+  private async idemAttachResult(
     qr: QueryRunner,
-    draft: Omit<MovimientoRow, 'id'>,
-    idempotencyKey?: string,
-  ): Promise<{ row: MovimientoRow | null; idempotentHit: MovimientoRow | null }> {
-    if (!idempotencyKey) {
-      // Sin idem-key: no insertamos todavía; devolvemos nulo
-      return { row: null, idempotentHit: null };
-    }
-
-    const inserted = (await qr.query(
-      `
-      INSERT INTO public.movimientos
-        (tipo, material_id, cantidad, almacen_origen_id, almacen_destino_id, tecnico_id, nota, fecha, created_at, idempotency_key)
-      VALUES
-        ($1,   $2,          $3,       $4,                $5,                 $6,         $7,   NOW(), NOW(),     $8)
-      ON CONFLICT (idempotency_key) DO NOTHING
-      RETURNING id, tipo, material_id, cantidad, almacen_origen_id, almacen_destino_id, tecnico_id, nota
-      `,
-      [
-        draft.tipo,
-        draft.material_id,
-        draft.cantidad,
-        draft.almacen_origen_id,
-        draft.almacen_destino_id,
-        draft.tecnico_id,
-        draft.nota,
-        idempotencyKey,
-      ],
-    )) as any[];
-
-    if (inserted && inserted[0]) {
-      return { row: inserted[0] as MovimientoRow, idempotentHit: null };
-    }
-
-    const hit = (await qr.query(
-      `
-      SELECT id, tipo, material_id, cantidad, almacen_origen_id, almacen_destino_id, tecnico_id, nota
-      FROM public.movimientos
-      WHERE idempotency_key = $1
-      LIMIT 1
-      `,
-      [idempotencyKey],
-    )) as any[];
-
-    return { row: null, idempotentHit: (hit?.[0] as MovimientoRow) ?? null };
+    key: string,
+    egresoId: string,
+    ingresoId: string,
+  ) {
+    await qr.query(
+      `UPDATE public.inventario_mov_idem SET egreso_id=$2, ingreso_id=$3 WHERE idem_key=$1`,
+      [key, egresoId, ingresoId],
+    );
   }
 
-  private async insertMovimientoFinally(qr: QueryRunner, row: Omit<MovimientoRow, 'id'>) {
-    const inserted = (await qr.query(
-      `
-      INSERT INTO public.movimientos
-        (tipo, material_id, cantidad, almacen_origen_id, almacen_destino_id, tecnico_id, nota, fecha, created_at)
-      VALUES
-        ($1,   $2,          $3,       $4,                $5,                 $6,         $7,   NOW(), NOW())
-      RETURNING id, tipo, material_id, cantidad, almacen_origen_id, almacen_destino_id, tecnico_id, nota
-      `,
-      [
-        row.tipo,
-        row.material_id,
-        row.cantidad,
-        row.almacen_origen_id,
-        row.almacen_destino_id,
-        row.tecnico_id,
-        row.nota,
-      ],
-    )) as any[];
-    return inserted[0] as MovimientoRow;
-  }
-
-  private mapOut(row: MovimientoRow, idempotent: boolean) {
+  private mapPairOut(egreso: MovimientoRow, ingreso: MovimientoRow, idempotent: boolean) {
     return {
       ok: true,
-      id: row.id,
-      tipo: row.tipo,
-      materialId: row.material_id,
-      cantidad: row.cantidad,
-      fromAlmacenId: row.almacen_origen_id,
-      toAlmacenId: row.almacen_destino_id,
-      tecnicoId: row.tecnico_id,
-      nota: row.nota,
       _idempotent: idempotent,
+      egreso: {
+        id: egreso.id,
+        tipo: egreso.tipo,
+        material_id: egreso.material_id,
+        cantidad: egreso.cantidad,
+        almacen_origen_id: egreso.almacen_origen_id,
+        almacen_destino_id: egreso.almacen_destino_id,
+        tecnico_id: egreso.tecnico_id,
+        nota: egreso.nota ?? '',
+      },
+      ingreso: {
+        id: ingreso.id,
+        tipo: ingreso.tipo,
+        material_id: ingreso.material_id,
+        cantidad: ingreso.cantidad,
+        almacen_origen_id: ingreso.almacen_origen_id,
+        almacen_destino_id: ingreso.almacen_destino_id,
+        tecnico_id: ingreso.tecnico_id,
+        nota: ingreso.nota ?? '',
+      },
     };
   }
 
@@ -298,11 +266,9 @@ export class InventarioService {
 
   private async ensureStockRow(qr: QueryRunner, almacenId: string, matId: number) {
     await qr.query(
-      `
-      INSERT INTO public.stock_almacen(almacen_id, material_id, cantidad)
-      VALUES ($1, $2, 0)
-      ON CONFLICT (almacen_id, material_id) DO NOTHING
-      `,
+      `INSERT INTO public.stock_almacen(almacen_id, material_id, cantidad)
+       VALUES ($1, $2, 0)
+       ON CONFLICT (almacen_id, material_id) DO NOTHING`,
       [almacenId, matId],
     );
   }
@@ -344,16 +310,34 @@ export class InventarioService {
     }
   }
 
-  // ----------------- Movimientos genéricos (transaccional + idempotente) -----------------
+  // ----------------- Insert helpers -----------------
 
-  /**
-   * Aplica un movimiento con soporte de idempotencia (si se pasa Idempotency-Key).
-   * - ingreso: +stock en toAlmacenId, 1 fila 'ingreso'
-   * - egreso:  -stock en fromAlmacenId, 1 fila 'egreso'
-   * - ajuste:  si trae toAlmacenId => suma; si trae fromAlmacenId => resta
-   * - traslado/transferencia: resta origen, suma destino, 1 fila 'traslado'
-   */
-  async crearMovimiento(input: MovimientoInput, idempotencyKey?: string) {
+  private async insertMovimiento(
+    qr: QueryRunner,
+    row: Omit<MovimientoRow, 'id'>,
+  ): Promise<MovimientoRow> {
+    const inserted = (await qr.query(
+      `INSERT INTO public.movimientos
+        (tipo, material_id, cantidad, almacen_origen_id, almacen_destino_id, tecnico_id, nota, fecha, created_at)
+       VALUES
+        ($1,   $2,          $3,       $4,                $5,                 $6,         $7,   NOW(), NOW())
+       RETURNING id, tipo, material_id, cantidad, almacen_origen_id, almacen_destino_id, tecnico_id, nota`,
+      [
+        row.tipo,
+        row.material_id,
+        row.cantidad,
+        row.almacen_origen_id,
+        row.almacen_destino_id,
+        row.tecnico_id,
+        row.nota,
+      ],
+    )) as any[];
+    return inserted[0] as MovimientoRow;
+  }
+
+  // ----------------- API genérica (para casos simples) -----------------
+  async crearMovimiento(input: MovimientoInput, _idempotencyKey?: string) {
+    // Nota: esta genérica NO usa idempotencia; úsala para ingresos/egresos/ajustes simples.
     const materialId = this.toNum(input.materialId);
     const cantidad = this.toNum(input.cantidad);
     const tecnicoId =
@@ -368,91 +352,184 @@ export class InventarioService {
     const toId = input.toAlmacenId ?? null;
     const nota = input.nota ?? null;
 
-    // Normaliza: 'transferencia' (entrada) -> 'traslado' (DB)
+    // Normaliza: 'transferencia' (entrada) -> 'traslado' (interno)
     const tipoIn = input.tipo === 'transferencia' ? 'traslado' : input.tipo;
 
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();
 
-    const draft: Omit<MovimientoRow, 'id'> = {
-      tipo: tipoIn,
-      material_id: materialId,
-      cantidad,
-      almacen_origen_id: fromId,
-      almacen_destino_id: toId,
-      tecnico_id: tecnicoId ?? null,
-      nota,
-    };
-
     try {
-      // 1) Insert previo si hay Idempotency-Key (reserva dentro de la tx)
-      let insertedRow: MovimientoRow | null = null;
-      if (idempotencyKey) {
-        const { row, idempotentHit } = await this.insertMovimientoIdemFirst(
-          qr,
-          draft,
-          idempotencyKey,
-        );
-        if (idempotentHit) {
-          // Ya existía => NO tocamos stock
-          await qr.rollbackTransaction();
-          await qr.release();
-          return this.mapOut(idempotentHit, true);
-        }
-        insertedRow = row; // si vino, usaremos este ID al final
-      }
-
-      // 2) Aplica el efecto de stock según tipo
-      if (tipoIn === 'traslado') {
-        if (!fromId || !toId) {
-          throw new Error('traslado requiere fromAlmacenId y toAlmacenId');
-        }
-        await this.subStock(qr, fromId, materialId, cantidad);
-        await this.addStock(qr, toId, materialId, cantidad);
-      } else if (tipoIn === 'ingreso') {
+      if (tipoIn === 'ingreso') {
         if (!toId) throw new Error('ingreso requiere toAlmacenId');
         await this.addStock(qr, toId, materialId, cantidad);
+        const row = await this.insertMovimiento(qr, {
+          tipo: 'ingreso',
+          material_id: materialId,
+          cantidad,
+          almacen_origen_id: null,
+          almacen_destino_id: toId,
+          tecnico_id: tecnicoId,
+          nota,
+        });
+        await qr.commitTransaction();
+        return row;
       } else if (tipoIn === 'egreso') {
         if (!fromId) throw new Error('egreso requiere fromAlmacenId');
         await this.subStock(qr, fromId, materialId, cantidad);
+        const row = await this.insertMovimiento(qr, {
+          tipo: 'egreso',
+          material_id: materialId,
+          cantidad,
+          almacen_origen_id: fromId,
+          almacen_destino_id: null,
+          tecnico_id: tecnicoId,
+          nota,
+        });
+        await qr.commitTransaction();
+        return row;
       } else if (tipoIn === 'ajuste') {
         if (toId && !fromId) {
           await this.addStock(qr, toId, materialId, cantidad);
+          const row = await this.insertMovimiento(qr, {
+            tipo: 'ingreso',
+            material_id: materialId,
+            cantidad,
+            almacen_origen_id: null,
+            almacen_destino_id: toId,
+            tecnico_id: tecnicoId,
+            nota,
+          });
+          await qr.commitTransaction();
+          return row;
         } else if (fromId && !toId) {
           await this.subStock(qr, fromId, materialId, cantidad);
+          const row = await this.insertMovimiento(qr, {
+            tipo: 'egreso',
+            material_id: materialId,
+            cantidad,
+            almacen_origen_id: fromId,
+            almacen_destino_id: null,
+            tecnico_id: tecnicoId,
+            nota,
+          });
+          await qr.commitTransaction();
+          return row;
         } else {
           throw new Error(
             'ajuste requiere **solo** toAlmacenId (sumar) o **solo** fromAlmacenId (restar)',
           );
         }
+      } else if (tipoIn === 'traslado') {
+        // Para traslados usar la API dedicada transferir() que crea par egreso+ingreso.
+        throw new Error(
+          'Para traslado usa /inventario/transferir (crea egreso+ingreso y maneja idempotencia).',
+        );
       } else {
         throw new Error(`tipo de movimiento no soportado: ${input.tipo}`);
       }
-
-      // 3) Registrar movimiento si no se insertó arriba
-      let finalRow: MovimientoRow;
-      if (insertedRow) {
-        finalRow = insertedRow;
-      } else {
-        finalRow = await this.insertMovimientoFinally(qr, draft);
-      }
-
-      await qr.commitTransaction();
-      return this.mapOut(finalRow, false);
     } catch (err: any) {
       await qr.rollbackTransaction();
-      if (err instanceof ConflictException) {
-        throw err;
-      }
-      const msg = err?.message || 'Error al aplicar movimiento';
-      throw new Error(msg);
+      if (err instanceof ConflictException) throw err;
+      throw new Error(err?.message || 'Error al aplicar movimiento');
     } finally {
       await qr.release();
     }
   }
 
-  // ----------------- Acciones específicas de técnico -----------------
+  // ----------------- Transferir (par egreso+ingreso, con idempotencia) -----------------
+  async transferir(params: {
+    materialId: number | string;
+    cantidad: number | string;
+    fromAlmacenId: string;
+    toAlmacenId: string;
+    nota?: string | null;
+    idempotencyKey?: string;
+    tecnicoId?: number | string | null;
+  }) {
+    const materialId = this.toNum(params.materialId);
+    const cantidad = this.toNum(params.cantidad);
+    if (!materialId) throw new Error('materialId inválido');
+    if (!cantidad || cantidad <= 0) throw new Error('cantidad inválida');
+    const fromId = params.fromAlmacenId;
+    const toId = params.toAlmacenId;
+    if (!fromId || !toId) throw new Error('transferir requiere fromAlmacenId y toAlmacenId');
+
+    const nota = params.nota ?? '';
+
+    const qr = this.dataSource.createQueryRunner();
+    await qr.connect();
+    await qr.startTransaction();
+
+    try {
+      let claimed = true;
+      let egresoIdExisting: string | null = null;
+      let ingresoIdExisting: string | null = null;
+
+      if (params.idempotencyKey) {
+        const { claimed: c, record } = await this.idemTryClaim(qr, params.idempotencyKey);
+        claimed = c;
+        if (!claimed && record) {
+          egresoIdExisting = record.egreso_id ?? null;
+          ingresoIdExisting = record.ingreso_id ?? null;
+
+          if (egresoIdExisting && ingresoIdExisting) {
+            const rows = (await qr.query(
+              `SELECT id, tipo, material_id, cantidad, almacen_origen_id, almacen_destino_id, tecnico_id, nota
+               FROM public.movimientos WHERE id = ANY($1)`,
+              [[egresoIdExisting, ingresoIdExisting]],
+            )) as any[];
+            const eg = rows.find((r) => r.id === egresoIdExisting) as MovimientoRow;
+            const inr = rows.find((r) => r.id === ingresoIdExisting) as MovimientoRow;
+            await qr.rollbackTransaction();
+            await qr.release();
+            return this.mapPairOut(eg, inr, true);
+          }
+          // Si existe la fila idem pero aún no guardó ids (interrupción previa),
+          // continuamos y la completamos.
+        }
+      }
+
+      // Efecto de stock
+      await this.subStock(qr, fromId, materialId, cantidad);
+      await this.addStock(qr, toId, materialId, cantidad);
+
+      // Inserta par de movimientos
+      const egreso = await this.insertMovimiento(qr, {
+        tipo: 'egreso',
+        material_id: materialId,
+        cantidad,
+        almacen_origen_id: fromId,
+        almacen_destino_id: null,
+        tecnico_id: null,
+        nota,
+      });
+      const ingreso = await this.insertMovimiento(qr, {
+        tipo: 'ingreso',
+        material_id: materialId,
+        cantidad,
+        almacen_origen_id: null,
+        almacen_destino_id: toId,
+        tecnico_id: null,
+        nota,
+      });
+
+      if (params.idempotencyKey && claimed) {
+        await this.idemAttachResult(qr, params.idempotencyKey, egreso.id, ingreso.id);
+      }
+
+      await qr.commitTransaction();
+      return this.mapPairOut(egreso, ingreso, false);
+    } catch (err: any) {
+      await qr.rollbackTransaction();
+      if (err instanceof ConflictException) throw err;
+      throw new Error(err?.message || 'Error al transferir');
+    } finally {
+      await qr.release();
+    }
+  }
+
+  // ----------------- Acciones específicas de técnico (par egreso+ingreso) -----------------
 
   /** MAIN -> TEC-{tecnicoId} */
   async agregarATecnico(
@@ -476,18 +553,15 @@ export class InventarioService {
     if (!mainId) throw new Error('Almacén principal no existe');
     if (!tecId) throw new Error(`Almacén TEC-${tId} no existe`);
 
-    return this.crearMovimiento(
-      {
-        tipo: 'traslado', // normaliza
-        materialId,
-        cantidad,
-        fromAlmacenId: mainId,
-        toAlmacenId: tecId,
-        tecnicoId: tId,
-        nota: params.nota ?? null,
-      },
+    return this.transferir({
+      materialId,
+      cantidad,
+      fromAlmacenId: mainId,
+      toAlmacenId: tecId,
+      nota: params.nota ?? '',
       idempotencyKey,
-    );
+      tecnicoId: tId,
+    });
   }
 
   /** TEC-{tecnicoId} -> MAIN */
@@ -512,21 +586,18 @@ export class InventarioService {
     if (!mainId) throw new Error('Almacén principal no existe');
     if (!tecId) throw new Error(`Almacén TEC-${tId} no existe`);
 
-    return this.crearMovimiento(
-      {
-        tipo: 'traslado', // normaliza
-        materialId,
-        cantidad,
-        fromAlmacenId: tecId,
-        toAlmacenId: mainId,
-        tecnicoId: tId,
-        nota: params.nota ?? null,
-      },
+    return this.transferir({
+      materialId,
+      cantidad,
+      fromAlmacenId: tecId,
+      toAlmacenId: mainId,
+      nota: params.nota ?? '',
       idempotencyKey,
-    );
+      tecnicoId: tId,
+    });
   }
 
-  /** Ajuste sobre TEC-{tecnicoId}: signo 'mas' suma, 'menos' resta */
+  /** Ajuste sobre TEC-{tecnicoId}: signo 'mas' suma, 'menos' resta (un solo movimiento) */
   async ajustarTecnico(
     params: {
       tecnicoId: number | string;
@@ -535,7 +606,7 @@ export class InventarioService {
       signo: 'mas' | 'menos'; // para saber si suma o resta
       nota?: string | null;
     },
-    idempotencyKey?: string,
+    idempotencyKey?: string, // no usado aquí
   ) {
     const tId = this.toNum(params.tecnicoId);
     const materialId = this.toNum(params.materialId);
@@ -548,32 +619,25 @@ export class InventarioService {
     if (!tecId) throw new Error(`Almacén TEC-${tId} no existe`);
 
     if (params.signo === 'menos') {
-      return this.crearMovimiento(
-        {
-          tipo: 'ajuste',
-          materialId,
-          cantidad: cantidadBase,
-          fromAlmacenId: tecId,
-          toAlmacenId: null,
-          tecnicoId: tId,
-          nota: params.nota ?? 'ajuste técnico (-)',
-        },
-        idempotencyKey,
-      );
-    }
-
-    // 'mas'
-    return this.crearMovimiento(
-      {
-        tipo: 'ajuste',
+      return this.crearMovimiento({
+        tipo: 'egreso',
         materialId,
         cantidad: cantidadBase,
-        fromAlmacenId: null,
-        toAlmacenId: tecId,
+        fromAlmacenId: tecId,
+        toAlmacenId: null,
         tecnicoId: tId,
-        nota: params.nota ?? 'ajuste técnico (+)',
-      },
-      idempotencyKey,
-    );
+        nota: params.nota ?? 'ajuste técnico (-)',
+      });
+    }
+
+    return this.crearMovimiento({
+      tipo: 'ingreso',
+      materialId,
+      cantidad: cantidadBase,
+      fromAlmacenId: null,
+      toAlmacenId: tecId,
+      tecnicoId: tId,
+      nota: params.nota ?? 'ajuste técnico (+)',
+    });
   }
 }

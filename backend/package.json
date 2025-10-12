@@ -9,24 +9,18 @@
     "start:dev": "ts-node-dev --respawn --transpile-only src/main.ts",
     "test": "echo \"no tests\"",
     "test:e2e": "cross-env API_BASE=http://127.0.0.1:3000/v1 jest --config ./test/jest-e2e.json --runInBand",
-
     "typeorm": "node --require ts-node/register ./node_modules/typeorm/cli.js -d src/database/data-source.ts",
-
     "m:show": "NODE_ENV=production node ./node_modules/typeorm/cli.js migration:show -d dist/database/data-source.js",
-    "m:run":  "NODE_ENV=production node ./node_modules/typeorm/cli.js migration:run  -d dist/database/data-source.js",
+    "m:run": "NODE_ENV=production node ./node_modules/typeorm/cli.js migration:run  -d dist/database/data-source.js",
     "m:revert": "NODE_ENV=production node ./node_modules/typeorm/cli.js migration:revert -d dist/database/data-source.js",
-
     "m:show:ts": "node --require ts-node/register ./node_modules/typeorm/cli.js migration:show -d src/database/data-source.ts",
-    "m:run:ts":  "node --require ts-node/register ./node_modules/typeorm/cli.js migration:run  -d src/database/data-source.ts",
+    "m:run:ts": "node --require ts-node/register ./node_modules/typeorm/cli.js migration:run  -d src/database/data-source.ts",
     "m:revert:ts": "node --require ts-node/register ./node_modules/typeorm/cli.js migration:revert -d src/database/data-source.ts",
-
     "print:ds:dist": "NODE_ENV=production node -p \"require('./dist/database/data-source.js').default.options.migrations\"",
-
     "migration:show": "npm run m:show",
-    "migration:run":  "npm run m:run",
+    "migration:run": "npm run m:run",
     "migration:revert": "npm run m:revert",
     "migration:generate": "npm run typeorm -- migration:generate src/database/migrations/AutoMigration",
-
     "smoke:ins-equipos": "bash script/smoke_ins_equipos_cierre.sh",
     "smoke:ins-equipos:ont": "TIPO=ONT SER=ONT-ABC-001 bash script/smoke_ins_equipos_cierre.sh",
     "smoke:ins-equipos:repeater": "TIPO=REPEATER SER=REP-XYZ-123 bash script/smoke_ins_equipos_cierre.sh"
@@ -65,6 +59,7 @@
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.4.5"
   }
 }

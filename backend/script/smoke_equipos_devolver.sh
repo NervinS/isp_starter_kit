@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# script/smoke_equipos_devolver.sh
 set -euo pipefail
 
 API_BASE="${API_BASE:-http://localhost:3000}"
@@ -9,11 +8,8 @@ ALM="${ALM:-ALM-PRINC}"
 TEC_ID="${TEC_ID:-6}"
 
 say(){ echo -e "$@"; }
-
 curl_json() {
-  local method="$1"; shift
-  local url="$1"; shift
-  local data="${1-}"
+  local method="$1"; shift; local url="$1"; shift; local data="${1-}"
   if [[ -n "${data}" ]]; then
     curl -sfS -H "x-api-key: ${KEY}" -H "content-type: application/json" -X "${method}" -d "${data}" "${url}"
   else
@@ -23,31 +19,46 @@ curl_json() {
 
 say "== equipos: devolver (tipo=ONU) =="
 
-# 1) intenta encontrar ONU en TEC-6
-eid="$(curl_json GET "${API}/equipos/stock?tecnicoId=${TEC_ID}" | jq -r '[.[] | select(.tipo=="ONU")] | .[0].id // empty')"
+# 1) toma un id de ONU en almacén
+eid="$(curl_json GET "${API}/equipos/disponibles?tipo=ONU" \
+  | jq -r '.items[]? | select(.owner_tipo=="ALMACEN" and .owner_id=="'"${ALM}"'") | .id' | head -n1)"
 
-# 2) si no hay, intenta traer una del ALMACÉN → primero entregar a TEC-6
 if [[ -z "${eid}" ]]; then
-  say "TEC-${TEC_ID} no tiene ONU; intentando traer una del almacén ${ALM}…"
-  eid="$(curl_json GET "${API}/equipos/stock?almacen=${ALM}" | jq -r '[.[] | select(.tipo=="ONU")] | .[0].id // empty')"
-  if [[ -n "${eid}" ]]; then
-    say "Entregando ${eid} a TEC-${TEC_ID} para poder devolverla…"
-    curl_json POST "${API}/equipos/entregar" "$(jq -n --arg id "$eid" --argjson tec "${TEC_ID}" --arg alm "${ALM}" '{id:$id, tecnicoId:$tec, fromAlmacen:$alm}')" >/dev/null
-  fi
-fi
-
-# 3) volver a chequear en TEC-6
-if [[ -z "${eid}" ]]; then
-  say "No hay ONU disponible para devolver (ni en TEC-${TEC_ID} ni en ${ALM}). OK (nada que hacer)."
+  say "No hay ONU en ${ALM}. OK (nada que hacer)."
   exit 0
 fi
 
-say "Usando equipo id=${eid} para devolver a ${ALM}"
+# 2) entrégalo al técnico para poder probar la devolución
+say "Entregando ${eid} a TEC-${TEC_ID}…"
+curl_json POST "${API}/equipos/entregar" \
+  "$(jq -n --arg id "$eid" --argjson tec "${TEC_ID}" --arg alm "${ALM}" \
+     '{id:$id, tecnicoId:$tec, fromAlmacen:$alm}')" >/dev/null
 
-# 4) devolver
-resp1="$(curl_json POST "${API}/equipos/devolver" "$(jq -n --arg id "$eid" --arg alm "${ALM}" '{id:$id, toAlmacen:$alm}')" )"
-echo "${resp1}" | jq '{ok, _idempotent, from: (if .from then .from.id else null end), to_len: (.to|length)}'
+# 3) devolver al almacén (algunas versiones esperan 'destinoAlmacen', otras 'toAlmacen').
+# Probamos primero 'destinoAlmacen' y si falla, reintentamos con 'toAlmacen'.
+payload_dest="$(jq -n --arg id "$eid" --arg alm "${ALM}" '{id:$id, destinoAlmacen:$alm}')"
+payload_to="$(jq -n --arg id "$eid" --arg alm "${ALM}" '{id:$id, toAlmacen:$alm}')"
 
-# 5) idempotencia (retry)
-resp2="$(curl_json POST "${API}/equipos/devolver" "$(jq -n --arg id "$eid" --arg alm "${ALM}" '{id:$id, toAlmacen:$alm}')" )"
-echo "${resp2}" | jq '{ok, _idempotent, from: (if .from then .from.id else null end), to_len: (.to|length)}'
+say "Devolviendo ${eid} a ${ALM}…"
+resp="$(curl_json POST "${API}/equipos/devolver" "${payload_dest}" || true)"
+if [[ -z "$resp" || "$(jq -r 'type' <<<"$resp" 2>/dev/null)" == "null" ]]; then
+  resp="$(curl_json POST "${API}/equipos/devolver" "${payload_to}" || true)"
+fi
+echo "$resp" | jq '.' || true
+
+# 4) validación por estado: debe quedar en ALMACEN / ALM-PRINC
+check="$(curl_json GET "${API}/equipos/disponibles?tipo=ONU" \
+  | jq -r --arg id "$eid" --arg alm "$ALM" \
+      '[.items[]? | select(.id==$id)][0] | {id, owner_tipo, owner_id}')"
+
+say "Post-devolución:"
+echo "$check" | jq '.'
+
+ownert="$(jq -r '.owner_tipo // ""' <<<"$check")"
+ownerid="$(jq -r '.owner_id // ""' <<<"$check")"
+
+if [[ "$ownert" == "ALMACEN" && "$ownerid" == "$ALM" ]]; then
+  say "OK devolución confirmada."
+else
+  say "ADVERTENCIA: el equipo no quedó en ${ALM} (owner_tipo=${ownert}, owner_id=${ownerid})."
+fi

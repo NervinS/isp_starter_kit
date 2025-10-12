@@ -10,9 +10,15 @@ jobs:
     env:
       API_BASE: http://127.0.0.1:3000
       KEY: superdev
+      RUN_STRESS: "1" # activa el mini stress del smoke de inventario
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install tools (jq, curl)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq curl
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -27,15 +33,17 @@ jobs:
 
       - name: Wait API (/v1/health)
         working-directory: backend
+        shell: bash
         run: |
           for i in {1..60}; do
             if curl -fsS -H "x-api-key: ${KEY}" "${API_BASE}/v1/health" >/dev/null; then
-              echo "API OK"; exit 0
+              echo "API OK"
+              exit 0
             fi
             sleep 2
           done
           echo "API no respondió a /v1/health"
-          docker compose -f docker-compose.yml -f docker-compose.override.yml logs api
+          docker compose -f docker-compose.yml -f docker-compose.override.yml logs api || true
           exit 1
 
       - name: Apply DB migrations (inventory hardening)
@@ -44,20 +52,44 @@ jobs:
           docker compose -f docker-compose.yml -f docker-compose.override.yml exec -T db \
             psql -U ispuser -d ispdb -f - < db/migrations/20251006_inventory_hardening.sql
 
-      - name: Run smoke_all
+      - name: Run smoke_inventario_min (incluye header Idempotency-Replayed + stress)
         working-directory: backend
         run: |
           chmod +x script/*.sh || true
-          ./script/smoke_all.sh
+          ./script/smoke_inventario_min.sh
+
+      # Chequeo rápido adicional del header en pagos (idempotencia en ventas)
+      - name: Quick check: ventas pagar idempotency header
+        working-directory: backend
+        shell: bash
+        run: |
+          KEY_PAY="ci-pay-${RANDOM}"
+          # Primer intento
+          curl -sS -i -X POST "${API_BASE}/v1/ventas/VTA-202510-0001/pagar" \
+            -H "Idempotency-Key: ${KEY_PAY}" -H "Content-Type: application/json" \
+            -d '{"monto":30,"metodo":"EFECTIVO","referencia":"rcpt-ci"}' > /tmp/pay-1.txt
+          # Reintento
+          curl -sS -i -X POST "${API_BASE}/v1/ventas/VTA-202510-0001/pagar" \
+            -H "Idempotency-Key: ${KEY_PAY}" -H "Content-Type: application/json" \
+            -d '{"monto":30,"metodo":"EFECTIVO","referencia":"rcpt-ci"}' > /tmp/pay-2.txt
+
+          echo "---- Reintento (headers) ----"
+          cat /tmp/pay-2.txt | sed -n '1,20p'
+
+          # Debe venir el header y el flag en body
+          grep -i '^Idempotency-Replayed:\s*true' /tmp/pay-2.txt >/dev/null
+          echo "Idempotency-Replayed header OK"
+          tail -n1 /tmp/pay-2.txt | jq -e '._idempotent == true' >/dev/null
+          echo "_idempotent flag OK"
 
       - name: Upload docker logs on failure
         if: failure()
         working-directory: backend
         run: |
-          docker compose -f docker-compose.yml -f docker-compose.override.yml ps
+          docker compose -f docker-compose.yml -f docker-compose.override.yml ps || true
           docker compose -f docker-compose.yml -f docker-compose.override.yml logs --no-color > compose.logs.txt || true
           tar -czf compose-logs.tgz compose.logs.txt || true
-          echo "inventory logs attached" >> "$GITHUB_STEP_SUMMARY"
+          echo "compose logs attached" >> "$GITHUB_STEP_SUMMARY"
         shell: bash
 
       - name: Store logs artifact

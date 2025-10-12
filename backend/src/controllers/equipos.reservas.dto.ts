@@ -23,4 +23,17 @@ export class ReservasQueryDto {
   @IsInt()
   @Min(1)
   tecnicoId?: number;
+
+  @IsOptional()
+  tipo?: string;
+}
+
+export class EntregarDto {
+  @IsUUID()
+  id!: string;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  tecnicoId!: number;
 }

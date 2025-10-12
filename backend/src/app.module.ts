@@ -1,5 +1,6 @@
 // src/app.module.ts
 import { Module, NestModule, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { MetricsModule } from './modules/metrics/metrics.module';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -17,6 +18,7 @@ import { EquiposModule } from './modules/equipos/equipos.module'; // ⬅️ NUEV
 
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
+import { IdempotencyReplayedInterceptor } from './common/interceptors/idempotency-replayed.interceptor';
 
 function maskDbUrl(url?: string) {
   if (!url) return '';
@@ -71,6 +73,13 @@ function maskDbUrl(url?: string) {
     MetricsModule,
     JobsModule,
     EquiposModule, // ⬅️ NUEVO
+  ],
+  providers: [
+    // Interceptor global: añade el header Idempotency-Replayed: true cuando body._idempotent === true
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: IdempotencyReplayedInterceptor,
+    },
   ],
 })
 export class AppModule implements NestModule {

@@ -1,34 +1,53 @@
 #!/usr/bin/env bash
 # script/smoke_jobs.sh
-# Verifica /v1/jobs/simular-cortes y /v1/jobs/simular-reconexiones
 set -euo pipefail
 
 API_BASE="${API_BASE:-http://localhost:3000}"
 API="${API_BASE%/}/v1"
 KEY="${KEY:-superdev}"
+SINCE="${SINCE:-30s}"
 
 say(){ echo -e "$@"; }
 
-curl_json() {
+curl_json_status() {
   local method="$1"; shift
   local url="$1"; shift
   local data="${1-}"
+
   if [[ -n "${data}" ]]; then
-    curl -sfS -H "x-api-key: ${KEY}" -H "content-type: application/json" -X "${method}" -d "${data}" "${url}"
+    curl -sS -H "x-api-key: ${KEY}" -H "content-type: application/json" \
+         -X "${method}" -d "${data}" "${url}" \
+         -w "\n%{http_code}" || true
   else
-    curl -sfS -H "x-api-key: ${KEY}" -X "${method}" "${url}"
+    curl -sS -H "x-api-key: ${KEY}" \
+         -X "${method}" "${url}" \
+         -w "\n%{http_code}" || true
   fi
 }
 
 say "=== 🧪 smoke_jobs ==="
 say "API=${API}"
+echo
 
-# 1) simular-cortes
-r1="$(curl_json POST "${API}/jobs/simular-cortes" '{}')"
-echo "${r1}" | jq -e 'type=="object"' >/dev/null
+echo "-- POST /jobs/simular-cortes"
+resp_and_code="$(curl_json_status POST "${API}/jobs/simular-cortes" '{}')"
+http_body="$(sed '$d' <<<"${resp_and_code}")"
+http_code="$(tail -n1 <<<"${resp_and_code}")"
+echo "${http_body}"
+echo "HTTP status: ${http_code}"
+echo "== recent api logs (${SINCE}) =="
+docker compose --env-file ./.env logs --since "${SINCE}" api || true
+echo "== end logs ==\\n"
+echo
 
-# 2) simular-reconexiones
-r2="$(curl_json POST "${API}/jobs/simular-reconexiones" '{}')"
-echo "${r2}" | jq -e 'type=="object"' >/dev/null
+echo "-- POST /jobs/simular-reconexiones"
+resp_and_code="$(curl_json_status POST "${API}/jobs/simular-reconexiones" '{}')"
+http_body="$(sed '$d' <<<"${resp_and_code}")"
+http_code="$(tail -n1 <<<"${resp_and_code}")"
+echo "${http_body}"
+echo "HTTP status: ${http_code}"
+echo "== recent api logs (${SINCE}) =="
+docker compose --env-file ./.env logs --since "${SINCE}" api || true
+echo "== end logs ==\\n"
 
-say "✅ smoke_jobs OK"
+echo "✅ smoke_jobs finalizado (si ves >=400 arriba, ya tienes el JSON de error y el tramo de logs)."

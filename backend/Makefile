@@ -68,3 +68,11 @@ smoke-clean:
 .PHONY: ci-smoke
 ci-smoke: up db-migrate
 	bash script/smoke_all.sh
+
+.PHONY: smoke-inv
+smoke-inv:
+	API_BASE=http://localhost:3000 ./script/smoke_inventario_min.sh
+
+.PHONY: smoke-inv-stress
+smoke-inv-stress:
+	RUN_STRESS=1 API_BASE=http://localhost:3000 ./script/smoke_inventario_min.sh

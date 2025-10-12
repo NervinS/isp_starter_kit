@@ -13,6 +13,7 @@ import {
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { InventarioService, MovimientoInput } from './inventario.service';
 import { AjusteStockDto } from './dto/ajuste-stock.dto';
+import { TransferirMovDto } from './dto/transferir-mov.dto';
 
 @ApiTags('Inventario')
 // ⚠️ IMPORTANTE: sin /v1 aquí. El /v1 lo pone el globalPrefix en main.ts
@@ -59,6 +60,24 @@ export class InventarioController {
         throw new ConflictException({ message: e.message, code: 'INSUFFICIENT_STOCK' });
       }
       throw new BadRequestException(e?.message ?? 'Error al crear movimiento');
+    }
+  }
+
+  // ---------- Transferir (idempotente por body.idempotencyKey) ----------
+  @Post('transferir')
+  @ApiOperation({
+    summary: 'Transferir stock entre almacenes (CENTRAL -> TEC-x o cualquier par)',
+    description:
+      'Idempotente via `idempotencyKey` en el cuerpo. Aplica egreso+ingreso atómicos y persiste el par en inventario_mov_idem.',
+  })
+  async transferir(@Body() dto: TransferirMovDto) {
+    try {
+      return await this.inv.transferir(dto);
+    } catch (e: any) {
+      if (typeof e?.message === 'string' && /saldo insuficiente/i.test(e.message)) {
+        throw new ConflictException({ message: e.message, code: 'INSUFFICIENT_STOCK' });
+      }
+      throw new BadRequestException(e?.message ?? 'Error al transferir');
     }
   }
 

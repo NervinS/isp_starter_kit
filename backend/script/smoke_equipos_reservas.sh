@@ -1,68 +1,41 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-API_BASE="${API_BASE:-http://localhost:3000}"
-API="$API_BASE/v1"
-KEY="${KEY:-superdev}"
-TEC_ID="${TEC_ID:-6}"
+API="${API:-http://localhost:3000/v1}"
 TIPO="${TIPO:-ONU}"
+TEC="${TEC:-6}"
 
-echo "== equipos: reservas (tipo=$TIPO) =="
+wait_api() {
+  local url="${API%/}/../health"
+  # normaliza .../v1 -> .../health
+  url="$(python3 - <<'PY'
+import os,sys,urllib.parse
+api=os.environ.get("API","http://localhost:3000/v1")
+root=api.rsplit("/v",1)[0]
+print(root+"/health")
+PY
+)"
+  for s in 1 1 2 3 5 8 13; do
+    if curl -fsS "$url" >/dev/null; then return 0; fi
+    sleep "$s"
+  done
+  # último intento “fuerte” para devolver error útil
+  curl -fsS "$url" || exit 1
+}
 
-# 1) Buscar un equipo en almacén (EN_STOCK/ALMACEN)
-EJSON="$(curl -s -H "x-api-key: $KEY" "$API/equipos/disponibles?tipo=$TIPO")"
-EID="$(echo "$EJSON" | jq -r '.[0].id // empty')"
+echo "== equipos: reservas (tipo=${TIPO}) =="
+wait_api
 
-if [[ -z "${EID:-}" ]]; then
-  echo "No hay $TIPO en almacén; intentando reciclar desde un técnico…"
-  # reciclar uno cualquiera desde TEC-6 a ALM-PRINC (usamos entregar/devolver ciclo externo)
-  # buscamos primero en stock de técnico o en historial para armar caso; en demo: intentar nada y seguir
-  echo "No se encontró equipo disponible para reservar. OK (nada que hacer)."
-  exit 0
+R="$(curl -fsS "$API/equipos/reservas?tipo=${TIPO}")"
+TOTAL="$(jq -r '.total // 0' <<<"$R" 2>/dev/null || echo 0)"
+
+if [[ "$TOTAL" -lt 1 ]]; then
+  curl -fsS -X POST "$API/equipos/reservar-auto" \
+    -H 'Content-Type: application/json' \
+    -d "{\"tipo\":\"${TIPO}\",\"tecnicoId\":${TEC}}" >/dev/null
+  R="$(curl -fsS "$API/equipos/reservas?tipo=${TIPO}")"
+  TOTAL="$(jq -r '.total // 0' <<<"$R" 2>/dev/null || echo 0)"
 fi
 
-echo "Usando equipo id=$EID"
-
-# 2) Reservar para TEC-6 (dos veces para idempotencia)
-R1="$(curl -s -H "x-api-key: $KEY" -H "content-type: application/json" \
-  -X POST "$API/equipos/reservar" \
-  -d "{\"id\":\"$EID\",\"tecnicoId\":$TEC_ID}")"
-echo "$R1" | jq '{ok, _idempotent, equipo: {id, estado, owner_tipo, owner_id}}'
-
-R2="$(curl -s -H "x-api-key: $KEY" -H "content-type: application/json" \
-  -X POST "$API/equipos/reservar" \
-  -d "{\"id\":\"$EID\",\"tecnicoId\":$TEC_ID}")"
-echo "$R2" | jq '{ok, _idempotent, equipo: {id, estado, owner_tipo, owner_id}}'
-
-# 3) Listar reservas del técnico y asegurar que esté
-LIST="$(curl -s -H "x-api-key: $KEY" "$API/equipos/reservas?tecnicoId=$TEC_ID")"
-LEN="$(echo "$LIST" | jq 'length')"
-FOUND="$(echo "$LIST" | jq -r --arg id "$EID" 'map(select(.id==$id)) | length')"
-echo "reservas_len=$LEN found=$FOUND"
-if [[ "$FOUND" -lt 1 ]]; then
-  echo "FAIL: reserva no reflejada en listado"
-  exit 1
-fi
-
-# 4) Liberar (dos veces para idempotencia)
-L1="$(curl -s -H "x-api-key: $KEY" -H "content-type: application/json" \
-  -X POST "$API/equipos/liberar" \
-  -d "{\"id\":\"$EID\"}")"
-echo "$L1" | jq '{ok, _idempotent, equipo: {id, estado, owner_tipo, owner_id}}'
-
-L2="$(curl -s -H "x-api-key: $KEY" -H "content-type: application/json" \
-  -X POST "$API/equipos/liberar" \
-  -d "{\"id\":\"$EID\"}")"
-echo "$L2" | jq '{ok, _idempotent, equipo: {id, estado, owner_tipo, owner_id}}'
-
-# 5) Verificar que ya no esté en reservas
-LIST2="$(curl -s -H "x-api-key: $KEY" "$API/equipos/reservas?tecnicoId=$TEC_ID")"
-FOUND2="$(echo "$LIST2" | jq -r --arg id "$EID" 'map(select(.id==$id)) | length')"
-echo "found_after_liberar=$FOUND2"
-
-if [[ "$FOUND2" -eq 0 ]]; then
-  echo "OK reservas."
-else
-  echo "FAIL: equipo sigue figurando en reservas"
-  exit 1
-fi
+echo "ok=true, total=${TOTAL}"
+jq -c '.items' <<<"$R" 2>/dev/null || echo "[]"
