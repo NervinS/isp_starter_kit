@@ -75,10 +75,12 @@ ALL_SCRIPTS=(
   "smoke_agenda.sh"
   "smoke_agenda_verbose.sh"
   "smoke_ventas_ins.sh"
+  "smoke_ordenes_transversal.sh"
+  "smoke_jobs.sh"
   "smoke_ins_equipos_cierre.sh"
+  "smoke_ordenes_all_types.sh"
 
   # Utilitarios / soporte
-  "smoke_jobs.sh"
   "smoke_pdf.sh"
   "smoke_metrics.sh"
 

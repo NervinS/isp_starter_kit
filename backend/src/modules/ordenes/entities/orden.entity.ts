@@ -1,25 +1,36 @@
 // src/modules/ordenes/entities/orden.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column, Index } from 'typeorm';
 
+const numericToNumber = {
+  to: (value?: number | null) => value,
+  from: (value?: string | null) =>
+    value === null || value === undefined ? null : Number(value),
+} as const;
+
 @Entity({ name: 'ordenes' })
 export class Orden {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
+  // En DB ya existe índice único (ordenes_codigo_uk)
   @Index({ unique: true })
   @Column({ type: 'text', name: 'codigo' })
   codigo!: string;
 
   @Index()
   @Column({ type: 'text', name: 'tipo' })
-  tipo!: 'INS'|'MAN'|'COR'|'REC'|'BAJ'|'TRA'|'CMB'|'RCT';
+  // 'INS'|'MAN'|'COR'|'REC'|'BAJ'|'TRA'|'CMB'|'RCT'
+  tipo!: string;
 
   @Index()
   @Column({ type: 'text', name: 'estado' })
-  estado!: string; // 'creada'|'agendada'|'en_proceso'|'cerrada'|'anulada'...
+  // 'creada'|'agendada'|'en_proceso'|'cerrada'|'anulada'|...
+  estado!: string;
 
-  @Column({ type: 'date', name: 'agendado_para', nullable: true })
-  agendadoPara!: string | null;
+  // Índice en DB: idx_ordenes_agendado_para (timestamptz)
+  @Index()
+  @Column({ type: 'timestamptz', name: 'agendado_para', nullable: true })
+  agendadoPara!: Date | null;
 
   @Column({ type: 'text', name: 'turno', nullable: true })
   turno!: string | null;
@@ -36,6 +47,23 @@ export class Orden {
   @Column({ type: 'timestamptz', name: 'cancelada_at', nullable: true })
   canceladaAt!: Date | null;
 
+  // Money-like en DB (numeric). Usamos transformer para exponer number.
+  @Column({
+    type: 'numeric',
+    name: 'subtotal',
+    default: 0,
+    transformer: numericToNumber,
+  })
+  subtotal!: number;
+
+  @Column({
+    type: 'numeric',
+    name: 'total',
+    default: 0,
+    transformer: numericToNumber,
+  })
+  total!: number;
+
   @Column({ type: 'timestamptz', name: 'created_at', default: () => 'now()' })
   createdAt!: Date;
 
@@ -45,22 +73,27 @@ export class Orden {
   @Column({ type: 'text', name: 'motivo_cancelacion', nullable: true })
   motivoCancelacion!: string | null;
 
-  @Column({ type: 'uuid', name: 'usuario_id', nullable: true })
-  usuarioId!: string | null;
-
-  @Column({ type: 'uuid', name: 'tecnico_id', nullable: true })
-  tecnicoId!: string | null;
-
-  @Column({ type: 'uuid', name: 'venta_id', nullable: true })
-  ventaId!: string | null;
-
   @Column({ type: 'text', name: 'motivo_anulacion', nullable: true })
   motivoAnulacion!: string | null;
 
   @Column({ type: 'int', name: 'motivo_anulacion_id', nullable: true })
   motivoAnulacionId!: number | null;
 
-  // Nuevos (ya migrados)
+  // Índice en DB: idx_ordenes_usuario
+  @Index()
+  @Column({ type: 'uuid', name: 'usuario_id', nullable: true })
+  usuarioId!: string | null;
+
+  // En DB es integer
+  @Column({ type: 'int', name: 'tecnico_id', nullable: true })
+  tecnicoId!: number | null;
+
+  // Índice en DB: idx_ordenes_venta
+  @Index()
+  @Column({ type: 'uuid', name: 'venta_id', nullable: true })
+  ventaId!: string | null;
+
+  // Campos JSON
   @Column({ type: 'jsonb', name: 'payload_abierto', nullable: true })
   payloadAbierto!: Record<string, unknown> | null;
 
@@ -70,6 +103,7 @@ export class Orden {
   @Column({ type: 'jsonb', name: 'evidencias', nullable: true })
   evidencias!: Record<string, unknown> | null;
 
+  // Archivos
   @Column({ type: 'text', name: 'pdf_url', nullable: true })
   pdfUrl!: string | null;
 

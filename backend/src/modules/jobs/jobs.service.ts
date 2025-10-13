@@ -11,7 +11,12 @@ export class JobsService {
   async simular(tipo: TipoSim, fechaISO?: string) {
     const fecha = fechaISO ? new Date(fechaISO) : new Date();
 
-    // Si usuarios.id es integer en tu DB, tipa como number
+    // 1) Asegurar secuencia (idempotente)
+    await this.ds.query(`
+      CREATE SEQUENCE IF NOT EXISTS public.ordenes_codigo_seq;
+    `);
+
+    // 2) Tomamos algunos usuarios como muestra
     const usuarios: Array<{ id: number }> = await this.ds.query(
       `SELECT id FROM usuarios ORDER BY id LIMIT 5`,
     );
@@ -20,38 +25,51 @@ export class JobsService {
 
     for (const u of usuarios) {
       const r = await this.ds.transaction('READ COMMITTED', async (em) => {
-        const code = `${tipo}-${Math.floor(Date.now() / 1000)}`;
-
-        // ⚠️ No seteamos "id"; lo genera la DB (serial/identity)
+        // Generar el código **en SQL** usando la secuencia, evitando condiciones de carrera
         const [ins] = await em.query(
-          `INSERT INTO ordenes (
-             codigo, estado, tecnico_id, tipo, subtotal, total, usuario_id, created_at, updated_at
-           )
-           VALUES (
-             $1, 'agendada', NULL, $2, 0, 0, $3, now(), now()
-           )
-           RETURNING id, codigo`,
-          [code, tipo, u.id],
+          `
+          INSERT INTO ordenes (
+            codigo, estado, tecnico_id,  tipo, subtotal, total, usuario_id, created_at, updated_at
+          )
+          VALUES (
+            ($1 || '-' || to_char(nextval('public.ordenes_codigo_seq'), 'FM000000')),
+            'agendada',
+            NULL,
+            $1,
+            0,
+            0,
+            $2,
+            NOW(),
+            NOW()
+          )
+          RETURNING id, codigo
+          `,
+          [tipo, u.id],
         );
 
         // Cerrar inmediatamente la orden creada
         await em.query(
-          `UPDATE ordenes
-             SET cerrada_at = NOW(), estado = 'cerrada'
-           WHERE id = $1 AND cerrada_at IS NULL`,
+          `
+          UPDATE ordenes
+             SET cerrada_at = NOW(),
+                 estado     = 'cerrada',
+                 updated_at = NOW()
+           WHERE id = $1
+             AND cerrada_at IS NULL
+          `,
           [ins.id],
         );
 
-        // Cambiar estado del usuario según el tipo
-        const nuevo =
+        // Ajustar estado del usuario según el tipo simulado
+        const nuevoEstado =
           tipo === 'COR' ? 'desconectado'
           : tipo === 'REC' ? 'instalado'
           : null;
 
-        if (nuevo) {
+        if (nuevoEstado) {
           await em.query(
-            `UPDATE usuarios SET estado = $2 WHERE id = $1`,
-            [u.id, nuevo],
+            `UPDATE usuarios SET estado = $2, updated_at = NOW() WHERE id = $1`,
+            [u.id, nuevoEstado],
           );
         }
 

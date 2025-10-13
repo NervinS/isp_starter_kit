@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# script/smoke_ventas_ins.sh
 set -euo pipefail
 
 API="${API:-http://localhost:3000}"
@@ -111,13 +112,21 @@ if [ "${INS_ESTADO:-}" = "cerrada" ] || [ "$(echo "$A2" | jq -r '.estado // empt
   exit 0
 fi
 
-# 8) Si NO está cerrada, reagendar (verde cuando aplica)
+# 8) Si NO está cerrada, reagendar (tolerante a 500 en motivos)
 banner "Consultar motivos de reagenda (GET /v1/catalogos/motivos-reagenda)"
-MOT=$(req GET "$V1/catalogos/motivos-reagenda" | json)
-echo "$MOT" | jq .
-MOT_ID=$(echo "$MOT" | jq -r '.items[0].id // empty')
+MOT_RESP="$(curl -sS -w '\n%{http_code}' "$V1/catalogos/motivos-reagenda")"
+MOT_STATUS="${MOT_RESP##*$'\n'}"
+MOT_BODY="${MOT_RESP%$'\n'$MOT_STATUS}"
+
+MOT_ID=""
+if [[ "$MOT_STATUS" == "200" ]]; then
+  echo "$MOT_BODY" | jq .
+  MOT_ID="$(echo "$MOT_BODY" | jq -r '.items[0].id // empty')"
+else
+  echo "↷ SKIP motivos: status $MOT_STATUS (usaré motivoId=null)."
+fi
+
 if [ -z "$MOT_ID" ] || [ "$MOT_ID" = "null" ]; then
-  echo "No hay motivos, continuaré sin motivoId (null)."
   MOT_FIELD='"motivoId": null'
 else
   MOT_FIELD='"motivoId": '"$MOT_ID"
