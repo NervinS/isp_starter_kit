@@ -2,3 +2,5 @@
 # Diagnostics / bundles
 backend/project_diagnostics_*.tar.gz
 backend/project_diagnostics_*/ 
+dist/
+logs/

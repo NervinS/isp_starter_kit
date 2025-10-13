@@ -22,3 +22,8 @@ tmp/
 *.swp
 
 # backups localesackend/src/modules/agenda/agenda.service.ts.bak.*
+
+# build outputs
+dist/
+# smoke logs
+logs/
