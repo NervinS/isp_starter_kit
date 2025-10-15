@@ -1,83 +1,69 @@
-name: ci
+name: CI
 
 on:
   push:
-    branches: [ "main" ]
-    tags:     [ "v*" ]
-  workflow_dispatch:
+    branches: [ main ]
+  pull_request:
 
 jobs:
-  test:
-    runs-on: ubuntu-24.04
+  test-smokes:
+    runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:14-alpine
-        env:
-          POSTGRES_USER: ispuser
-          POSTGRES_PASSWORD: isppass
-          POSTGRES_DB: ispdb
-        ports:
-          - "5432:5432"
-        # healthcheck similar al de los logs
-        options: >-
-          --health-cmd="pg_isready -U ispuser -d ispdb -h 127.0.0.1"
-          --health-interval=5s
-          --health-timeout=5s
-          --health-retries=20
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-          cache-dependency-path: backend/package-lock.json
-
-      - name: Install psql client
+      - name: Prepare .env (si falta)
+        working-directory: backend
         run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client
+          if [ ! -f .env ] && [ -f .env.example ]; then cp .env.example .env; fi
 
-      - name: Wait for Postgres
-        env:
-          PGPASSWORD: isppass
-        shell: bash
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & up stack (docker compose)
+        working-directory: backend
         run: |
-          set -euo pipefail
-          for i in {1..60}; do
-            pg_isready -h 127.0.0.1 -U ispuser -d ispdb && break
-            sleep 1
+          docker compose pull || true
+          docker compose up -d --build
+          echo "⌛ Esperando API health..."
+          for i in {1..40}; do
+            if curl -fsS http://localhost:3000/health >/dev/null 2>&1; then
+              echo "✅ API OK"; break
+            fi
+            sleep 2
           done
-          psql -h 127.0.0.1 -U ispuser -d ispdb -c "SELECT version();"
+          curl -fsS http://localhost:3000/health
 
-      # ===== MIGRACIONES EN ORDEN =====
-      - name: Apply inventory migrations (ordered)
+      - name: Run smoke_all.sh
+        working-directory: backend
         env:
-          PGPASSWORD: isppass
-        shell: bash
+          CONTINUE_ON_FAIL: "0"
         run: |
-          set -euo pipefail
-          psql -h 127.0.0.1 -U ispuser -d ispdb -v ON_ERROR_STOP=1 -f backend/script/migration_20251002_inventario_core.sql
-          psql -h 127.0.0.1 -U ispuser -d ispdb -v ON_ERROR_STOP=1 -f backend/script/migration_20251002_stock_almacen_timestamps.sql
-          psql -h 127.0.0.1 -U ispuser -d ispdb -v ON_ERROR_STOP=1 -f backend/script/migration_20251002_movimientos_tipo_traslado.sql
-          psql -h 127.0.0.1 -U ispuser -d ispdb -v ON_ERROR_STOP=1 -f backend/script/migration_20251002_inventario_funcs_force.sql
-          psql -h 127.0.0.1 -U ispuser -d ispdb -v ON_ERROR_STOP=1 -f backend/script/migration_20251002_inventario_funcs.sql
-          # Guardrail: no permitir saldos negativos (debe correr antes de la vista kardex)
-          psql -h 127.0.0.1 -U ispuser -d ispdb -v ON_ERROR_STOP=1 -f backend/script/migration_20251002_guardrail_stock_nonnegative.sql
-          # Vista kardex depende de movimientos y (opcionalmente) del guardrail
-          psql -h 127.0.0.1 -U ispuser -d ispdb -v ON_ERROR_STOP=1 -f backend/script/migration_20251002_kardex_view.sql
+          chmod +x script/*.sh || true
+          ./script/smoke_all.sh
 
-      # (Opcional) instala dependencias backend y corre smokes si los tienes
-      # - name: Backend install
-      #   working-directory: backend
-      #   run: npm ci
-      #
-      # - name: Smoke tests
-      #   working-directory: backend
-      #   env:
-      #     DATABASE_URL: postgres://ispuser:isppass@127.0.0.1:5432/ispdb
-      #   run: npm run smoke
+      - name: Upload smoke logs (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-logs
+          path: backend/logs/**
+
+      - name: Dump compose logs on failure
+        if: failure()
+        working-directory: backend
+        run: |
+          docker compose ps
+          docker compose logs --no-color > compose.logs.txt || true
+          echo "::group::compose.logs"
+          tail -n 800 compose.logs.txt || true
+          echo "::endgroup::"
+
+      - name: Teardown
+        if: always()
+        working-directory: backend
+        run: docker compose down -v
