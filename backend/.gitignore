@@ -14,3 +14,4 @@ project_diagnostics_*/
 script/project_diagnostics_*/
 *.bak.*
 frontend/app/api/bk/
+src/types/
