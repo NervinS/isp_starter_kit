@@ -8,3 +8,9 @@ logs/
 # Local diag dumps
 project_diagnostics_*/
 script/project_diagnostics_*/
+
+# === local diagnostics & backups ===
+project_diagnostics_*/
+script/project_diagnostics_*/
+*.bak.*
+frontend/app/api/bk/
