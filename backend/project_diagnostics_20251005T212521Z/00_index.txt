@@ -1,5 +1,0 @@
-== Repo & árbol ==
-== Docker ==
-== Entorno y .env ==
-== Backend – archivos clave ==
-== Base de datos – catálogo y tamaños ==

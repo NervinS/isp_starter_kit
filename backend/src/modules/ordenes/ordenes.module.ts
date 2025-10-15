@@ -14,6 +14,7 @@ import { OrdenesTransversalController } from './ordenes.transversal.controller';
 import { OrdenesService } from './ordenes.service';
 import { IdempotenciaService } from './services/idempotencia.service';
 import { OrdenesTransversalService } from './ordenes.transversal.service';
+import { PdfModule } from '../pdf/pdf.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { OrdenesTransversalService } from './ordenes.transversal.service';
       OrdenMaterial,
       OrdenCierreIdem, // idempotencia/auditoría
     ]),
+    PdfModule,
   ],
   controllers: [
     // 👇 sólo exponemos el controlador transversal para evitar colisiones con el legado
@@ -33,7 +35,10 @@ import { OrdenesTransversalService } from './ordenes.transversal.service';
     OrdenesTransversalService,   // servicio nuevo
   ],
   exports: [
+    // Exportamos servicios que podrían ser usados por otros módulos (sin romper compat)
     IdempotenciaService,
+    OrdenesService,
+    TypeOrmModule, // export útil si otro módulo importa este y requiere las entidades
   ],
 })
 export class OrdenesModule {}

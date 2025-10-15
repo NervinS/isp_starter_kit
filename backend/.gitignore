@@ -4,3 +4,7 @@ backend/project_diagnostics_*.tar.gz
 backend/project_diagnostics_*/ 
 dist/
 logs/
+
+# Local diag dumps
+project_diagnostics_*/
+script/project_diagnostics_*/

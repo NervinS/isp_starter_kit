@@ -89,12 +89,15 @@ services:
       MINIO_PORT: "9000"
       MINIO_USE_SSL: "false"
       MINIO_BUCKET: "evidencias"
+      # Ajusta a tu IP LAN si quieres URLs públicas accesibles desde otros equipos
       MINIO_PUBLIC_BASE: "http://192.168.1.140:9000/evidencias/"
 
       PDF_FORCE_PUBLIC_URL: "true"
 
       API_KEY: "superdev"
       NODE_ENV: "development"
+      # Activa Swagger UI y JSON (/v1/docs y /v1/docs-json)
+      DOCS_ENABLED: "1"
     ports:
       - "3000:3000"
     restart: unless-stopped
@@ -119,11 +122,7 @@ services:
       DATABASE_URL: "postgresql://ispuser:isppass@db:5432/ispdb"
       NODE_ENV: "development"
     command: >
-      sh -lc '
-        set -e
-        npx ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js
-        -d src/database/data-source.ts migration:run
-      '
+      sh -lc 'set -e; npx ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js -d src/database/data-source.ts migration:run'
     restart: "no"
 
 volumes:

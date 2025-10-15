@@ -23,14 +23,253 @@ type CierreIn = {
 export class OrdenesService {
   constructor(private readonly ds: DataSource) {}
 
-  /**
-   * Cierre administrativo/idempotente por CÓDIGO.
-   * - Idempotencia de cierre: si ya estaba cerrada => _idempotent=true.
-   * - Idempotencia por ACCIÓN de equipo (asignar/retirar/mantener):
-   *     ON CONFLICT (orden_id, equipo_tipo, serial, accion) DO NOTHING
-   *     y sólo ejecuta movimiento si INSERTó.
-   * - Movimientos usando firma explícita: fn_mov_simple(text, uuid, int, numeric, text).
-   */
+  // ============================================================
+  // Helpers
+  // ============================================================
+  private async getOrdenByCodigo(codigo: string) {
+    const rows = await this.ds.query(
+      `SELECT id, codigo, tipo, estado, cerrada_at, usuario_id
+         FROM public.ordenes
+        WHERE codigo=$1
+        LIMIT 1`,
+      [codigo],
+    );
+    return rows[0] ?? null;
+  }
+
+  private async getOrdenIdByCodigoOrFail(codigo: string) {
+    const o = await this.getOrdenByCodigo(codigo);
+    if (!o) {
+      throw new HttpException('Orden no existe', HttpStatus.NOT_FOUND);
+    }
+    return o;
+  }
+
+  // ============================================================
+  // Evidencias ricas
+  // ============================================================
+  async addEvidenciasRich(
+    codigo: string,
+    input: {
+      items: Array<{ kind: string; key: string; meta?: any }>;
+      mergeJson?: Record<string, any> | null;
+      firmaKey?: string | null;
+    },
+  ) {
+    const orden = await this.getOrdenIdByCodigoOrFail(codigo);
+
+    let inserted = 0;
+    if (Array.isArray(input.items) && input.items.length > 0) {
+      for (const it of input.items) {
+        const kind = String(it?.kind ?? '').trim();
+        const key = String(it?.key ?? '').trim();
+        if (!kind || !key) continue;
+
+        // idempotente por (orden_id, kind, key)
+        await this.ds.query(
+          `
+          INSERT INTO public.orden_evidencias (orden_id, kind, key, meta)
+          VALUES ($1,$2,$3, COALESCE($4,'{}'::jsonb))
+          ON CONFLICT (orden_id, kind, key) DO NOTHING
+          `,
+          [orden.id, kind, key, it?.meta ?? {}],
+        );
+        // contamos con RETURNING? para saber si insertó
+        const r = await this.ds.query(
+          `SELECT 1 FROM public.orden_evidencias WHERE orden_id=$1 AND kind=$2 AND key=$3`,
+          [orden.id, kind, key],
+        );
+        if (r?.length) inserted++; // aproximado (doble consulta) pero simple
+      }
+    }
+
+    // Merge legacy JSON evidencias + firmaKey en ordenes (compatibilidad)
+    if (input.mergeJson || input.firmaKey !== undefined) {
+      const row = await this.ds.query(
+        `SELECT evidencias, firma_key FROM public.ordenes WHERE id=$1`,
+        [orden.id],
+      );
+      const curEvid = row?.[0]?.evidencias ?? null;
+      const merged =
+        input.mergeJson && typeof input.mergeJson === 'object'
+          ? { ...(curEvid ?? {}), ...input.mergeJson }
+          : curEvid;
+
+      await this.ds.query(
+        `
+        UPDATE public.ordenes
+           SET evidencias = $2,
+               firma_key  = COALESCE($3, firma_key),
+               updated_at = now()
+         WHERE id=$1
+        `,
+        [orden.id, merged, input.firmaKey ?? null],
+      );
+    }
+
+    return { ok: true, codigo, items: inserted };
+  }
+
+  // ============================================================
+  // Cierre + snapshot (orden_cierres)
+  // ============================================================
+  async cerrarConSnapshot(
+    codigo: string,
+    input: { payload_cierre?: any; pdfKey?: string | null; idemKey?: string | null },
+  ) {
+    return this.ds.transaction('READ COMMITTED', async (em) => {
+      // 1) Lock orden
+      const [orden] = await em.query(
+        `SELECT id, codigo, tipo, estado, cerrada_at, usuario_id
+           FROM public.ordenes
+          WHERE codigo=$1
+          FOR UPDATE`,
+        [codigo],
+      );
+      if (!orden) {
+        throw new HttpException('Orden no existe', HttpStatus.NOT_FOUND);
+      }
+      if (orden.estado === 'anulada') {
+        throw new HttpException('no se puede cerrar en estado=anulada', HttpStatus.BAD_REQUEST);
+      }
+
+      // 2) Si ya hay snapshot => idempotente
+      const snapRows = await em.query(
+        `SELECT id, orden_id, tipo, payload_json, evidencias_json, pdf_key, created_at
+           FROM public.orden_cierres
+          WHERE orden_id=$1
+          LIMIT 1`,
+        [orden.id],
+      );
+      if (snapRows.length) {
+        return {
+          ok: true,
+          _idempotent: true,
+          codigo: orden.codigo,
+          estado: 'cerrada',
+          cerradaAt: orden.cerrada_at ?? new Date().toISOString(),
+          cierre: {
+            tipo: snapRows[0].tipo,
+            pdfKey: snapRows[0].pdf_key ?? null,
+            createdAt: snapRows[0].created_at,
+          },
+        };
+      }
+
+      // 3) Recolectar evidencias ricas
+      const evidRows = await em.query(
+        `SELECT kind, key, meta, created_at
+           FROM public.orden_evidencias
+          WHERE orden_id=$1
+          ORDER BY created_at ASC`,
+        [orden.id],
+      );
+      const evidencias_json = evidRows.map((r: any) => ({
+        kind: r.kind,
+        key: r.key,
+        meta: r.meta ?? {},
+        created_at: r.created_at,
+      }));
+
+      // 4) Payload de cierre (si no vino, objeto vacío)
+      const payload_json = input?.payload_cierre ?? {};
+
+      // 5) Insert snapshot
+      await em.query(
+        `
+        INSERT INTO public.orden_cierres
+          (orden_id, tipo, payload_json, evidencias_json, pdf_key)
+        VALUES ($1,       $2,   $3,            $4,              $5)
+        ON CONFLICT (orden_id) DO NOTHING
+        `,
+        [orden.id, orden.tipo, payload_json, evidencias_json, input?.pdfKey ?? null],
+      );
+
+      // 6) Marcar orden cerrada (si no lo estaba)
+      if (!orden.cerrada_at || orden.estado !== 'cerrada') {
+        await em.query(
+          `UPDATE public.ordenes
+              SET estado='cerrada',
+                  cerrada_at=COALESCE(cerrada_at, now()),
+                  payload_cierre=COALESCE(payload_cierre, $2),
+                  updated_at=now()
+            WHERE id=$1`,
+          [orden.id, payload_json],
+        );
+      }
+
+      // 7) Efectos en usuario (misma lógica que tenías)
+      if (orden.usuario_id) {
+        if (['INS', 'REC', 'COR', 'BAJ'].includes(orden.tipo)) {
+          await em.query(
+            `UPDATE public.usuarios u
+                SET estado = CASE $2
+                               WHEN 'INS' THEN 'instalado'
+                               WHEN 'REC' THEN 'instalado'
+                               WHEN 'COR' THEN 'desconectado'
+                               WHEN 'BAJ' THEN 'terminado'
+                               ELSE u.estado
+                             END,
+                    updated_at = now()
+              WHERE u.id=$1`,
+            [orden.usuario_id, orden.tipo],
+          );
+        }
+      }
+
+      // 8) Leer snapshot recién creado
+      const [snap] = await em.query(
+        `SELECT tipo, pdf_key, created_at
+           FROM public.orden_cierres
+          WHERE orden_id=$1`,
+        [orden.id],
+      );
+
+      return {
+        ok: true,
+        _idempotent: false,
+        codigo: orden.codigo,
+        estado: 'cerrada',
+        cerradaAt: new Date().toISOString(),
+        cierre: {
+          tipo: snap?.tipo ?? orden.tipo,
+          pdfKey: snap?.pdf_key ?? null,
+          createdAt: snap?.created_at ?? null,
+        },
+      };
+    });
+  }
+
+  async getCierre(codigo: string) {
+    const orden = await this.getOrdenByCodigo(codigo);
+    if (!orden) return null;
+
+    const rows = await this.ds.query(
+      `SELECT tipo, payload_json, evidencias_json, pdf_key, version, cerrado_por, created_at
+         FROM public.orden_cierres
+        WHERE orden_id=$1
+        LIMIT 1`,
+      [orden.id],
+    );
+    if (!rows.length) return null;
+
+    const c = rows[0];
+    return {
+      ok: true,
+      codigo: orden.codigo,
+      tipo: c.tipo,
+      payload: c.payload_json ?? {},
+      evidencias: Array.isArray(c.evidencias_json) ? c.evidencias_json : [],
+      pdfKey: c.pdf_key ?? null,
+      version: c.version ?? 1,
+      cerradoPor: c.cerrado_por ?? null,
+      createdAt: c.created_at,
+    };
+  }
+
+  // ============================================================
+  // (Se mantiene tu cierre administrativo previo por compatibilidad)
+  // ============================================================
   async cerrarCompletoAdmin(codigo: string, body: CierreIn) {
     return this.ds.transaction('READ COMMITTED', async (em) => {
       // 1) Lock de orden
@@ -62,11 +301,10 @@ export class OrdenesService {
         );
       }
 
-      // 4) Equipos (si vienen)
+      // 4) Equipos (si vienen) — lógica existente
       const equipos: EquipoIn[] = Array.isArray(body?.equipos) ? body!.equipos : [];
 
       if (equipos.length > 0) {
-        // 4.1 Resolver almacén técnico a partir de tecnicoIdNum
         if (!(typeof body?.tecnicoIdNum === 'number' && Number.isFinite(body.tecnicoIdNum))) {
           throw new HttpException(
             'tecnicoIdNum es requerido cuando se envían equipos',
@@ -86,7 +324,6 @@ export class OrdenesService {
         }
         const almacenId: string = alm.id;
 
-        // 4.2 Mapeo equipo -> material
         const catalogRows = await em.query(
           `SELECT equipo_tipo, material_id
              FROM public.catalogo_equipos_material
@@ -104,10 +341,7 @@ export class OrdenesService {
           }
         }
 
-        // 4.3 Procesar por ACCIÓN con idempotencia
         for (const e of equipos) {
-          // INSERT idempotente por (orden_id, equipo_tipo, serial, accion)
-          // Si es "mantener": no hay movimiento; marcamos aplicado=true siempre.
           if (e.accion === 'mantener') {
             await em.query(
               `
@@ -121,7 +355,6 @@ export class OrdenesService {
             continue;
           }
 
-          // Para asignar/retirar: sólo mover si INSERTó
           const inserted = await em.query(
             `
             INSERT INTO public.orden_equipos (orden_id, equipo_tipo, serial, accion, aplicado)
@@ -135,27 +368,21 @@ export class OrdenesService {
           if (inserted.length) {
             const materialId = cat[e.equipo_tipo];
             const nota = `[orden ${orden.codigo}] ${e.accion} ${e.equipo_tipo} ${e.serial}`;
-
-            // Tipo de movimiento
             const tipoMov = e.accion === 'asignar' ? 'egreso' : 'ingreso';
 
-            // Llama a la firma explícita: (text, uuid, int, numeric, text)
             await em.query(
               `SELECT public.fn_mov_simple($1::text, $2::uuid, $3::int, $4::numeric, $5::text)`,
               [tipoMov, almacenId, materialId, 1, nota],
             );
 
-            // Marca aplicado
             await em.query(
               `UPDATE public.orden_equipos SET aplicado=true WHERE id=$1`,
               [inserted[0].id],
             );
           }
-          // Si no insertó, ya existía => idempotente por acción => no mueve.
         }
       }
 
-      // 5) Marcar orden cerrada
       await em.query(
         `UPDATE public.ordenes
             SET estado='cerrada',
@@ -164,7 +391,6 @@ export class OrdenesService {
         [orden.id],
       );
 
-      // 6) Efectos en usuario según tipo (mantengo la misma lógica que tenías)
       if (orden.usuario_id) {
         if (['INS', 'REC', 'COR', 'BAJ'].includes(orden.tipo)) {
           await em.query(
@@ -181,15 +407,8 @@ export class OrdenesService {
             [orden.usuario_id, orden.tipo],
           );
         }
-        if (orden.tipo === 'REC') {
-          // Placeholder por si manejas estado físico aparte:
-          // await em.query(`UPDATE public.usuarios SET estado_conexion='conectado', updated_at=now() WHERE id=$1`, [orden.usuario_id]);
-        }
       }
 
-      // 7) (Opcional) Generar PDF según tu servicio (no-op aquí)
-
-      // 8) Respuesta
       const [after] = await em.query(
         `SELECT codigo, estado, cerrada_at, pdf_url FROM public.ordenes WHERE id=$1`,
         [orden.id],
@@ -206,10 +425,7 @@ export class OrdenesService {
     });
   }
 
-  /**
-   * Guardado incremental (autosave) para payload_abierto/evidencias.
-   * No cambia estado. Devuelve updatedAt.
-   */
+  // Guardado incremental (autosave) para payload_abierto/evidencias.
   async guardarParcial(
     codigo: string,
     patch: Partial<{ payload_abierto: any; evidencias: any }>,
@@ -219,7 +435,8 @@ export class OrdenesService {
         `SELECT id, payload_abierto, evidencias FROM public.ordenes WHERE codigo=$1 FOR UPDATE`,
         [codigo],
       );
-      if (!orden) throw new HttpException('Orden no existe', HttpStatus.NOT_FOUND);
+      if (!orden)
+        throw new HttpException('Orden no existe', HttpStatus.NOT_FOUND);
 
       const mergedAbierto = patch.payload_abierto
         ? { ...(orden.payload_abierto ?? {}), ...patch.payload_abierto }

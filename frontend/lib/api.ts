@@ -1,84 +1,33 @@
 // frontend/lib/api.ts
-//
-// Cliente ligero para el backend.
-// - Usa NEXT_PUBLIC_API_BASE si existe (ej. "/api" con rewrites o URL absoluta).
-// - Si no existe, cae por defecto a "http://127.0.0.1:3000/v1".
-//
-// Recomendado en prod: NEXT_PUBLIC_API_BASE="/api" + rewrite a tu API_BASE_SSR.
-
-export const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE && process.env.NEXT_PUBLIC_API_BASE.trim() !== ''
-    ? process.env.NEXT_PUBLIC_API_BASE
-    : 'http://127.0.0.1:3000/v1';
-
-type Metodo = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
-
-type FetchOpts = {
-  method?: Metodo;
-  json?: any;          // body en JSON
-  headers?: HeadersInit;
-  cache?: RequestCache; // por defecto: 'no-store'
-};
-
-// ---- Función base ----
-export async function api<T = any>(path: string, opts: FetchOpts = {}): Promise<T> {
-  const url = `${API_BASE}${path}`;
+export async function api<T>(path: string, init?: RequestInit): Promise<T> {
+  // llamamos al proxy del front
+  const url = `/api/bk/${path.replace(/^\/+/, "")}`;
   const res = await fetch(url, {
-    method: opts.method || 'GET',
+    ...init,
     headers: {
-      'Content-Type': 'application/json',
-      ...(opts.headers || {}),
+      "content-type": "application/json",
+      ...(init?.headers || {}),
     },
-    body: opts.json !== undefined ? JSON.stringify(opts.json) : undefined,
-    cache: opts.cache || 'no-store',
+    cache: "no-store",
   });
-
-  const text = await res.text().catch(() => '');
-  let data: any = {};
-  try {
-    data = text ? JSON.parse(text) : {};
-  } catch {
-    // Si no es JSON, lo dejamos como texto crudo en caso de error
-    data = text;
-  }
-
+  // si la respuesta no es JSON (p.ej. PDF info), intenta parsear igual
+  const text = await res.text();
   if (!res.ok) {
-    const msg =
-      (data && typeof data === 'object' && (data.message || data.error)) ||
-      (typeof data === 'string' && data) ||
-      res.statusText ||
-      `Error ${res.status}`;
-    throw new Error(`${opts.method || 'GET'} ${path} -> ${res.status}: ${msg}`);
+    throw new Error(`API ${res.status}: ${text || res.statusText}`);
   }
-
-  return (data as T);
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    // por si el backend devuelve texto plano ocasionalmente
+    return text as unknown as T;
+  }
 }
 
-// ---- Helpers compatibles con tu implementación previa ----
-export async function apiGet<T>(path: string): Promise<T> {
-  return api<T>(path, { method: 'GET' });
+// Azúcar para POST JSON
+export async function apiPost<T>(path: string, body: any, extra?: RequestInit): Promise<T> {
+  return api<T>(path, {
+    method: "POST",
+    body: JSON.stringify(body),
+    ...(extra || {}),
+  });
 }
-
-export async function apiPostJson<T>(path: string, body: any): Promise<T> {
-  return api<T>(path, { method: 'POST', json: body });
-}
-
-// ---- APIs específicas (ordenes, tecnicos, materiales) ----
-export const OrdenesAPI = {
-  listar: <T = any>() => api<T>('/ordenes'),
-  crear:  <T = any>(payload: any) => api<T>('/ordenes', { method: 'POST', json: payload }),
-  cerrar: <T = any>(codigo: string, payload: any) => api<T>(`/ordenes/${codigo}/cerrar`, { method: 'POST', json: payload }),
-  detalle:<T = any>(codigo: string) => api<T>(`/ordenes/${codigo}`),
-};
-
-export const TecnicosAPI = {
-  listar: <T = any>() => api<T>('/tecnicos'),
-  // crear/activar/desactivar si los necesitas:
-  // crear:  <T = any>(nombre: string) => api<T>('/tecnicos', { method: 'POST', json: { nombre } }),
-  // activo: <T = any>(id: string, activo: boolean) => api<T>(`/tecnicos/${id}/activo`, { method: 'PATCH', json: { activo } }),
-};
-
-export const MaterialesAPI = {
-  listar: <T = any>() => api<T>('/materiales'),
-  // crear:  <T = any>(m: { codigo: string; nombre: string; unidad?: string }) => api<T>('/materiales', { method: 'POST', json: m }),
-};

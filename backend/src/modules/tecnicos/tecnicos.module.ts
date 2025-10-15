@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { TecnicosController } from './tecnicos.controller';
+import { TecnicoOrdenesController } from './tecnico.ordenes.controller';
 import { TecnicosService } from './tecnicos.service';
 
 import { PdfModule } from '../pdf/pdf.module';
@@ -17,7 +18,7 @@ import { Tecnico } from './tecnico.entity';
     PdfModule,
     InventarioModule,
   ],
-  controllers: [TecnicosController],
+  controllers: [TecnicosController, TecnicoOrdenesController],
   providers: [TecnicosService],
   exports: [TecnicosService],
 })

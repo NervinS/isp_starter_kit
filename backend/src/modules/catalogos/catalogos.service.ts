@@ -7,6 +7,73 @@ import { CreateCatalogoItemDto, UpdateCatalogoItemDto } from './dto/catalogo-ite
 export class CatalogosService {
   constructor(private readonly dataSource: DataSource) {}
 
+  // ------------------------------------------------------------
+  // MUNICIPIOS / VÍAS (público)
+  // Acepta { q, activos } o (q, activos) para compatibilidad
+  // ------------------------------------------------------------
+
+  async listarMunicipios(
+    arg?: { q?: string; activos?: boolean } | string,
+    activosMaybe?: boolean,
+  ) {
+    const q =
+      typeof arg === 'string' || typeof arg === 'undefined'
+        ? arg
+        : arg?.q;
+    const activos =
+      typeof arg === 'string' || typeof arg === 'undefined'
+        ? activosMaybe
+        : arg?.activos;
+
+    const qParam = q?.trim() ? q.trim() : null;
+    const activosParam = typeof activos === 'boolean' ? activos : null;
+
+    const sql = `
+      SELECT codigo, nombre, activo
+        FROM public.municipios
+       WHERE ($1::text IS NULL
+              OR nombre ILIKE '%' || $1 || '%'
+              OR codigo ILIKE '%' || $1 || '%')
+         AND ($2::bool IS NULL OR activo = $2)
+       ORDER BY codigo ASC
+       LIMIT 200
+    `;
+    return this.dataSource.query(sql, [qParam, activosParam]);
+  }
+
+  async listarVias(
+    arg?: { q?: string; activos?: boolean } | string,
+    activosMaybe?: boolean,
+  ) {
+    const q =
+      typeof arg === 'string' || typeof arg === 'undefined'
+        ? arg
+        : arg?.q;
+    const activos =
+      typeof arg === 'string' || typeof arg === 'undefined'
+        ? activosMaybe
+        : arg?.activos;
+
+    const qParam = q?.trim() ? q.trim() : null;
+    const activosParam = typeof activos === 'boolean' ? activos : null;
+
+    const sql = `
+      SELECT codigo, nombre, activo
+        FROM public.vias
+       WHERE ($1::text IS NULL
+              OR nombre ILIKE '%' || $1 || '%'
+              OR codigo ILIKE '%' || $1 || '%')
+         AND ($2::bool IS NULL OR activo = $2)
+       ORDER BY codigo ASC
+       LIMIT 200
+    `;
+    return this.dataSource.query(sql, [qParam, activosParam]);
+  }
+
+  // ------------------------------------------------------------
+  // MOTIVOS DE REAGENDA (admin + público)
+  // ------------------------------------------------------------
+
   /** Público: lista motivos (opcional solo activos) */
   async motivosReagendaListarPublico(onlyActive = false) {
     const sql = `
