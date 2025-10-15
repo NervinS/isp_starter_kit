@@ -74,6 +74,7 @@ ALL_SCRIPTS=(
   "smoke_ordenes.sh"
   "smoke_agenda.sh"
   "smoke_agenda_verbose.sh"
+  "smoke_tecnico_orden_detalle.sh"
   "smoke_ventas_ins.sh"
   "smoke_ordenes_transversal.sh"
   "smoke_jobs.sh"
@@ -83,6 +84,8 @@ ALL_SCRIPTS=(
   # Utilitarios / soporte
   "smoke_pdf.sh"
   "smoke_metrics.sh"
+  "smoke_evidencias_cierre_snapshop.sh"
+  "smoke_ordenes_pdf.sh"
 
   # Wrapper final (si aplica)
   "run_smokes_and_logs.sh"

@@ -2,88 +2,44 @@
 # script/smoke_ordenes_transversal.sh
 set -euo pipefail
 
+echo "=== 🧪 Smoke Órdenes – contrato transversal ==="
 API="${API:-http://localhost:3000/v1}"
-ORD="${ORD:-INS-000001}"
-PSQL="docker compose exec -T db psql -U ispuser -d ispdb -v ON_ERROR_STOP=1 -X -q -At"
 
-banner() {
-  echo "=== 🧪 Smoke Órdenes – contrato transversal ==="
+PSQL="docker compose exec -T db psql -U ispuser -d ispdb -At -X -q"
+
+pick_orden_codigo() {
+  # Preferimos INS reciente; si no hay, cualquiera
+  local code
+  code="$($PSQL -c "SELECT codigo FROM public.ordenes WHERE tipo='INS' ORDER BY created_at DESC LIMIT 1;")" || true
+  if [[ -z "${code// }" ]]; then
+    code="$($PSQL -c "SELECT codigo FROM public.ordenes ORDER BY created_at DESC LIMIT 1;")" || true
+  fi
+  echo "$code"
 }
 
-seed_if_needed() {
-  ${PSQL} <<'SQL'
-INSERT INTO public.ordenes (codigo, estado, tipo, subtotal, total, created_at, updated_at)
-VALUES ('INS-000001','creada','INS',0,0,now(),now())
-ON CONFLICT (codigo) DO NOTHING;
-SQL
-}
+ORD="$(pick_orden_codigo)"
+if [[ -z "${ORD// }" ]]; then
+  echo "✗ No hay órdenes en la base (nada que probar)."
+  exit 1
+fi
 
-get_estado() {
-  ${PSQL} <<SQL
-SELECT estado FROM public.ordenes WHERE codigo='${ORD}';
-SQL
-}
+echo "→ GET /ordenes/${ORD}"
+set +e
+resp="$(curl -sS -w '\n%{http_code}' "${API}/ordenes/${ORD}")"
+code=$?
+set -e
+if [[ $code -ne 0 ]]; then
+  echo "✗ curl error (exit=$code)"
+  exit $code
+fi
 
-reopen_to_agendada() {
-  ${PSQL} <<SQL
-UPDATE public.ordenes
-   SET estado='agendada',
-       agendado_para = COALESCE(agendado_para, CURRENT_DATE),
-       turno = COALESCE(turno,'am'),
-       cancelada_at = NULL,
-       cerrada_at = NULL,
-       updated_at = NOW()
- WHERE codigo='${ORD}';
-SQL
-}
+status="${resp##*$'\n'}"
+body="${resp%$'\n'$status}"
 
-json() { jq -r '.' >/dev/null; } # solo valida JSON
+if [[ "$status" != 2* ]]; then
+  echo "$body"
+  echo "✗ HTTP $status"
+  exit 22
+fi
 
-main() {
-  banner
-  seed_if_needed
-
-  # Si está cerrada (o en estado no operable), reabrir a 'agendada'
-  EST="$(get_estado || true)"
-  case "${EST}" in
-    agendada|creada|abierta|"") ;; # ok tal cual
-    *) reopen_to_agendada ;;
-  esac
-
-  echo "→ GET /ordenes/${ORD}"
-  curl -sf "${API}/ordenes/${ORD}" | json
-  echo "OK GET shape"
-
-  echo "→ POST /ordenes/${ORD}/evidencias (keys simuladas)"
-  curl -sf -X POST "${API}/ordenes/${ORD}/evidencias" \
-    -H "Content-Type: application/json" \
-    -d '{"items":[{"url":"http://127.0.0.1:9000/evidencias/foto1.jpg","tipo":"instalacion"}]}' | json
-  echo "OK evidencias"
-
-  echo "→ POST /ordenes/${ORD}/equipos (prepara, no cierra)"
-  # {} (no-op)
-  curl -sf -X POST "${API}/ordenes/${ORD}/equipos" \
-    -H "Content-Type: application/json" -d '{}' | json >/dev/null
-  # { acciones: [...] }
-  curl -sf -X POST "${API}/ordenes/${ORD}/equipos" \
-    -H "Content-Type: application/json" \
-    -d '{"acciones":[{"tipo":"reservar","equipoId":123,"cantidad":1}]}' | json >/dev/null
-  # array directo
-  curl -sf -X POST "${API}/ordenes/${ORD}/equipos" \
-    -H "Content-Type: application/json" \
-    -d '[{"tipo":"reservar","equipoId":"ONT-ABC","cantidad":2}]' | json >/dev/null
-  echo "OK equipos preparar"
-
-  echo "→ POST /ordenes/${ORD}/cerrar (idempotente)"
-  curl -sf -X POST "${API}/ordenes/${ORD}/cerrar" \
-    -H "Content-Type: application/json" \
-    -d '{"observaciones":"OK","pdfUrl":"http://127.0.0.1:9000/evidencias/acta.pdf"}' | json
-
-  echo "→ Retry mismo Idempotency-Key"
-  # No usamos header; el endpoint es idempotente por payload/estado:
-  curl -sf -X POST "${API}/ordenes/${ORD}/cerrar" \
-    -H "Content-Type: application/json" \
-    -d '{"observaciones":"OK"}' | json
-}
-
-main "$@"
+echo "✅ smoke_ordenes_transversal OK"

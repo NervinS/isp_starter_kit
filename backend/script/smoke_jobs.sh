@@ -10,9 +10,9 @@ PSQL="docker compose exec -T db psql -U ispuser -d ispdb -v ON_ERROR_STOP=1 -X -
 
 json_ok() { jq -e . >/dev/null 2>&1 || { echo "⚠️  respuesta no es JSON válido"; return 1; }; }
 
-# --- Preflight: deduplicar códigos de órdenes de forma idempotente ---
-# Solo renombra las filas duplicadas (no toca la 1ª aparición),
-# y nunca vuelve a tocar lo ya renombrado (~old-#).
+# --- Preflight: liberar por completo los códigos base de órdenes de forma idempotente ---
+# - Renombra TODAS las filas que usen los códigos base (incluida la primera aparición).
+# - No vuelve a tocar las que ya están renombradas (~old-*).
 preflight_free_order_codes() {
   ${PSQL} <<'SQL'
 WITH base_codes AS (
@@ -22,7 +22,7 @@ WITH base_codes AS (
   ]) AS codigo
 ),
 candidatas AS (
-  -- Considera solo códigos base y que aún NO tengan sufijo ~old
+  -- Solo códigos exactos base que aún NO tengan sufijo ~old
   SELECT o.id, o.codigo
   FROM public.ordenes o
   JOIN base_codes b ON o.codigo = b.codigo
@@ -32,15 +32,11 @@ ranked AS (
   SELECT id, codigo,
          ROW_NUMBER() OVER (PARTITION BY codigo ORDER BY id) AS rn
   FROM candidatas
-),
-to_fix AS (
-  -- Solo las repeticiones (2ª, 3ª, ...) se renombran
-  SELECT id, codigo, rn FROM ranked WHERE rn > 1
 )
 UPDATE public.ordenes o
-SET codigo = o.codigo || '~old-' || t.rn::text
-FROM to_fix t
-WHERE o.id = t.id;
+   SET codigo = o.codigo || '~old-' || r.rn::text
+  FROM ranked r
+ WHERE o.id = r.id;
 SQL
 }
 

@@ -126,17 +126,28 @@ else
   echo "↷ SKIP motivos: status $MOT_STATUS (usaré motivoId=null)."
 fi
 
-if [ -z "$MOT_ID" ] || [ "$MOT_ID" = "null" ]; then
-  MOT_FIELD='"motivoId": null'
-else
-  MOT_FIELD='"motivoId": '"$MOT_ID"
-  echo "Motivo elegido: $MOT_ID"
-fi
-
 DIA="$(date -u +%F)" # YYYY-MM-DD (hoy UTC)
 banner "Re-agendar: motivoId → $DIA"
-REAG_PAYLOAD="{\"fecha\":\"$DIA\",\"turno\":\"am\",$MOT_FIELD}"
+
+# Construye el JSON con jq -n para asegurar comillas del UUID o null cuando corresponda
+REAG_PAYLOAD="$(
+  jq -n \
+    --arg fecha "$DIA" \
+    --arg turno "am" \
+    --arg motivo "${MOT_ID:-}" \
+    '{
+      fecha: $fecha,
+      turno: ($turno|ascii_downcase),
+      motivoId: (
+        if ($motivo|length) > 0 and $motivo != "null"
+        then $motivo
+        else null
+        end
+      )
+    }'
+)"
 echo "$REAG_PAYLOAD" | jq .
+
 RAG=$(curl -sS -H "Content-Type: application/json" -X POST "$V1/agenda/ordenes/$INS1/reagendar" -d "$REAG_PAYLOAD" | tee /dev/stderr)
 
 OK_AGENDA=$(echo "$RAG" | jq -r '.estado // empty')
